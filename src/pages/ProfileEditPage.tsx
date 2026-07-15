@@ -453,42 +453,34 @@ export function ProfileEditPage() {
 
   return (
     <Box>
-      <Card
-        elevation={0}
-        variant="outlined"
-        sx={{
-          borderRadius: '24px',
-          border: '1px solid rgba(143, 0, 255, 0.08)',
-          background: 'rgba(255, 255, 255, 0.95)',
-          boxShadow: '0 8px 32px rgba(31, 38, 135, 0.03)',
-        }}
-      >
-        <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
-          <Stack component="form" onSubmit={handleSaveSubmit} spacing={5}>
-            <Stack direction="row" justifyContent="flex-end" alignItems="center">
-              {!isEdit && (
-                <Button
-                  variant="outlined"
-                  startIcon={<EditIcon />}
-                  onClick={handleEditClick}
-                  sx={{
-                    borderRadius: '12px',
-                    px: 3,
-                    py: 1,
-                    fontWeight: 700,
-                    textTransform: 'none',
-                    borderColor: 'rgba(143, 0, 255, 0.25)',
-                    color: 'primary.main',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'rgba(143, 0, 255, 0.04)',
-                    },
-                  }}
-                >
-                  Edit Profile
-                </Button>
-              )}
-            </Stack>
+      <Card>
+        <CardContent sx={{ p: { xs: 2, sm: 4 }, position: 'relative' }}>
+          {!isEdit && (
+            <Button
+              variant="outlined"
+              startIcon={<EditIcon />}
+              onClick={handleEditClick}
+              sx={{
+                position: 'absolute',
+                top: { xs: 16, sm: 32 },
+                right: { xs: 16, sm: 32 },
+                borderRadius: '12px',
+                px: 3,
+                py: 1,
+                fontWeight: 700,
+                textTransform: 'none',
+                borderColor: 'rgba(143, 0, 255, 0.25)',
+                color: 'primary.main',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  bgcolor: 'rgba(143, 0, 255, 0.04)',
+                },
+              }}
+            >
+              Edit Profile
+            </Button>
+          )}
+          <Stack component="form" onSubmit={handleSaveSubmit} spacing={4}>
 
             {saveError && (
               <Alert severity="error" sx={{ borderRadius: '12px' }}>

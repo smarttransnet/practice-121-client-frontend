@@ -13,6 +13,7 @@ export function AppLayout() {
   const theme = useTheme()
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg')) // Use lg for desktop layout
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true)
   const { fetchProfile, isAuthenticated, logout } = useAuth()
 
   useEffect(() => {
@@ -41,21 +42,24 @@ export function AppLayout() {
       {/* Navigation Sidebar */}
       {isDesktop ? (
         // Floating Permanent Sidebar on Desktop
-        <Box 
-          className="glass-card"
-          sx={{ 
-            width: drawerWidth, 
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            height: 'calc(100vh - 48px)',
-            position: 'sticky',
-            top: 24,
-            overflow: 'hidden',
-          }}
-        >
-          <LeftMenu />
-        </Box>
+        desktopSidebarOpen ? (
+          <Box 
+            className="glass-card"
+            sx={{ 
+              width: drawerWidth, 
+              flexShrink: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              height: 'calc(100vh - 48px)',
+              position: 'sticky',
+              top: 24,
+              overflow: 'hidden',
+              transition: 'all 0.3s ease-in-out',
+            }}
+          >
+            <LeftMenu />
+          </Box>
+        ) : null
       ) : (
         // Temporary Drawer on Mobile
         <Drawer
@@ -81,15 +85,15 @@ export function AppLayout() {
       <Box
         component="main"
         sx={{
-          flexGrow: 1,
+          flex: 1,
+          minWidth: 0,
           display: 'flex',
           flexDirection: 'column',
           minHeight: isDesktop ? 'auto' : '100vh',
-          width: '100%',
         }}
       >
         {/* Desktop Top Bar (integrated directly at the top of content) */}
-        {isDesktop && <Header onOpenMobileMenu={() => {}} />}
+        {isDesktop && <Header onOpenMobileMenu={() => {}} onToggleSidebar={() => setDesktopSidebarOpen(!desktopSidebarOpen)} />}
 
         {/* Content Box */}
         <Box 

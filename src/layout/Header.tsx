@@ -17,10 +17,11 @@ import { ProfileDropdown } from './ProfileDropdown'
 
 type HeaderProps = {
   onOpenMobileMenu: () => void
+  onToggleSidebar?: () => void
   isMobile?: boolean
 }
 
-export function Header({ onOpenMobileMenu, isMobile = false }: HeaderProps) {
+export function Header({ onOpenMobileMenu, onToggleSidebar, isMobile = false }: HeaderProps) {
   if (isMobile) {
     // Mobile AppBar
     return (
@@ -65,27 +66,40 @@ export function Header({ onOpenMobileMenu, isMobile = false }: HeaderProps) {
         py: 1,
       }}
     >
-      {/* Search Input Bar (mockup style) */}
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          bgcolor: 'rgba(255, 255, 255, 0.5)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.6)',
-          borderRadius: '50px',
-          px: 2,
-          py: 0.75,
-          width: 320,
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
-          transition: 'all 0.25s ease',
-          '&:focus-within': {
-            bgcolor: 'rgba(255, 255, 255, 0.8)',
-            boxShadow: '0 4px 24px rgba(143, 0, 255, 0.06)',
-            width: 360,
-          }
-        }}
-      >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <IconButton 
+          onClick={onToggleSidebar} 
+          sx={{ 
+            bgcolor: 'rgba(255, 255, 255, 0.6)', 
+            border: '1px solid rgba(255, 255, 255, 0.7)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)',
+            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)', transform: 'scale(1.05)' }
+          }}
+        >
+          <MenuIcon />
+        </IconButton>
+        
+        {/* Search Input Bar (mockup style) */}
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            bgcolor: 'rgba(255, 255, 255, 0.5)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.6)',
+            borderRadius: '50px',
+            px: 2,
+            py: 0.75,
+            width: 320,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
+            transition: 'all 0.25s ease',
+            '&:focus-within': {
+              bgcolor: 'rgba(255, 255, 255, 0.8)',
+              boxShadow: '0 4px 24px rgba(143, 0, 255, 0.06)',
+              width: 360,
+            }
+          }}
+        >
         <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
         <InputBase 
           placeholder="Search..." 
@@ -102,6 +116,7 @@ export function Header({ onOpenMobileMenu, isMobile = false }: HeaderProps) {
         <IconButton size="small" sx={{ color: 'text.secondary' }}>
           <TuneOutlinedIcon sx={{ fontSize: 18 }} />
         </IconButton>
+      </Box>
       </Box>
 
       {/* Right Side: Icons and Profile */}
