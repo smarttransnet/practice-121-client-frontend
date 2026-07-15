@@ -246,7 +246,7 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
         <MenuItem onClick={() => {
           handleCloseMenu()
           if (user?.accountId) {
-            navigate(`/doctor/${user.accountId}`)
+            window.open(`/doctor/${user.accountId}`, '_blank')
           }
         }}>
           <ListItemIcon>

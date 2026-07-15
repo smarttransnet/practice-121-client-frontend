@@ -11,12 +11,7 @@ import {
 import { NavLink, useLocation } from 'react-router-dom'
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded'
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
-import MedicalServicesRoundedIcon from '@mui/icons-material/MedicalServicesRounded'
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
-import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded'
-import HistoryEduRoundedIcon from '@mui/icons-material/HistoryEduRounded'
-import PsychologyRoundedIcon from '@mui/icons-material/PsychologyRounded'
-import ExitToAppRoundedIcon from '@mui/icons-material/ExitToAppRounded'
+import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded'
 import LightbulbIcon from '@mui/icons-material/Lightbulb'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
@@ -32,14 +27,7 @@ export function LeftMenu({ onNavigate }: LeftMenuProps) {
   const menuItems = [
     { label: 'Dashboard', to: '/dashboard', icon: <DashboardRoundedIcon />, active: true },
     { label: 'Patient Cases', to: '/reports', icon: <PeopleAltRoundedIcon />, active: true },
-    { label: 'Medication Check', to: '/todos', icon: <MedicalServicesRoundedIcon />, active: true },
-    { label: 'AI Assistant', to: '/settings', icon: <AutoAwesomeRoundedIcon />, active: true },
-    { label: 'Verify Process', to: '/verify-process', icon: <AssessmentRoundedIcon />, active: true },
-    // Muted/placeholder links to match the high-fidelity screenshot
-    { label: 'Reports', to: '/disabled-reports', icon: <AssessmentRoundedIcon />, active: false },
-    { label: 'Case History', to: '/disabled-history', icon: <HistoryEduRoundedIcon />, active: false },
-    { label: 'Diagnosis', to: '/disabled-diagnosis', icon: <PsychologyRoundedIcon />, active: false },
-    { label: 'Export', to: '/disabled-export', icon: <ExitToAppRoundedIcon />, active: false },
+    { label: 'Settings', to: '/settings', icon: <SettingsRoundedIcon />, active: true },
   ]
 
   return (
