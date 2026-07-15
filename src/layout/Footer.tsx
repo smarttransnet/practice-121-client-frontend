@@ -15,7 +15,7 @@ export function Footer() {
     >
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
         <Typography variant="caption" color="text.secondary">
-          © {new Date().getFullYear()} Fleet & Inventory
+          © {new Date().getFullYear()} Practice121
         </Typography>
         <Typography variant="caption" color="text.secondary">
           v0.1

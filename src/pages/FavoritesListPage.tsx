@@ -164,13 +164,7 @@ export function FavoritesListPage() {
       {/* Data Entry Form */}
       <Card 
         className="glass-card"
-        sx={{ 
-          mb: 4,
-          borderRadius: '24px',
-          border: '1px solid rgba(255, 255, 255, 0.7)',
-          background: 'rgba(255, 255, 255, 0.45)',
-          boxShadow: '0 8px 32px rgba(31, 38, 135, 0.03)',
-        }}
+        sx={{ mb: 4 }}
       >
         <CardContent sx={{ p: 4 }}>
           <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 3 }}>
@@ -178,7 +172,7 @@ export function FavoritesListPage() {
           </Typography>
           
           <Grid container spacing={3} alignItems="flex-start">
-            <Grid size={{xs: 12, md: 5}}>
+            <Grid size={{xs: 12, lg: 5}}>
               <Autocomplete
                 freeSolo
                 options={Array.from(new Set(favorites.map(f => f.verifiedName))).sort()}
@@ -202,7 +196,7 @@ export function FavoritesListPage() {
                 )}
               />
             </Grid>
-            <Grid size={{xs: 12, md: 5}}>
+            <Grid size={{xs: 12, lg: 5}}>
               <Autocomplete
                 freeSolo
                 options={Array.from(new Set(favorites.map(f => f.category))).sort()}
@@ -226,7 +220,7 @@ export function FavoritesListPage() {
                 )}
               />
             </Grid>
-            <Grid size={{xs: 12, md: 2}} sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+            <Grid size={{xs: 12, lg: 2}} sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
               <Button
                 variant="contained"
                 size="large"
@@ -260,13 +254,7 @@ export function FavoritesListPage() {
       {/* DataGrid Section */}
       <Card 
         className="glass-card"
-        sx={{ 
-          borderRadius: '24px',
-          border: '1px solid rgba(255, 255, 255, 0.7)',
-          background: 'rgba(255, 255, 255, 0.45)',
-          boxShadow: '0 8px 32px rgba(31, 38, 135, 0.03)',
-          overflow: 'hidden'
-        }}
+        sx={{ overflow: 'hidden' }}
       >
         <CardContent sx={{ p: 0 }}>
           <Box sx={{ height: 600, width: '100%' }}>
