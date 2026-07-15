@@ -465,11 +465,7 @@ export function ProfileEditPage() {
       >
         <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
           <Stack component="form" onSubmit={handleSaveSubmit} spacing={5}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography variant="h5" fontWeight={900} color="text.primary">
-                Doctor Profile
-              </Typography>
-
+            <Stack direction="row" justifyContent="flex-end" alignItems="center">
               {!isEdit && (
                 <Button
                   variant="outlined"
