@@ -40,7 +40,7 @@ export const themeConfigs = {
     warning: '#F97316',      // Coral Orange
     error: '#EF4444',        // Soft Red
     info: '#3B82F6',         // Blue
-    bgDefault: 'transparent',
+    bgDefault: 'rgba(255, 255, 255, 0)',
     bgPaper: 'rgba(255, 255, 255, 0.65)',
   },
   // You can easily add more themes here in the future
@@ -53,7 +53,7 @@ export const themeConfigs = {
     warning: '#D97706',
     error: '#DC2626',
     info: '#2563EB',
-    bgDefault: 'transparent',
+    bgDefault: 'rgba(255, 255, 255, 0)',
     bgPaper: 'rgba(255, 255, 255, 0.65)',
   }
 };
