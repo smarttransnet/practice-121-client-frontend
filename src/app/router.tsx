@@ -5,6 +5,7 @@ import { NotFoundPage } from '../pages/NotFoundPage'
 import { ReportsPage } from '../pages/ReportsPage'
 import { SettingsLayout } from '../layout/SettingsLayout'
 import { ProfileEditPage } from '../pages/ProfileEditPage'
+import { FavoritesListPage } from '../pages/FavoritesListPage'
 import { TodosPage } from '../pages/TodosPage'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="profile-edit" replace /> },
           { path: 'profile-edit', element: <ProfileEditPage /> },
+          { path: 'favorites-list', element: <FavoritesListPage /> },
         ],
       },
       { path: 'verify-process', element: <VerifyProcessPage /> },

@@ -1,147 +1,103 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import {
   Box,
-  Grid,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   Typography,
   Tabs,
   Tab,
 } from '@mui/material'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
-import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined'
+import StarBorderIcon from '@mui/icons-material/StarBorder'
 
 export function SettingsLayout() {
   const location = useLocation()
   
   // Currently on profile-edit, or index (which redirects to profile-edit)
   const isProfileEdit = location.pathname === '/settings/profile-edit' || location.pathname === '/settings'
-  const currentTab = isProfileEdit ? 0 : 0
-
-  const menuItems = [
-    { label: 'Profile', to: '/settings/profile-edit', icon: <PersonOutlineIcon />, active: true },
-    { label: 'Security', to: '#', icon: <LockOutlinedIcon />, active: false },
-    { label: 'Notifications', to: '#', icon: <NotificationsNoneOutlinedIcon />, active: false },
-  ]
+  const isFavorites = location.pathname === '/settings/favorites-list'
+  
+  const currentTab = isProfileEdit ? 0 : isFavorites ? 1 : 0
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Typography variant="h4" fontWeight={900} sx={{ mb: 3, color: 'text.primary' }}>
+      <Typography variant="h4" fontWeight={900} sx={{ mb: 1, color: 'text.primary' }}>
         Settings
       </Typography>
 
-      <Grid container spacing={3}>
-        {/* Desktop Left Navigation (3 cols) / Mobile Top Horizontal Tabs */}
-        <Grid size={{ xs: 12, md: 3 }}>
-          {/* Desktop Left Menu */}
-          <Box
-            className="glass-card"
+      {/* Universal Horizontal Tabs */}
+      <Box
+        sx={{
+          mb: 4,
+          borderBottom: 1,
+          borderColor: 'rgba(143, 0, 255, 0.1)',
+        }}
+      >
+        <Tabs
+          value={currentTab}
+          textColor="primary"
+          indicatorColor="primary"
+          aria-label="settings tabs"
+          sx={{
+            minHeight: 56,
+            '& .MuiTabs-indicator': {
+              height: 3,
+              borderRadius: '3px 3px 0 0',
+              background: 'linear-gradient(90deg, #8F00FF 0%, #5F00FF 100%)',
+            }
+          }}
+        >
+          <Tab
+            label="Profile"
+            component={NavLink}
+            to="/settings/profile-edit"
+            icon={<PersonOutlineIcon />}
+            iconPosition="start"
             sx={{
-              display: { xs: 'none', md: 'block' },
-              p: 2,
-              borderRadius: '20px',
-              border: '1px solid rgba(255, 255, 255, 0.7)',
-              background: 'rgba(255, 255, 255, 0.45)',
-              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.03)',
+              fontWeight: 700, 
+              fontSize: '0.9rem',
+              minHeight: 56,
+              textTransform: 'none',
+              color: 'text.secondary',
+              transition: 'all 0.3s ease',
+              '&.Mui-selected': {
+                color: 'primary.main',
+                fontWeight: 800,
+              },
+              '&:hover:not(.Mui-selected)': {
+                color: 'primary.main',
+                bgcolor: 'rgba(143, 0, 255, 0.04)',
+              }
             }}
-          >
-            <List sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              {menuItems.map((item) => {
-                const isSelected = item.active && isProfileEdit
-                return (
-                  <ListItemButton
-                    key={item.label}
-                    component={item.active ? NavLink : 'div'}
-                    to={item.active ? item.to : undefined}
-                    disabled={!item.active}
-                    selected={isSelected}
-                    sx={{
-                      px: 2,
-                      py: 1.2,
-                      borderRadius: '12px',
-                      '&.Mui-selected': {
-                        background: 'rgba(143, 0, 255, 0.08)',
-                        color: 'primary.main',
-                        '& .MuiListItemIcon-root': {
-                          color: 'primary.main',
-                        },
-                      },
-                      '&.Mui-selected:hover': {
-                        background: 'rgba(143, 0, 255, 0.12)',
-                        boxShadow: 'none',
-                      },
-                      '&:hover': {
-                        bgcolor: 'rgba(143, 0, 255, 0.04)',
-                      }
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 40, color: isSelected ? 'primary.main' : 'text.secondary' }}>
-                      {item.icon}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={item.label}
-                      primaryTypographyProps={{
-                        fontWeight: isSelected ? 800 : 700,
-                        fontSize: '0.875rem',
-                        color: isSelected ? 'primary.main' : 'text.primary'
-                      }}
-                    />
-                  </ListItemButton>
-                )
-              })}
-            </List>
-          </Box>
-
-          {/* Mobile Horizontal Tabs/Links */}
-          <Box
+          />
+          <Tab
+            label="Favorites List"
+            component={NavLink}
+            to="/settings/favorites-list"
+            icon={<StarBorderIcon />}
+            iconPosition="start"
             sx={{
-              display: { xs: 'block', md: 'none' },
-              mb: 2,
-              borderBottom: 1,
-              borderColor: 'divider',
+              fontWeight: 700, 
+              fontSize: '0.9rem',
+              minHeight: 56,
+              textTransform: 'none',
+              color: 'text.secondary',
+              transition: 'all 0.3s ease',
+              '&.Mui-selected': {
+                color: 'primary.main',
+                fontWeight: 800,
+              },
+              '&:hover:not(.Mui-selected)': {
+                color: 'primary.main',
+                bgcolor: 'rgba(143, 0, 255, 0.04)',
+              }
             }}
-          >
-            <Tabs
-              value={currentTab}
-              variant="fullWidth"
-              textColor="primary"
-              indicatorColor="primary"
-              aria-label="settings tabs"
-            >
-              <Tab
-                label="Profile"
-                component={NavLink}
-                to="/settings/profile-edit"
-                icon={<PersonOutlineIcon />}
-                iconPosition="start"
-                sx={{ fontWeight: 700, fontSize: '0.875rem' }}
-              />
-              <Tab
-                label="Security"
-                disabled
-                icon={<LockOutlinedIcon />}
-                iconPosition="start"
-                sx={{ fontWeight: 700, fontSize: '0.875rem' }}
-              />
-              <Tab
-                label="Notifications"
-                disabled
-                icon={<NotificationsNoneOutlinedIcon />}
-                iconPosition="start"
-                sx={{ fontWeight: 700, fontSize: '0.875rem' }}
-              />
-            </Tabs>
-          </Box>
-        </Grid>
+          />
+        </Tabs>
+      </Box>
 
-        {/* Right Content Area (9 cols) */}
-        <Grid size={{ xs: 12, md: 9 }}>
-          <Outlet />
-        </Grid>
-      </Grid>
+      {/* Content Area (Full width) */}
+      <Box sx={{ width: '100%', pt: 1 }}>
+        <Outlet />
+      </Box>
     </Box>
   )
 }
