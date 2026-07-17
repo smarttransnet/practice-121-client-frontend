@@ -13,6 +13,7 @@ import { OTPVerifyPage } from '../pages/OTPVerifyPage'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
 import { VerifyProcessPage } from '../pages/VerifyProcessPage'
 import { PublicProfilePage } from '../pages/PublicProfilePage'
+import { PracticeCentresTab } from '../features/practice-centres/PracticeCentresTab'
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="profile-edit" replace /> },
           { path: 'profile-edit', element: <ProfileEditPage /> },
           { path: 'favorites-list', element: <FavoritesListPage /> },
+          { path: 'practice-centres', element: <PracticeCentresTab /> },
         ],
       },
       { path: 'verify-process', element: <VerifyProcessPage /> },

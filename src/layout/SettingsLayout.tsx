@@ -14,8 +14,9 @@ export function SettingsLayout() {
   // Currently on profile-edit, or index (which redirects to profile-edit)
   const isProfileEdit = location.pathname === '/settings/profile-edit' || location.pathname === '/settings'
   const isFavorites = location.pathname === '/settings/favorites-list'
+  const isPracticeCentres = location.pathname === '/settings/practice-centres'
   
-  const currentTab = isProfileEdit ? 0 : isFavorites ? 1 : 0
+  const currentTab = isProfileEdit ? 0 : isFavorites ? 1 : isPracticeCentres ? 2 : 0
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -74,6 +75,27 @@ export function SettingsLayout() {
             to="/settings/favorites-list"
             icon={<StarBorderIcon />}
             iconPosition="start"
+            sx={{
+              fontWeight: 700, 
+              fontSize: '0.9rem',
+              minHeight: 56,
+              textTransform: 'none',
+              color: 'text.secondary',
+              transition: 'all 0.3s ease',
+              '&.Mui-selected': {
+                color: 'primary.main',
+                fontWeight: 800,
+              },
+              '&:hover:not(.Mui-selected)': {
+                color: 'primary.main',
+                bgcolor: 'rgba(143, 0, 255, 0.04)',
+              }
+            }}
+          />
+          <Tab
+            label="Practice Centres"
+            component={NavLink}
+            to="/settings/practice-centres"
             sx={{
               fontWeight: 700, 
               fontSize: '0.9rem',

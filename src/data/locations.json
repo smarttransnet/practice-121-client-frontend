@@ -1,0 +1,992 @@
+[
+  {
+    "name": "Colombo",
+    "moh_areas": [
+      {
+        "name": "Colombo MC (01–15)",
+        "places": [
+          "Nawaloka Hospitals PLC.",
+          "Kings Hospital Colombo (Pvt) Ltd",
+          "Asiri Hospital Holdings PLC",
+          "Asiri Surgical Hospital PLC",
+          "The Lanka Hospitals Corporation PLC (PQ 180) 578, Elvitigala Mawatha, Narehenpita, Colombo 05",
+          "Durdans Hospital, Ceylon Hospitals PLC",
+          "Western Infirmary (Pvt) Limited.",
+          "Joseph Fraser Memorial Hospital 23, Joseph Fraser Road, Colombo 05",
+          "The Ratnam Private Hospital (PVT) Ltd 227 Union Place, Colombo 2",
+          "Dr. Hudson Silva Eye Hospital",
+          "Royal Hospital (Pvt) Ltd",
+          "Aysha Hospital (Private) Ltd 258, Galle Road, Colombo 06",
+          "Healthcare Services Limited",
+          "Hospital Limited 114, Norris Canal Road, Colombo 10",
+          "Healthcare Lanka (Private) Limited",
+          "For Diabetes Endocrinology and Cardio Metabolism",
+          "International Fertility & Research Centre",
+          "Prashanth Fertility Centre (Pvt) Ltd",
+          "Medical & Surgical Hospital (Pvt) Ltd",
+          "FERTILITY PVT LTD",
+          "Confidence Medical Centre (Pvt) Ltd",
+          "Medi Home 16, Sir Henry De Mel Mawatha, Colombo 02",
+          "MEDICHEKS COLOMBO (PVT) LTD",
+          "Clinic & Laboratories (Pvt) Ltd 132, Dr. N. M. Perera Mawatha, Colombo - 8",
+          "Medicenter (PVT) LTD 5, Arunachalam Avenue, Horton place, Colombo 7",
+          "Suwahala87, High level Road, Kirulapone, Colombo 06",
+          "Clinic 64, A.G.Hinniappuhami Mw, Colombo 13",
+          "Medical Centre 193, 1st",
+          "Medicare (Pvt) Ltd",
+          "(Pvt) Ltd329, Jayantha Weerasekera Mawatha, Colombo 10",
+          "Lengths (Pvt ) Ltd 40, Amarasekera Mw, Colombo 05",
+          "SKIN CLINIC (PVT) LTD",
+          "MEDICAL CENTRE",
+          "Skin Clinique - Look Amazing Pvt Ltd 27, Vijaya Kumaratunga Mawatha, Polhengoda, Colombo 5",
+          "MEDI TRUST [PVT] LTD",
+          ". A.H.A. Hazari",
+          ". W. MEDICARE SERVICES (PVT) LTD 366, GALLE ROAD, COLOMBO 3",
+          ". R. Mathan",
+          ". P. SugandanNo:",
+          ". (Mrs.) P. W. N. Wickramaratne",
+          ". W.M.H. Wimaladharma",
+          ". FARHIM JAMEEL",
+          ". S. Nanthagobalan",
+          ". P. D. A. Sriyani Basnayaka"
+        ]
+      },
+      {
+        "name": "Dehiwala / Mount Lavinia",
+        "places": [
+          "Hospital Private Limited",
+          "Lotus Eye & ENT Hospital",
+          "Hospital",
+          "Medical Centre - Mount Lavinia",
+          "HealthCare Centre",
+          ". Bodara Gamage Duncan Bujawansa",
+          ". (Mrs) Wimala Indrani Wijesinghe Amarakone"
+        ]
+      },
+      {
+        "name": "Sri Jayawardenepura Kotte",
+        "places": [
+          "Key Hospitals Limited",
+          "Hospital (Pvt) Ltd",
+          "Cross Hospital – Blue Cross Medical Centre 682, Kotte Road, Rajagiriya 10107",
+          "Blue Cross Medical Centre (Pvt) Ltd 682, Kotte Road, Rajagiriya",
+          "Medical Center Suseka",
+          "Eye (Pvt) Ltd 198, Sri Jayawardenapura Mawatha, Welikada, Rajagiriya",
+          ". S. L. J. De Silva",
+          ". S. M. F. Sikkander",
+          ". Weliwitage Nalinda Rodrigo",
+          ". A.A.A.D.P. Goonewardane"
+        ]
+      },
+      {
+        "name": "Nugegoda / Kohuwala",
+        "places": [
+          "Winlanka Hospital (Pvt) Ltd",
+          "Healthcare Services (Pvt) Ltd",
+          "Dental Hospital",
+          "MEDICAL DIAGNOSTICS PVT LTD",
+          ". Ravindra Lakshman Gurusinghe"
+        ]
+      },
+      {
+        "name": "Maharagama",
+        "places": [
+          "Medicare Hospitals (Pvt) Ltd",
+          "Hospital HL (Pvt) Ltd",
+          "Fertility Hospital (Pvt) Ltd",
+          "City Medical Service",
+          "Research Medical Centre 92, Wattegedera road, Maharagama",
+          ".S.A. Udathenna"
+        ]
+      },
+      {
+        "name": "Piliyandala / Rukmale",
+        "places": [
+          "Lanka Medical Centre 43, Wata Mawatha, Piliyandala",
+          "Centre & Dispensary",
+          ". M. A. W. M. Nasar"
+        ]
+      },
+      {
+        "name": "Hanwella",
+        "places": [
+          "Medicare145, high Level Rd, Pahathgama, Hanwella"
+        ]
+      },
+      {
+        "name": "Homagama / Pannipitiya",
+        "places": [
+          "PANNIPITIYA MEDICAL SERVICES ( PVT ) LTD",
+          "SEVANA MEDICAL CENTER",
+          "Centre",
+          ". R. L. Weerakoon"
+        ]
+      },
+      {
+        "name": "Kaduwela / Battaramulla",
+        "places": [
+          "Capital Hospital (Pvt) Ltd",
+          "Dora Hospital 173, Pannipitiya Road, Battaramulla",
+          "Eye Care Hospital",
+          "Nawaloka Medical Centre Pvt Ltd",
+          "Skin Clinique - Look Amazing Pvt Ltd",
+          ". Konara Mudiyanselage P. S. D."
+        ]
+      },
+      {
+        "name": "Moratuwa / Ratmalana",
+        "places": [
+          "Moratuwa Medical Centre (Pvt) Ltd",
+          "Pharmacy & Clinic (Pvt) Ltd",
+          "Calls (Pvt) Ltd",
+          "Ratmalana medical centre 6A Old Airport Road, Ratmalana",
+          "Center",
+          ". (Mrs.) D. Niranjala Jayasuriya"
+        ]
+      },
+      {
+        "name": "Kolonnawa",
+        "places": [
+          "Eye Hospital",
+          "Siri Suwasetha (Pvt) Ltd",
+          ". M. I. QurshiethNo.18, Gajabapura Housing Scheme, Kolonnawa"
+        ]
+      },
+      {
+        "name": "Padukka",
+        "places": [
+          "JEEWAKA PRIVATE HOSPITAL PADUKKA"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Gampaha",
+    "moh_areas": [
+      {
+        "name": "Gampaha",
+        "places": [
+          "Co-operative Hospital Society Ltd",
+          "Sethma Hospitals Pvt Ltd.",
+          "AROGYA HOSPITALS (PVT) LTD.",
+          "Eye Hospital",
+          "link Dharani Health & Medical Care Centre",
+          ".R.Medi Tech Lab (Pvt) Ltd 43, Bauddhaloka Mw, Gampaha",
+          ". K. G. D. Jayantha"
+        ]
+      },
+      {
+        "name": "Ragama",
+        "places": [
+          "Leesons Hospital (Pvt) Ltd.",
+          "Hospitals Ragama (Pvt) Ltd"
+        ]
+      },
+      {
+        "name": "Wattala",
+        "places": [
+          "Sight First Hospital",
+          "Hospitals (Pvt) Ltd.",
+          "Hospitals (Private) Limited",
+          ". T. M. Bahardeen Girsy"
+        ]
+      },
+      {
+        "name": "Negombo",
+        "places": [
+          "Ave Maria Hospital (Pvt) Ltd.",
+          "St. Joseph Children & Adult Hospital",
+          "The Dissanayake Private Hospital",
+          "Nursing Home",
+          "Medicare (Pvt) Ltd",
+          "X-Lab Medical and Channel Service",
+          ".Annes Medical Centre"
+        ]
+      },
+      {
+        "name": "Kelaniya",
+        "places": [
+          "Care Medical Service",
+          "Nawaloka Medical Centre Pvt. Ltd",
+          ". S. A. K. D. Vasantha Tissakumara Walikanda Junction, Dalupitiya Road, Hunupitiya"
+        ]
+      },
+      {
+        "name": "Minuwangoda",
+        "places": [
+          "Clinipath Medical Services"
+        ]
+      },
+      {
+        "name": "Divulapitiya",
+        "places": [
+          "Hospitals (Pvt) Ltd",
+          "Clinipath Medical Services New Hospital, Horagasmulla, Divulapitiya"
+        ]
+      },
+      {
+        "name": "Mirigama",
+        "places": [
+          "Private Hospital No4, 2nd Osmiyar lane, Pasyala Road, Mirigama"
+        ]
+      },
+      {
+        "name": "Ja-Ela / Seeduwa",
+        "places": [
+          "-Ela Ragama Hospitals (Pvt) Ltd",
+          "Eye (Pvt) Ltd",
+          "Hospitals (Pvt) Ltd",
+          "Medical Centre Pvt. Ltd",
+          ". (Mrs) Mohottige Don A. K. Nonis 416, Negombo Road, Kapuwatte, Ja-ela"
+        ]
+      },
+      {
+        "name": "Attanagalla",
+        "places": [
+          "Sirisanda Samupa Suwa Sewana Hospital Negombo Road, Nittambuwa",
+          "Bandaranayake Hospitals (Pvt) Ltd",
+          "Hospital pvt ltd",
+          "Lanka Diabetic Hospital (Pvt) Ltd",
+          ". (Mrs.) A. A. L. K. Adikari"
+        ]
+      },
+      {
+        "name": "Dompe / Biyagama",
+        "places": [
+          "Healthcare Hospital (Pvt) Ltd",
+          "Medicoz (Pvt) Ltd",
+          "Oral Care Center (Pvt) Ltd",
+          ". Annes Medical Centre (Pvt) Ltd",
+          "Private Channeling Center"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Kalutara",
+    "moh_areas": [
+      {
+        "name": "Kalutara / Nagoda",
+        "places": [
+          "New Philip Hospitals (Pvt) Ltd",
+          "Care Hospital (Pvt) Ltd Nagoda, Kalutara",
+          "Healthcare Solutions (Pvt) Ltd"
+        ]
+      },
+      {
+        "name": "Panadura",
+        "places": [
+          "Gift Of Sight Hospital Sri Maha Viharaya Road, Galgoda, Panadura",
+          "Hospitals (Pvt) Ltd",
+          "Solutions Eye Care Hospital Pvt Ltd 403A, Galle road, Nalluruwa, Panadura",
+          "Hospital"
+        ]
+      },
+      {
+        "name": "Horana",
+        "places": [
+          "Hospital (Pvt )Ltd",
+          "HEALTHCARE CENTER & HOSPITAL"
+        ]
+      },
+      {
+        "name": "Ingiriya",
+        "places": [
+          ". L.T. Dayakeerthie Ingiriya Medical Centre, Panadura Road, Ingiriya"
+        ]
+      },
+      {
+        "name": "Beruwala",
+        "places": [
+          "Healthcare Solutions (Pvt) Ltd",
+          "& SURGERY"
+        ]
+      },
+      {
+        "name": "Mathugama",
+        "places": [
+          ". Amitha Namalie Wikramarachchi Lewwanduwa, Welipanna"
+        ]
+      },
+      {
+        "name": "Agalawatte",
+        "places": [
+          "Suwahala (Pvt) Ltd"
+        ]
+      },
+      {
+        "name": "Kandy Kandy Municipal Area",
+        "places": [
+          "The Kandy Private Hospitals Ltd",
+          "Lakeside Adventist Hospital (Pvt) Ltd",
+          "suwasevana Hospitals (pvt)Ltd 532, Peradeniya Road, Kandy",
+          "HOSPITAL HOLDINGS PLC",
+          "Plus Hospital Pvt Ltd",
+          "Pvt Hospital",
+          "consaltation centre (pvt)ltd 59, peradeniya road, kandy",
+          "City Medical Centre & Dental Laboratory",
+          "Medical Centre",
+          "Medical Consultations (Pvt) Ltd",
+          ". J.M. Shahabdeen",
+          "SPECIALIST DENTAL SURGERY",
+          ". (Mrs) S.S.P. Rajapakse"
+        ]
+      },
+      {
+        "name": "Gangawata Korale",
+        "places": [
+          "centre"
+        ]
+      },
+      {
+        "name": "Gampola / Udapalatha",
+        "places": [
+          "M.K.HOSPITAL(PVT)LTD",
+          "Hospital",
+          "Medical Centre 149, Ambagamuwa Road, Gampola",
+          "Clinic88, Nuwara Eliya Road, Gampola"
+        ]
+      },
+      {
+        "name": "Yatinuwara",
+        "places": [
+          "Investments (Pvt) Ltd",
+          ". K. P. P. Weerasinghe",
+          "Medical Centre"
+        ]
+      },
+      {
+        "name": "Kundasale / Harispattuwa",
+        "places": [
+          "Care Hospital",
+          "Medical Centre",
+          "Total Medical Services (Pvt) Ltd New",
+          "Centre",
+          "Clinic",
+          ". A.K.B. Bokalamulla",
+          "CENTER POLWATHTHAHENA, MEDAMAHANUWARA",
+          "Clinic & Dispensary 2A Hospital Road, Medamahanuwara"
+        ]
+      },
+      {
+        "name": "Katugastota",
+        "places": [
+          ". Sithivinayagamoorthy Krishnamoorthy 236A, Madawala Road, Katugastota",
+          ". (Mrs) H.M.L. Padmini"
+        ]
+      },
+      {
+        "name": "Nawalapitiya / Pasbage Korale",
+        "places": [
+          "Nursing Home",
+          "Channelling Center, Nawalapitiya"
+        ]
+      },
+      {
+        "name": "Udunuwara / Pujapitiya",
+        "places": [
+          ". Ariyasundara Wattegedara",
+          ". H. H. M. S Kudamenike",
+          ". R. M. P. B. Ratnayake",
+          ". C. J. B. Bowala Lankathilaka Junction, Hiyarapitiya, Handessa"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Matale",
+    "moh_areas": [
+      {
+        "name": "Matale",
+        "places": [
+          "Kumudu Hospital (pvt) ltd",
+          ". N. K. A. Pathmasiri Madawala-Ulpatha, Matale"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Nuwara Eliya",
+    "moh_areas": [
+      {
+        "name": "Nuwara Eliya",
+        "places": [
+          "Pharmacy & Dispensary (Pvt) Ltd",
+          "DISPENSARY"
+        ]
+      },
+      {
+        "name": "Hatton / Ambagamuwa",
+        "places": [
+          "MOUNT HOSPITAL (pvt) Ltd",
+          "Hatton Consultation Centre 271, Colombo Road, Fruit Hill, Hatton",
+          "Valley Foundation Samanala Valley Estate, Norton Bridge",
+          ". Navaratnam Jeyananthan",
+          "duplicate Navaratnam Medical Centre",
+          "CARE CLINIC",
+          "SURGERY 187"
+        ]
+      },
+      {
+        "name": "Kothmale",
+        "places": [
+          "Beheth Shalawa. New Town, Kothmale"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Galle",
+    "moh_areas": [
+      {
+        "name": "Galle MC",
+        "places": [
+          "Asiri Hospital Galle (Private) Limited",
+          "Galle Co-operative Hospital Ltd.",
+          "Hospitals (pvt) ltd"
+        ]
+      },
+      {
+        "name": "Ambalangoda / Hikkaduwa",
+        "places": [
+          "Roseth Hospital (Pvt) Ltd",
+          "Med Hospital Narigama Junction, Galle Road, Hikkaduwa"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Matara",
+    "moh_areas": [
+      {
+        "name": "Matara",
+        "places": [
+          "Asiri Hospital Matara ( Pvt) Ltd",
+          "Mohotti Hospital (Pvt) Ltd",
+          "District Co-Operative Hospital Society",
+          ". I. M. Wagachchi 15B/1, Sumanasara Mawatha, Welegoda, Matara"
+        ]
+      },
+      {
+        "name": "Weligama / Welipitiya",
+        "places": [
+          "Med Hospital Galle Road, Mirissa Junction, Mirissa",
+          "Medi Health Services (Pvt) Ltd"
+        ]
+      },
+      {
+        "name": "Akuressa",
+        "places": [
+          "Private Hospital."
+        ]
+      },
+      {
+        "name": "Kamburugamuwa",
+        "places": [
+          ". P. P. Wagachchi Tal-aramba, Kamburugamuwa"
+        ]
+      },
+      {
+        "name": "Deniyaya",
+        "places": [
+          "Medicity Pallegama Road, Deniyaya"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Hambantota",
+    "moh_areas": [
+      {
+        "name": "Tangalle",
+        "places": [
+          "HEALTHCARE SERVICES (PVT) LTD",
+          "Lanka Hospitals",
+          "CHANNELLING CENTER",
+          "Channel Centre."
+        ]
+      },
+      {
+        "name": "Beliatta / Walasmulla",
+        "places": [
+          "HEALTHCARE HOSPITAL(PVT)LTD",
+          "MedicareNo. 29, Gatamanna Road, Beliatta"
+        ]
+      },
+      {
+        "name": "Tissamaharama",
+        "places": [
+          "Hospital (Pvt) Ltd"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Jaffna",
+    "moh_areas": [
+      {
+        "name": "Jaffna MC / Nallur",
+        "places": [
+          "Holy Cross Health Centre.",
+          "Yarl Hospital. 315, Palaly Road, Parameswara Junction, Thirunelvely, Jaffna",
+          "Speciality Hospital (Pvt) Ltd.",
+          "West Clinic & Nursing Home.",
+          "Central Hospital (Pvt) Ltd - Jaffna",
+          "HOSPITAL (PVT) Ltd 130, 1ST CROSS STREET, JAFFNA",
+          "Medical Center",
+          "MOTHER CARE PVT LTD"
+        ]
+      },
+      {
+        "name": "Chavakachcheri / Thenmaradchy",
+        "places": [
+          "Health Clinic and Nursing Home Vinasithambi Lane, A9 Road, Chavakachcheri, Jaffna",
+          "Medicare Hospital (Pvt) Ltd."
+        ]
+      },
+      {
+        "name": "Valikamam",
+        "places": [
+          "Memorial Hospital. Jaffna Road, Manipay",
+          "Leod Hospital. K.K.S.Road, Inuvil, Jaffna",
+          "-operative Hospital Society Ltd Moolai, Chulipuram"
+        ]
+      },
+      {
+        "name": "Karaveddy",
+        "places": [
+          "Hospital (Pvt) Ltd",
+          "Channeling Centre Main Street, Nelliady, Karaveddy"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Kilinochchi",
+    "moh_areas": [
+      {
+        "name": "Kilinochchi",
+        "places": [
+          "Medical Hospital Ponnambalam road, Paravippanchchan, Kilinochchi"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Mannar",
+    "moh_areas": [
+      {
+        "name": "Mannar",
+        "places": [
+          ". Murugesu Kathirgamanathan Grand Bazaar, Mannar"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Vavuniya",
+    "moh_areas": [
+      {
+        "name": "Vavuniya",
+        "places": [
+          "Hospital (Pvt) Ltd.",
+          "Health Care (Pvt)Ltd 253, Station Road, Kurumankadu, Vavuniya"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Trincomalee",
+    "moh_areas": [
+      {
+        "name": "Trincomalee",
+        "places": [
+          "Central Hospital and Maternity Home Pvt Ltd",
+          "Dhanvantharii Hospital Pvt Limited.",
+          "Hospital 254, Kandy Road, Trincomalee"
+        ]
+      },
+      {
+        "name": "/ Bordering Serunuwara",
+        "places": [
+          ". D. L. N. KalwinSerunuwara"
+        ]
+      },
+      {
+        "name": "Seethawaka (Colombo Border) Avissawella",
+        "places": [
+          "KELANI VALLEY HOSPITAL (PVT) LTD.",
+          "Gomez Hospital (Pvt) Ltd.",
+          "Hospital (Pvt) Ltd."
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Batticaloa",
+    "moh_areas": [
+      {
+        "name": "Batticaloa",
+        "places": [
+          "GV Hospital.",
+          "Siloam Vincent Health Services Centre.",
+          "Pioneer Hospital.",
+          "Hospital 121, New Kalmunai Road, Batticaloa"
+        ]
+      },
+      {
+        "name": "Eravur",
+        "places": [
+          "-OP HOSPITAL MAIN ROAD, ERAVUR"
+        ]
+      },
+      {
+        "name": "Kirankulam",
+        "places": [
+          "Sathya Sai Sanjeevani Super Specialty Hospital"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Ampara",
+    "moh_areas": [
+      {
+        "name": "Kalmunai",
+        "places": [
+          "Dr. Jameel Memorial Hospital 37, Cassim Road, Kalmunai",
+          "Land Hospital.",
+          "Ali Hospital (Pvt) Limited."
+        ]
+      },
+      {
+        "name": "Akkaraipattu",
+        "places": [
+          "Hospital (Pvt) Ltd.",
+          "Hospitals (Pvt) Ltd."
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Kurunegala",
+    "moh_areas": [
+      {
+        "name": "Kurunegala MC",
+        "places": [
+          "SETH SEVANA HOSPITALS (PVT) LTD",
+          "Nawinne Hospital (Pvt) Ltd 28, South Circular Road, Kurunegala",
+          "Co-operative Hospital Society",
+          "Health Hospitals (Pvt) Ltd 223 Dambulla Road, Kurunegala",
+          "DENTAL HOSPITAL (PVT)LTD",
+          "EYE HOSPITAL & OPTICALS",
+          "Eye Care Center (Pvt) Ltd.",
+          "Kurunegala Medical Centre 128, Colombo Road, Kurunegala",
+          "LABORATORY - KURUNEGALA MEDICAL CENTER",
+          "Channeling Centre (Pvt) Ltd 220, Dambulla Road, Kurunegala",
+          "HOUSE (PVT) LTD",
+          "Suwasiri Piyasa Nursing Home"
+        ]
+      },
+      {
+        "name": "Kuliyapitiya",
+        "places": [
+          "Hospital (Pvt) Ltd.",
+          "Medical Services (Pvt) Ltd.",
+          "Medical Centre.",
+          ". Nawullage Don Chandralal Padmasiri",
+          "MEDICAL CENTRE 63, HETTIPOLA ROAD, KULIYAPITIYA"
+        ]
+      },
+      {
+        "name": "Mawathagama / Alawwa",
+        "places": [
+          "Western Medical Service",
+          "CENTRE"
+        ]
+      },
+      {
+        "name": "Bingiriya",
+        "places": [
+          "Center Vilaththawa Bingiriya"
+        ]
+      },
+      {
+        "name": "Pannala",
+        "places": [
+          "Medical Centre"
+        ]
+      },
+      {
+        "name": "Maho / Galgamuwa",
+        "places": [
+          "Well Medical Centre Ehatuwawa Road, Galgamuwa",
+          "Medical Center"
+        ]
+      },
+      {
+        "name": "Katupotha",
+        "places": [
+          "Care Channel Center"
+        ]
+      },
+      {
+        "name": "Dambadeniya / Polgahawela",
+        "places": [
+          "Medical Centre Pansiyagama, Polgahangoda, Kurunegala",
+          "MEDICAL CENTER"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Puttalam",
+    "moh_areas": [
+      {
+        "name": "Puttalam",
+        "places": [
+          "Kuwait Hospital138, Nedumkulam Vaun, Puttalam",
+          "Hospital (Pvt)Ltd",
+          "PUTTALAM DIGASIRI HOSPITAL (PVT)LTD NO116/1, KURUNEGALA ROAD, PUTTALAM"
+        ]
+      },
+      {
+        "name": "Chilaw / Wennappuwa",
+        "places": [
+          "Life Care Hospital (Pvt) Ltd.",
+          "Hospitals (Private) Limited.",
+          "Hospital (Pvt ) Ltd Chilaw",
+          "Suwana Hospital",
+          "Premaratne Channel Centre",
+          "Dental Clinic"
+        ]
+      },
+      {
+        "name": "Marawila / Nattandiya / Madampe",
+        "places": [
+          ". Annes Nursing Home Church Road, Marawila",
+          "Senanayake Medicals Chilaw Road, New Town, Madampe",
+          "Channel Centre Negombo Road, Nattandiya",
+          "Channel Center"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Anuradhapura",
+    "moh_areas": [
+      {
+        "name": "Anuradhapura MC",
+        "places": [
+          "SUWA SHANTHI HOSPITAL PRIVATE LIMITED",
+          "Suwasewana (Pvt) Hospital.",
+          "Eye Hospital (Pvt) Ltd.",
+          "-Operative Hospital.",
+          "Hospital (Pvt) Ltd",
+          "Health Care Services (Pvt) Ltd",
+          ". E. M. U. Ekanayake Kud Nelabewa, Hindogama, Anuradhapura"
+        ]
+      },
+      {
+        "name": "Thambuttegama",
+        "places": [
+          "Vision Eye Hospital (Pvt) Ltd",
+          "CHANNEL CENTER",
+          "Medicare Center"
+        ]
+      },
+      {
+        "name": "Nochchiyagama / Galenbindunuwewa",
+        "places": [
+          "Private Hospital.",
+          ". W. M. Senevirathna School Junction, Anuradhapura Road, Minuwangate"
+        ]
+      },
+      {
+        "name": "Mahawilachchiya / Pemaduwa",
+        "places": [
+          ". W. M. W. Bandara Wanasinghe Mahawilachchiya Road, Pemaduwa"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Polonnaruwa",
+    "moh_areas": [
+      {
+        "name": "Polonnaruwa / Kaduruwela",
+        "places": [
+          "Lanka Hospital (Pvt) Ltd 28th Mile Post, Kaduruwela, Polonnaruwa"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Badulla",
+    "moh_areas": [
+      {
+        "name": "Badulla",
+        "places": [
+          "PERLYN CHANNELLED CONSULTATION PVT LTD"
+        ]
+      },
+      {
+        "name": "Diyatalawa",
+        "places": [
+          "Medical Centre Fair Road, Diyathalawa"
+        ]
+      },
+      {
+        "name": "Welimada",
+        "places": [
+          "CHANNEL SERVICE",
+          "Channel Centre"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Monaragala",
+    "moh_areas": [
+      {
+        "name": "Monaragala",
+        "places": [
+          "Nursing Home (Pvt) Ltd."
+        ]
+      },
+      {
+        "name": "Wellawaya",
+        "places": [
+          "Medical Care (Pvt) Ltd 117, Ella road, Wellawaya"
+        ]
+      },
+      {
+        "name": "Bibile",
+        "places": [
+          "Medical Centre"
+        ]
+      },
+      {
+        "name": "Dambagalla",
+        "places": [
+          "centernear the hospital, makulla town, dambagalla"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Ratnapura",
+    "moh_areas": [
+      {
+        "name": "Ratnapura",
+        "places": [
+          "Aloka Private Hospital",
+          "Hospitals PLC",
+          "Setha Lions Vision For Sight Hospital",
+          "HOSPITALS AND LABORATORIES 189, Hospital Junction, Colombo Road, Ratnapura",
+          "Suwa Sewana Medical Centre"
+        ]
+      },
+      {
+        "name": "Pelmadulla",
+        "places": [
+          ". S. Sagara Godakumbura Main Street, Pelmadulla",
+          ". M. M. A. R. Abayaratna Main Street, Pelmadulla"
+        ]
+      },
+      {
+        "name": "Balangoda",
+        "places": [
+          "Care Hospital",
+          "Hospital KMC Hospital, Kalthota Road, Balangoda",
+          ". K. I. SanjeewaDamahana, Balangoda"
+        ]
+      },
+      {
+        "name": "Eheliyagoda",
+        "places": [
+          "EHELIYAGODA CHANNELING CENTER",
+          ". U. P. Premarathna Viyalagoda Road, Mahingoda, Eheliyagoda"
+        ]
+      },
+      {
+        "name": "Embilipitiya",
+        "places": [
+          "PRIVATE HOSPITAL NEW TOWN RD, EMBILIPITIYA",
+          "Hospital(Pvt)Ltd Embilipitiya town, Embilipitiya"
+        ]
+      },
+      {
+        "name": "Kuruwita / Kiriella",
+        "places": [
+          ". P. N. W. Wijayawardana Paragasorvita, Devipahala, Kuruwita",
+          "Center 32 Idangoda, Kiriella",
+          "Centre & Dispensary Main Street, Kuruwita"
+        ]
+      },
+      {
+        "name": "Nivithigala / Opanayake",
+        "places": [
+          "Medical Center Hunuwala south, Opanayake",
+          "Centre"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Kegalle",
+    "moh_areas": [
+      {
+        "name": "Kegalle",
+        "places": [
+          "HOSPITALS (PVT) LTD",
+          "Hospital (Pvt) Ltd.",
+          "Medical Centre 187, Main Street, Kegalle",
+          ". I. M. L. Ilanganthilake Kumbaldivela, Molagoda, Kegalle"
+        ]
+      },
+      {
+        "name": "Mawanella",
+        "places": [
+          "Gamage Hospital",
+          "OSRO HOSPITALS (PVT) LTD",
+          "Hospitals (Pvt) Ltd",
+          "Surgery Maltek shopping complex, Main Street, Mawanella"
+        ]
+      },
+      {
+        "name": "Warakapola",
+        "places": [
+          "House Channel Centre",
+          "Medical And Channeling Servises Udawatta Tower,",
+          "Clinic Warakapola 51 Anguruwella Road, Warakapola"
+        ]
+      },
+      {
+        "name": "Karawanella",
+        "places": [
+          "Sevana Channel Centre"
+        ]
+      },
+      {
+        "name": "Galigamuwa",
+        "places": [
+          "Medical Centre Kandy Road, Galigamuwa Town"
+        ]
+      },
+      {
+        "name": "Rambukkana",
+        "places": [
+          "Weligalle Medical centre",
+          "CENTER POLATHTHAPITIYA UDAGALADENIYA, RAMBUKKANA"
+        ]
+      },
+      {
+        "name": "Aranayaka / Mawanella border",
+        "places": [
+          ". D. K. J. R. Perera Kanathiriyanwala, Pinnawala"
+        ]
+      }
+    ]
+  }
+]
