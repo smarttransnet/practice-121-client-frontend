@@ -1,7 +1,10 @@
 export interface PracticeCentre {
   id?: string
+  placeId?: string
   placeName: string
   mohArea: string
+  mohAreaId?: string
+  isNewPlace?: boolean
   district: string
   clinicName: string
   maxPatients?: number

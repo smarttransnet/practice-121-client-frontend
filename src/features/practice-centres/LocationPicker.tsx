@@ -2,11 +2,12 @@ import { useMemo, useState, useEffect } from 'react'
 import { Autocomplete, TextField, Grid, createFilterOptions } from '@mui/material'
 import { httpClient } from '../../api/httpClient'
 
-interface LocationPickerProps {
+export interface LocationPickerProps {
   district: string
   mohArea: string
   placeName: string
-  onChange: (field: string, value: string) => void
+  placeId?: string
+  onChange: (field: string, value: any) => void
   error?: boolean
 }
 
@@ -17,7 +18,7 @@ interface ApiLocation {
   name: string
 }
 
-export function LocationPicker({ district, mohArea, placeName, onChange, error }: LocationPickerProps) {
+export function LocationPicker({ district, mohArea, placeName, placeId, onChange, error }: LocationPickerProps) {
   const [districtsList, setDistrictsList] = useState<ApiLocation[]>([])
   const [mohAreasList, setMohAreasList] = useState<ApiLocation[]>([])
   const [placesList, setPlacesList] = useState<ApiLocation[]>([])
@@ -73,6 +74,9 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
             onChange('district', val || '')
             onChange('mohArea', '')
             onChange('placeName', '')
+            onChange('placeId', '')
+            onChange('mohAreaId', '')
+            onChange('isNewPlace', false)
           }}
           renderInput={(params) => <TextField {...params} label="District" required error={error && !district} />}
         />
@@ -84,6 +88,9 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
           onChange={(_, val) => {
             onChange('mohArea', val || '')
             onChange('placeName', '')
+            onChange('placeId', '')
+            onChange('mohAreaId', '')
+            onChange('isNewPlace', false)
           }}
           disabled={!district}
           renderInput={(params) => <TextField {...params} label="MOH Area" required error={error && !mohArea} />}
@@ -93,13 +100,31 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
         <Autocomplete
           value={placeName ? { title: placeName } : null}
           onChange={(_event, newValue) => {
+            let newPlaceName = '';
             if (typeof newValue === 'string') {
-              onChange('placeName', newValue);
+              newPlaceName = newValue;
             } else if (newValue && (newValue as any).inputValue) {
-              onChange('placeName', (newValue as any).inputValue);
+              newPlaceName = (newValue as any).inputValue;
             } else {
-              onChange('placeName', (newValue as any)?.title || '');
+              newPlaceName = (newValue as any)?.title || '';
             }
+
+            if (newPlaceName && !placeNames.includes(newPlaceName) && selectedMohAreaId) {
+              onChange('placeId', '');
+              onChange('mohAreaId', selectedMohAreaId);
+              onChange('isNewPlace', true);
+            } else {
+              const existingPlace = placesList.find(p => p.name === newPlaceName);
+              if (existingPlace) {
+                onChange('placeId', existingPlace.id);
+                onChange('isNewPlace', false);
+              } else {
+                onChange('placeId', '');
+                onChange('isNewPlace', false);
+              }
+            }
+
+            onChange('placeName', newPlaceName);
           }}
           filterOptions={(options, params) => {
             const filtered = filter(options, params);

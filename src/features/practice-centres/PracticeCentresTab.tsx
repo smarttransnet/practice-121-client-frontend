@@ -1,26 +1,46 @@
 import { useState, useEffect } from 'react'
-import { Box } from '@mui/material'
+import { Box, CircularProgress, Alert } from '@mui/material'
 import { PracticeCentreList } from './PracticeCentreList'
 import { PracticeCentreForm } from './PracticeCentreForm'
 import type { PracticeCentre } from './types'
+import { httpClient } from '../../api/httpClient'
 
 export function PracticeCentresTab() {
   const [view, setView] = useState<'list' | 'form'>('list')
   const [editingCentre, setEditingCentre] = useState<PracticeCentre | undefined>()
   
-  // Initialize from localStorage
-  const [centres, setCentres] = useState<PracticeCentre[]>(() => {
-    const saved = localStorage.getItem('mock_practice_centres')
-    if (saved) {
-      try { return JSON.parse(saved) } catch (e) {}
-    }
-    return []
-  })
+  const [centres, setCentres] = useState<PracticeCentre[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  // Save to localStorage whenever centres change
+  const fetchCentres = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await httpClient.get<Record<string, unknown>[]>('/api/practice-centres')
+      const mapped: PracticeCentre[] = res.data.map(item => ({
+        id: item.id as string,
+        // The backend doesn't return placeId, so editing an existing one will require LocationPicker to re-match placeName
+        placeName: (item.placeName as string) || '',
+        mohArea: (item.mohAreaName as string) || '',
+        district: (item.districtName as string) || '',
+        clinicName: (item.clinicName as string) || '',
+        maxPatients: item.maxPatients as number | undefined,
+        sessionGroups: (item.sessionGroups as any[]) || [],
+        nurses: (item.nurses as any[]) || []
+      }))
+      setCentres(mapped)
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { title?: string } }; message?: string };
+      setError(err.response?.data?.title || err.message || 'Failed to load practice centres')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    localStorage.setItem('mock_practice_centres', JSON.stringify(centres))
-  }, [centres])
+    fetchCentres()
+  }, [])
 
   const handleCreateNew = () => {
     setEditingCentre(undefined)
@@ -32,21 +52,54 @@ export function PracticeCentresTab() {
     setView('form')
   }
 
-  const handleDelete = (id: string) => {
-    setCentres(centres.filter(c => c.id !== id))
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this practice centre?')) return
+    
+    try {
+      await httpClient.delete(`/api/practice-centres/${id}`)
+      setCentres(centres.filter(c => c.id !== id))
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { title?: string } }; message?: string };
+      alert(err.response?.data?.title || err.message || 'Failed to delete practice centre')
+    }
   }
 
-  const handleSave = (data: PracticeCentre) => {
-    if (data.id) {
-      setCentres(centres.map(c => (c.id === data.id ? data : c)))
-    } else {
-      setCentres([...centres, { ...data, id: crypto.randomUUID() }])
+  const handleSave = async (data: PracticeCentre) => {
+    try {
+      const payload = {
+        clinicName: data.clinicName,
+        placeId: data.placeId,
+        maxPatients: data.maxPatients,
+        sessionGroups: data.sessionGroups,
+        nurses: data.nurses
+      }
+
+      if (data.id) {
+        await httpClient.put(`/api/practice-centres/${data.id}`, payload)
+      } else {
+        await httpClient.post('/api/practice-centres', payload)
+      }
+      
+      await fetchCentres()
+      setView('list')
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { title?: string } }; message?: string };
+      alert(err.response?.data?.title || err.message || 'Failed to save practice centre')
     }
-    setView('list')
+  }
+
+  if (loading && centres.length === 0) {
+    return (
+      <Box display="flex" justifyContent="center" py={5}>
+        <CircularProgress />
+      </Box>
+    )
   }
 
   return (
     <Box>
+      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+      
       {view === 'list' ? (
         <PracticeCentreList
           centres={centres}
