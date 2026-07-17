@@ -14,6 +14,8 @@ import { ProtectedRoute } from '../features/auth/ProtectedRoute'
 import { VerifyProcessPage } from '../pages/VerifyProcessPage'
 import { PublicProfilePage } from '../pages/PublicProfilePage'
 import { PracticeCentresTab } from '../features/practice-centres/PracticeCentresTab'
+import { RegisterPatientPage } from '../pages/RegisterPatientPage'
+import { CreatePatientPage } from '../pages/CreatePatientPage'
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +25,10 @@ export const router = createBrowserRouter([
   {
     path: '/register',
     element: <RegisterPage />,
+  },
+  {
+    path: '/register/patient',
+    element: <RegisterPatientPage />,
   },
   {
     path: '/verify-otp',
@@ -43,6 +49,7 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'reports', element: <ReportsPage /> },
+      { path: 'patients/new', element: <CreatePatientPage /> },
       { path: 'todos', element: <TodosPage /> },
       {
         path: 'settings',

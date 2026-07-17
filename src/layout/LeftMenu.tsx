@@ -15,6 +15,7 @@ import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded'
 import LightbulbIcon from '@mui/icons-material/Lightbulb'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import PersonAddAlt1RoundedIcon from '@mui/icons-material/PersonAddAlt1Rounded'
 
 type LeftMenuProps = {
   onNavigate?: () => void
@@ -27,6 +28,7 @@ export function LeftMenu({ onNavigate }: LeftMenuProps) {
   const menuItems = [
     { label: 'Dashboard', to: '/dashboard', icon: <DashboardRoundedIcon />, active: true },
     { label: 'Patient Cases', to: '/reports', icon: <PeopleAltRoundedIcon />, active: true },
+    { label: 'Add Patient', to: '/patients/new', icon: <PersonAddAlt1RoundedIcon />, active: true },
     { label: 'Settings', to: '/settings', icon: <SettingsRoundedIcon />, active: true },
   ]
 
