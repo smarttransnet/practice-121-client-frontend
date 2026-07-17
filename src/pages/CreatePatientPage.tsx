@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material'
+import { Box } from '@mui/material'
 import { PatientForm } from '../features/patients/PatientForm'
 
 export function CreatePatientPage() {

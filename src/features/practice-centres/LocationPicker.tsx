@@ -18,7 +18,7 @@ interface ApiLocation {
   name: string
 }
 
-export function LocationPicker({ district, mohArea, placeName, placeId, onChange, error }: LocationPickerProps) {
+export function LocationPicker({ district, mohArea, placeName, onChange, error }: LocationPickerProps) {
   const [districtsList, setDistrictsList] = useState<ApiLocation[]>([])
   const [mohAreasList, setMohAreasList] = useState<ApiLocation[]>([])
   const [placesList, setPlacesList] = useState<ApiLocation[]>([])
