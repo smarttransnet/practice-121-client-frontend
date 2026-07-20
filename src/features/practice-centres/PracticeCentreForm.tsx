@@ -40,8 +40,9 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
-    if (!data.clinicName || !data.district || !data.mohArea || !data.placeName) {
-      showError('Please fill in all required fields (Clinic Name, District, MOH Area, Place).')
+    const finalClinicName = data.clinicName.trim() || data.placeName;
+    if (!data.district || !data.mohArea || !data.placeName) {
+      showError('Please fill in all required fields (District, MOH Area, Place).')
       return
     }
     
@@ -62,7 +63,7 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
     }
 
     if (!finalPlaceId) {
-      showError('Please fill in all required fields (Clinic Name, District, MOH Area, Place). Ensure a valid place is selected.');
+      showError('Please fill in all required fields (District, MOH Area, Place). Ensure a valid place is selected.');
       setIsSaving(false);
       return
     }
@@ -124,7 +125,7 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
     }
 
     setError('')
-    onSave({ ...data, placeId: finalPlaceId })
+    onSave({ ...data, clinicName: finalClinicName, placeId: finalPlaceId })
     setIsSaving(false);
   }
 
@@ -143,7 +144,6 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
             onChange={e => setData({ ...data, clinicName: e.target.value })}
             helperText="If left blank, Place name will be used"
             fullWidth
-            required
           />
           <TextField
             label="Max Patients per Session"

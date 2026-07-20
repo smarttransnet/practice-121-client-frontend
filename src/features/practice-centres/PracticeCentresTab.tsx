@@ -20,7 +20,7 @@ export function PracticeCentresTab() {
       const res = await httpClient.get<Record<string, unknown>[]>('/api/practice-centres')
       const mapped: PracticeCentre[] = res.data.map(item => ({
         id: item.id as string,
-        // The backend doesn't return placeId, so editing an existing one will require LocationPicker to re-match placeName
+        placeId: item.placeId as string,
         placeName: (item.placeName as string) || '',
         mohArea: (item.mohAreaName as string) || '',
         district: (item.districtName as string) || '',
