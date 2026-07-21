@@ -17,9 +17,11 @@ import { PracticeCentresTab } from '../features/practice-centres/PracticeCentres
 import { RegisterPatientPage } from '../pages/RegisterPatientPage';
 import { CreatePatientPage } from '../pages/CreatePatientPage';
 import { PatientQueue } from '../pages/PatientQueue';
+import { BookAppointmentPage } from '../pages/BookAppointmentPage';
 
 const router = createBrowserRouter([
   { path: '/patient-queue', element: <PatientQueue /> },
+  { path: '/book/:doctorId/centre/:centreId', element: <BookAppointmentPage /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
   { path: '/register/patient', element: <RegisterPatientPage /> },

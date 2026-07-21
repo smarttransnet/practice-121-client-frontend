@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import {
   Box,
   Container,
@@ -54,6 +54,7 @@ type PublicDoctorResponse = {
 
 export function PublicProfilePage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [profile, setProfile] = useState<PublicDoctorResponse | null>(null)
   const [practiceCentres, setPracticeCentres] = useState<PracticeCentreResponse[]>([])
   const [loading, setLoading] = useState(true)
@@ -294,6 +295,12 @@ export function PublicProfilePage() {
                                 color="primary"
                                 startIcon={<EventAvailableIcon />}
                                 size="small"
+                                onClick={() => navigate(`/book/${id}/centre/${centre.id}`, {
+                                  state: {
+                                    doctorName: profile?.fullName,
+                                    clinicName: centre.clinicName || centre.placeName,
+                                  }
+                                })}
                                 sx={{ 
                                   borderRadius: 6, 
                                   px: 2.5, 
