@@ -157,11 +157,24 @@ export function BookAppointmentPage() {
   // Handle return from patient registration with mobile param
   useEffect(() => {
     const mobile = searchParams.get('registeredMobile');
+    const returnDate = searchParams.get('returnDate');
+    
     if (mobile) {
-      // Clean the URL param
+      // Clean the URL params
       const newParams = new URLSearchParams(searchParams);
       newParams.delete('registeredMobile');
+      newParams.delete('returnDate');
       navigate(`${location.pathname}${newParams.toString() ? '?' + newParams.toString() : ''}`, { replace: true });
+      
+      // Restore date if present
+      if (returnDate) {
+        // We assume returnDate is exactly YYYY-MM-DD
+        const [y, m, d] = returnDate.split('-').map(Number);
+        if (y && m && d) {
+          setSelectedDate(new Date(y, m - 1, d));
+        }
+      }
+      
       // Jump to Step 2 and pass the registered mobile
       setActiveStep(1);
       setInitialMobile(decodeURIComponent(mobile));
@@ -192,7 +205,7 @@ export function BookAppointmentPage() {
   const doctorName = doctor?.fullName ?? locationState?.doctorName ?? 'Doctor';
   const clinicName = centre?.clinicName ?? locationState?.clinicName ?? 'Clinic';
   const pageTitle = `Book Appointment – ${doctorName} at ${clinicName}`;
-  const returnUrl = `/book/${doctorId}/centre/${centreId}`;
+  const returnUrl = `/book/${doctorId}/centre/${centreId}${selectedDate ? `?returnDate=${formatDateLocal(selectedDate)}` : ''}`;
 
   // --- Success screen ---
   if (bookingResult) {

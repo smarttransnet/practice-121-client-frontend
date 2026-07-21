@@ -135,7 +135,8 @@ export function PatientForm({ entryPoint }: Props) {
           variant="contained"
           onClick={() => {
             if (redirectParam) {
-              navigate(`${redirectParam}?registeredMobile=${encodeURIComponent(mobileNumber)}`)
+              const separator = redirectParam.includes('?') ? '&' : '?';
+              navigate(`${redirectParam}${separator}registeredMobile=${encodeURIComponent(mobileNumber)}`)
             } else {
               isDirect ? navigate('/login') : navigate('/dashboard')
             }
