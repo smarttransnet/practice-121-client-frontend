@@ -89,6 +89,7 @@ export function BookAppointmentPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const [confirmedPatient, setConfirmedPatient] = useState<PatientRecord | null>(null);
+  const [initialMobile, setInitialMobile] = useState<string | null>(null);
 
   const [booking, setBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
@@ -156,10 +157,16 @@ export function BookAppointmentPage() {
   // Handle return from patient registration with mobile param
   useEffect(() => {
     const mobile = searchParams.get('registeredMobile');
-    if (mobile && activeStep === 1) {
-      // Will be picked up by PatientLookupStep automatically via prop – just surface it
+    if (mobile) {
+      // Clean the URL param
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('registeredMobile');
+      navigate(`${location.pathname}${newParams.toString() ? '?' + newParams.toString() : ''}`, { replace: true });
+      // Jump to Step 2 and pass the registered mobile
+      setActiveStep(1);
+      setInitialMobile(decodeURIComponent(mobile));
     }
-  }, [searchParams, activeStep]);
+  }, [searchParams]);
 
   const handleConfirmBooking = async () => {
     if (!selectedDate || !confirmedPatient || !doctorId || !centreId) {
@@ -382,6 +389,7 @@ export function BookAppointmentPage() {
                       setActiveStep(2);
                     }}
                     registrationReturnUrl={returnUrl}
+                    initialMobile={initialMobile ?? undefined}
                   />
 
                   <Button

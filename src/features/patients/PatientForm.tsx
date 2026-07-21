@@ -115,6 +115,14 @@ export function PatientForm({ entryPoint }: Props) {
   }
 
   if (success) {
+    const getButtonLabel = () => {
+      if (!redirectParam) {
+        return isDirect ? 'Go to Login' : 'Back to Dashboard';
+      }
+      if (redirectParam.includes('/book/')) return 'Continue Booking';
+      return 'Return to Queue';
+    };
+
     return (
       <Card className="glass-card" sx={{ p: 4, maxWidth: 500, mx: 'auto', mt: 4, textAlign: 'center' }}>
         <Alert severity="success" sx={{ mb: 2 }}>Patient account created successfully!</Alert>
@@ -127,13 +135,13 @@ export function PatientForm({ entryPoint }: Props) {
           variant="contained"
           onClick={() => {
             if (redirectParam) {
-              navigate(`${redirectParam}?registeredMobile=${mobileNumber}`)
+              navigate(`${redirectParam}?registeredMobile=${encodeURIComponent(mobileNumber)}`)
             } else {
               isDirect ? navigate('/login') : navigate('/dashboard')
             }
           }}
         >
-          {redirectParam ? 'Return to Queue' : (isDirect ? 'Go to Login' : 'Back to Dashboard')}
+          {getButtonLabel()}
         </Button>
       </Card>
     )

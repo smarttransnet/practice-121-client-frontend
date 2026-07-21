@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   TextField,
@@ -31,11 +31,12 @@ export interface PatientRecord {
 
 interface Props {
   onPatientConfirmed: (patient: PatientRecord) => void;
-  registrationReturnUrl: string; // redirect back here after registration
+  registrationReturnUrl: string;
+  initialMobile?: string; // pre-filled mobile returned from registration
 }
 
-export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl }: Props) {
-  const [mobile, setMobile] = useState('');
+export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, initialMobile }: Props) {
+  const [mobile, setMobile] = useState(initialMobile ?? '');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -54,9 +55,11 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl }:
     setMode('input');
   };
 
-  const handleSearch = async () => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleSearch = useCallback(async (overrideMobile?: string) => {
+    const searchMobile = overrideMobile ?? mobile;
     setError(null);
-    const hasMobile = mobile.trim().length > 0;
+    const hasMobile = searchMobile.trim().length > 0;
     const hasAdvanced = firstName.trim() || lastName.trim() || nicNumber.trim();
 
     if (!hasMobile && !hasAdvanced) {
@@ -67,13 +70,12 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl }:
     setLoading(true);
     try {
       if (hasMobile) {
-        const patient = await getPatientByMobilePublic(mobile.trim());
+        const patient = await getPatientByMobilePublic(searchMobile.trim());
         if (patient) {
           setFoundPatient(patient);
           setMode('confirm');
           return;
         }
-        // Mobile not found – try advanced if filled, else show options
         if (!hasAdvanced) {
           setMode('notFound');
           return;
@@ -101,7 +103,15 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl }:
     } finally {
       setLoading(false);
     }
-  };
+  }, [mobile, firstName, lastName, nicNumber]);
+
+  // Auto-search when returning from patient registration
+  useEffect(() => {
+    if (initialMobile) {
+      handleSearch(initialMobile);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialMobile]);
 
   const handleSelectFromResults = (patient: PatientRecord) => {
     setFoundPatient(patient);
@@ -205,7 +215,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl }:
             color="primary"
             startIcon={<PersonAddAltIcon />}
             component={MuiLink}
-            href={`/register/patient?returnUrl=${encodeURIComponent(registrationReturnUrl)}`}
+            href={`/register/patient?redirect=${encodeURIComponent(registrationReturnUrl)}`}
             sx={{ borderRadius: 6, textTransform: 'none', fontWeight: 700, flex: 1, textDecoration: 'none' }}
           >
             Register as New Patient
@@ -289,7 +299,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl }:
         size="large"
         startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <PersonSearchIcon />}
         disabled={loading}
-        onClick={handleSearch}
+        onClick={() => handleSearch()}
         sx={{ borderRadius: 6, textTransform: 'none', fontWeight: 700, py: 1.5 }}
       >
         {loading ? 'Searching…' : 'Find My Record'}
@@ -298,7 +308,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl }:
       <Divider sx={{ my: 2 }} />
       <Typography variant="caption" color="text.secondary" align="center" display="block">
         Not registered yet?{' '}
-        <MuiLink href={`/register/patient?returnUrl=${encodeURIComponent(registrationReturnUrl)}`} underline="hover" color="primary">
+        <MuiLink href={`/register/patient?redirect=${encodeURIComponent(registrationReturnUrl)}`} underline="hover" color="primary">
           Register here
         </MuiLink>
       </Typography>
