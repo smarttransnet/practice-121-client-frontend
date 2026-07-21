@@ -26,9 +26,10 @@ import {
   Grid,
   CircularProgress,
   Alert,
-  Tooltip
+  Tooltip,
+  ButtonBase
 } from '@mui/material';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -39,13 +40,19 @@ import SettingsPhoneIcon from '@mui/icons-material/SettingsPhone';
 import StarRateIcon from '@mui/icons-material/StarRate';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { httpClient } from '../api/httpClient';
 import {
   getPatientQueue,
   addPatientQueueTicket,
   updatePatientQueueTicketStatus,
   reorderPatientQueue,
-  type PatientQueueTicket
+  getPatientByMobile,
+  searchPatients,
+  updatePatientMobile,
+  type PatientQueueTicket,
+  type Patient
 } from '../features/patient-queue/patientQueueApi';
 
 interface TimeBlock {
@@ -71,52 +78,266 @@ interface PracticeCentre {
   sessionGroups: SessionGroup[];
 }
 
+const getCalendarDays = (viewDate: Date) => {
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  
+  // First day of the month
+  const firstDay = new Date(year, month, 1);
+  const startDayOfWeek = firstDay.getDay();
+  
+  // Total days in the current month
+  const totalDays = new Date(year, month + 1, 0).getDate();
+  
+  const days: (Date | null)[] = [];
+  
+  // Padding for empty days at start of grid
+  for (let i = 0; i < startDayOfWeek; i++) {
+    days.push(null);
+  }
+  
+  // Days of the month
+  for (let day = 1; day <= totalDays; day++) {
+    days.push(new Date(year, month, day));
+  }
+  
+  return days;
+};
+
+const CalendarPicker = ({
+  availableDates,
+  selectedDate,
+  onSelectDate
+}: {
+  availableDates: Date[];
+  selectedDate: Date | null;
+  onSelectDate: (date: Date) => void;
+}) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const maxDate = new Date(today);
+  maxDate.setDate(today.getDate() + 27);
+
+  const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const days = getCalendarDays(currentMonth);
+  const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+  // Check if prev/next month navigation should be disabled
+  const showPrev = currentMonth.getFullYear() > today.getFullYear() || currentMonth.getMonth() > today.getMonth();
+  const showNext = currentMonth.getFullYear() < maxDate.getFullYear() || currentMonth.getMonth() < maxDate.getMonth();
+
+  return (
+    <Box sx={{ width: '100%', bgcolor: '#ffffff', borderRadius: 3, p: 2, border: '1px solid #e0e0e0' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <IconButton size="small" onClick={handlePrevMonth} disabled={!showPrev}>
+          <ChevronLeftIcon />
+        </IconButton>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+          {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+        </Typography>
+        <IconButton size="small" onClick={handleNextMonth} disabled={!showNext}>
+          <ChevronRightIcon />
+        </IconButton>
+      </Box>
+
+      <Grid container spacing={1} columns={7} sx={{ textAlign: 'center', mb: 1 }}>
+        {weekDays.map(wd => (
+          <Grid key={wd} size={1}>
+            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+              {wd}
+            </Typography>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Grid container spacing={1} columns={7} sx={{ textAlign: 'center' }}>
+        {days.map((day, idx) => {
+          if (!day) {
+            return <Grid key={`empty-${idx}`} size={1} />;
+          }
+
+          const dayReset = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+          const isWithinWindow = dayReset >= today && dayReset <= maxDate;
+          const isAvailable = availableDates.some(ad => ad.toDateString() === dayReset.toDateString());
+          const isSelectable = isWithinWindow && isAvailable;
+          const isSelected = selectedDate && dayReset.toDateString() === selectedDate.toDateString();
+
+          return (
+            <Grid key={day.toISOString()} size={1}>
+              <ButtonBase
+                onClick={() => isSelectable && onSelectDate(dayReset)}
+                disabled={!isSelectable}
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  fontSize: '0.8rem',
+                  fontWeight: isSelected ? 700 : 500,
+                  bgcolor: isSelected 
+                    ? 'primary.main' 
+                    : isSelectable 
+                      ? 'rgba(143, 0, 255, 0.06)' 
+                      : 'transparent',
+                  color: isSelected 
+                    ? '#ffffff' 
+                    : isSelectable 
+                      ? '#8F00FF' 
+                      : '#b0b0b0',
+                  opacity: isSelectable ? 1 : 0.4,
+                  '&:hover': {
+                    bgcolor: isSelected 
+                      ? 'primary.dark' 
+                      : isSelectable 
+                        ? 'rgba(143, 0, 255, 0.15)' 
+                        : 'transparent',
+                  },
+                  transition: 'all 0.2s'
+                }}
+              >
+                {day.getDate()}
+              </ButtonBase>
+            </Grid>
+          );
+        })}
+      </Grid>
+    </Box>
+  );
+};
+
 export const PatientQueue = () => {
   const [practiceCentres, setPracticeCentres] = useState<PracticeCentre[]>([]);
   const [selectedCentre, setSelectedCentre] = useState<PracticeCentre | null>(null);
   const [queue, setQueue] = useState<PatientQueueTicket[]>([]);
 
-  const getTodayDayString = () => {
-    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-    return days[new Date().getDay()];
-  };
 
-  const hasScheduleToday = (centre: PracticeCentre | null): boolean => {
-    if (!centre) return false;
-    if (!centre.sessionGroups || centre.sessionGroups.length === 0) return false;
-    const today = getTodayDayString();
-    return centre.sessionGroups.some(sg =>
-      sg.daysOfWeek && sg.daysOfWeek.map(d => d.toUpperCase()).includes(today)
-    );
-  };
   
   const [loadingCentres, setLoadingCentres] = useState(true);
   const [loadingQueue, setLoadingQueue] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Dialog / Modal State
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [openAddModal, setOpenAddModal] = useState(false);
   const [patientMobile, setPatientMobile] = useState('');
   const [priority, setPriority] = useState<number>(0);
   const [submitting, setSubmitting] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
 
+  // Enhanced Queue dialog states
+  const [dialogMode, setDialogMode] = useState<'input' | 'verify' | 'select' | 'notFound'>('input');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [searchFirstName, setSearchFirstName] = useState('');
+  const [searchLastName, setSearchLastName] = useState('');
+  const [searchNic, setSearchNic] = useState('');
+  const [verifiedPatient, setVerifiedPatient] = useState<Patient | null>(null);
+  const [searchResults, setSearchResults] = useState<Patient[]>([]);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+
   // Drag and drop state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  // Future Booking Date states
+  const [availableDates, setAvailableDates] = useState<Date[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  const getDayString = (date: Date) => {
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    return days[date.getDay()];
+  };
+
+  const formatDateLocal = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const getAvailableDates = (centre: PracticeCentre | null): Date[] => {
+    if (!centre || !centre.sessionGroups || centre.sessionGroups.length === 0) return [];
+    
+    const activeDays = new Set<string>();
+    centre.sessionGroups.forEach(sg => {
+      if (sg.daysOfWeek) {
+        sg.daysOfWeek.forEach(d => activeDays.add(d.toUpperCase()));
+      }
+    });
+
+    const dates: Date[] = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 28; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      
+      const dayStr = getDayString(d);
+      if (activeDays.has(dayStr)) {
+        dates.push(d);
+      }
+    }
+    
+    return dates;
+  };
 
   // Load Practice Centres on mount
   useEffect(() => {
     fetchPracticeCentres();
   }, []);
 
-  // Fetch queue when selected practice centre changes
+  // Update available dates when selected practice centre changes
   useEffect(() => {
     if (selectedCentre) {
-      fetchQueue(selectedCentre.id);
+      const dates = getAvailableDates(selectedCentre);
+      setAvailableDates(dates);
+      if (dates.length > 0) {
+        const currentSelectedDateStr = selectedDate ? formatDateLocal(selectedDate) : null;
+        const isStillAvailable = dates.some(d => formatDateLocal(d) === currentSelectedDateStr);
+        if (!isStillAvailable) {
+          setSelectedDate(dates[0]);
+        }
+      } else {
+        setSelectedDate(null);
+      }
+    } else {
+      setAvailableDates([]);
+      setSelectedDate(null);
+    }
+  }, [selectedCentre]);
+
+  // Fetch queue when selected practice centre or selected date changes
+  useEffect(() => {
+    if (selectedCentre && selectedDate) {
+      const dateStr = formatDateLocal(selectedDate);
+      fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
     } else {
       setQueue([]);
     }
-  }, [selectedCentre]);
+  }, [selectedCentre, selectedDate]);
+
+  // Handle registeredMobile redirect callback from patient registration
+  useEffect(() => {
+    const registeredMobile = searchParams.get('registeredMobile');
+    if (registeredMobile) {
+      setPatientMobile(registeredMobile);
+      setOpenAddModal(true);
+      // Clean up url parameters
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('registeredMobile');
+      setSearchParams(newParams, { replace: true });
+      
+      // Fetch and verify immediately
+      checkAndVerifyPatient(registeredMobile);
+    }
+  }, [searchParams]);
 
   const fetchPracticeCentres = async () => {
     try {
@@ -135,11 +356,11 @@ export const PatientQueue = () => {
     }
   };
 
-  const fetchQueue = async (centreId: string) => {
+  const fetchQueue = async (centreId: string, doctorId?: string, visitDate?: string) => {
     try {
       setLoadingQueue(true);
       setError(null);
-      const data = await getPatientQueue(centreId);
+      const data = await getPatientQueue(centreId, doctorId, visitDate);
       setQueue(data);
     } catch (err: any) {
       console.error(err);
@@ -149,27 +370,117 @@ export const PatientQueue = () => {
     }
   };
 
+  const refreshQueue = () => {
+    if (selectedCentre && selectedDate) {
+      const dateStr = formatDateLocal(selectedDate);
+      fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+    }
+  };
+
+  const checkAndVerifyPatient = async (mobile: string) => {
+    try {
+      setVerificationLoading(true);
+      setAddError(null);
+      
+      const trimmedMobile = mobile.trim();
+      const hasMobile = !!trimmedMobile;
+      const hasAdvancedSearchTerms = searchFirstName.trim() || searchLastName.trim() || searchNic.trim();
+
+      if (!hasMobile && !hasAdvancedSearchTerms) {
+        setAddError('Patient Mobile Number is required or fill at least one Advanced Search field.');
+        return;
+      }
+
+      // 1. Check if patient exists by mobile number if provided
+      if (hasMobile) {
+        const patient = await getPatientByMobile(trimmedMobile);
+        if (patient) {
+          setVerifiedPatient(patient);
+          setDialogMode('verify');
+          return;
+        }
+      }
+      
+      // 2. If not exists or no mobile provided, check if advanced search parameters were provided
+      if (hasAdvancedSearchTerms) {
+        const results = await searchPatients({
+          firstName: searchFirstName.trim(),
+          lastName: searchLastName.trim(),
+          nicNumber: searchNic.trim()
+        });
+        
+        if (results.length > 0) {
+          setSearchResults(results);
+          setDialogMode('select');
+          return;
+        }
+      }
+      
+      // 3. Otherwise, set mode to notFound
+      setDialogMode('notFound');
+      
+    } catch (err: any) {
+      console.error(err);
+      setAddError(err.response?.data?.detail || err.message || 'Failed to verify patient');
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleSelectPatient = async (patient: Patient) => {
+    try {
+      setVerificationLoading(true);
+      setAddError(null);
+      
+      const newMobile = patientMobile.trim();
+      if (newMobile && newMobile !== patient.mobileNumber) {
+        // Update mobile in database to link
+        await updatePatientMobile(patient.id, newMobile);
+        const updatedPatient = { ...patient, mobileNumber: newMobile };
+        setVerifiedPatient(updatedPatient);
+      } else {
+        // Keep their current mobile number if newMobile is empty
+        setVerifiedPatient(patient);
+      }
+      setDialogMode('verify');
+    } catch (err: any) {
+      console.error(err);
+      setAddError(err.response?.data?.detail || err.message || 'Failed to link patient');
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleCloseAddModal = () => {
+    setOpenAddModal(false);
+    setPatientMobile('');
+    setPriority(0);
+    setDialogMode('input');
+    setShowAdvanced(false);
+    setSearchFirstName('');
+    setSearchLastName('');
+    setSearchNic('');
+    setVerifiedPatient(null);
+    setSearchResults([]);
+    setAddError(null);
+  };
+
   const handleAddTicket = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCentre) return;
-    if (!patientMobile.trim()) {
-      setAddError('Patient Mobile is required');
-      return;
-    }
+    if (!selectedCentre || !verifiedPatient) return;
 
     try {
       setSubmitting(true);
       setAddError(null);
       await addPatientQueueTicket({
-        patientMobile: patientMobile.trim(),
+        patientMobile: verifiedPatient.mobileNumber,
         doctorId: selectedCentre.doctorId,
         practiceCentreId: selectedCentre.id,
-        priority: priority
+        priority: priority,
+        visitDate: selectedDate ? formatDateLocal(selectedDate) : undefined
       });
-      setPatientMobile('');
-      setPriority(0);
-      setOpenAddModal(false);
-      fetchQueue(selectedCentre.id);
+      handleCloseAddModal();
+      refreshQueue();
     } catch (err: any) {
       console.error(err);
       setAddError(err.message || 'Failed to add patient to queue');
@@ -183,7 +494,7 @@ export const PatientQueue = () => {
     try {
       setError(null);
       await updatePatientQueueTicketStatus(ticketId, newStatus);
-      fetchQueue(selectedCentre.id);
+      refreshQueue();
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to update ticket status');
@@ -278,7 +589,7 @@ export const PatientQueue = () => {
 
         {selectedCentre && (
           <Button
-            onClick={() => fetchQueue(selectedCentre.id)}
+            onClick={refreshQueue}
             variant="text"
             startIcon={<RefreshIcon />}
             sx={{ fontWeight: 700 }}
@@ -330,16 +641,31 @@ export const PatientQueue = () => {
                   </Select>
                 </FormControl>
 
-                {selectedCentre && !hasScheduleToday(selectedCentre) && (
+                {selectedCentre && availableDates.length > 0 && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 2 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                      Select Visit Date
+                    </Typography>
+                    <CalendarPicker
+                      availableDates={availableDates}
+                      selectedDate={selectedDate}
+                      onSelectDate={setSelectedDate}
+                    />
+                  </Box>
+                )}
+
+                {selectedCentre && availableDates.length === 0 && (
                   <Alert severity="warning" sx={{ mt: 2, borderRadius: 2 }}>
-                    Doctor doesn't have practice schedule for this location for today ({getTodayDayString()}).
+                    Doctor has no schedule set on any day of week in the next 4 weeks. Go to settings to set availability.
                   </Alert>
                 )}
 
                 {/* Queue Statistics */}
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
-                    Today's Statistics
+                    {selectedDate && selectedDate.toDateString() === new Date().toDateString() 
+                      ? "Today's Statistics" 
+                      : `Statistics for ${selectedDate?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 4 }}>
@@ -374,7 +700,7 @@ export const PatientQueue = () => {
                   variant="contained"
                   className="gradient-primary-btn"
                   fullWidth
-                  disabled={!selectedCentre || !hasScheduleToday(selectedCentre)}
+                  disabled={!selectedCentre || !selectedDate}
                   startIcon={<AddIcon />}
                   sx={{ py: 1.5, mt: 2 }}
                 >
@@ -389,7 +715,7 @@ export const PatientQueue = () => {
             <Card className="glass-card" sx={{ p: 1 }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                  Active Patient Queue
+                  Patient Queue - {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : ''}
                 </Typography>
 
                 {loadingQueue ? (
@@ -399,7 +725,7 @@ export const PatientQueue = () => {
                 ) : queue.length === 0 ? (
                   <Box sx={{ textAlign: 'center', py: 6 }}>
                     <Typography color="text.secondary">
-                      No patients in the queue for today.
+                      No patients in the queue for this date.
                     </Typography>
                   </Box>
                 ) : (
@@ -521,57 +847,232 @@ export const PatientQueue = () => {
       )}
 
       {/* Add Queue Ticket Dialog Modal */}
+      {/* Add Queue Ticket Dialog Modal */}
       <Dialog
         open={openAddModal}
-        onClose={() => setOpenAddModal(false)}
-        PaperProps={{ sx: { borderRadius: 4, p: 2, minWidth: 400 } }}
+        onClose={handleCloseAddModal}
+        PaperProps={{ sx: { borderRadius: 4, p: 2, minWidth: 450, maxWidth: 600 } }}
       >
-        <DialogTitle sx={{ fontWeight: 'bold' }}>Add Patient to Queue</DialogTitle>
-        <form onSubmit={handleAddTicket}>
-          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-            {addError && <Alert severity="error">{addError}</Alert>}
-            <TextField
-              label="Patient Mobile Number"
-              variant="outlined"
-              fullWidth
-              value={patientMobile}
-              onChange={(e) => setPatientMobile(e.target.value)}
-              slotProps={{
-                input: {
-                  startAdornment: <SettingsPhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                }
-              }}
-              required
-            />
-            <FormControl fullWidth>
-              <InputLabel>Priority</InputLabel>
-              <Select
-                value={priority}
-                label="Priority"
-                onChange={(e) => setPriority(Number(e.target.value))}
-                startAdornment={<StarRateIcon sx={{ mr: 1, color: 'text.secondary' }} />}
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
+          {dialogMode === 'input' && "Add Patient to Queue"}
+          {dialogMode === 'verify' && "Verify Patient Details"}
+          {dialogMode === 'select' && "Select Matching Patient"}
+          {dialogMode === 'notFound' && "Patient Not Found"}
+        </DialogTitle>
+        
+        {dialogMode === 'input' && (
+          <form onSubmit={(e) => { e.preventDefault(); checkAndVerifyPatient(patientMobile); }}>
+            <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
+              {addError && <Alert severity="error">{addError}</Alert>}
+              <TextField
+                label="Patient Mobile Number"
+                variant="outlined"
+                fullWidth
+                value={patientMobile}
+                onChange={(e) => setPatientMobile(e.target.value)}
+                slotProps={{
+                  input: {
+                    startAdornment: <SettingsPhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                  }
+                }}
+              />
+              
+              <Button
+                variant="text"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 600 }}
               >
-                <MenuItem value={0}>Normal Priority</MenuItem>
-                <MenuItem value={1}>High Priority</MenuItem>
-                <MenuItem value={2}>Emergency Priority</MenuItem>
-              </Select>
-            </FormControl>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={() => setOpenAddModal(false)} variant="text" sx={{ textTransform: 'none', fontWeight: 700 }}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              className="gradient-primary-btn"
-              disabled={submitting}
-              sx={{ px: 3 }}
-            >
-              {submitting ? <CircularProgress size={24} /> : 'Add to Queue'}
-            </Button>
-          </DialogActions>
-        </form>
+                {showAdvanced ? "Hide Advanced Search" : "Use Advanced Search (If phone number changed)"}
+              </Button>
+
+              {showAdvanced && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2, border: '1px dashed #ccc', borderRadius: 3, bgcolor: '#fafafa' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    Advanced Search (Optional)
+                  </Typography>
+                  <TextField
+                    label="First Name"
+                    variant="outlined"
+                    fullWidth
+                    value={searchFirstName}
+                    onChange={(e) => setSearchFirstName(e.target.value)}
+                  />
+                  <TextField
+                    label="Last Name"
+                    variant="outlined"
+                    fullWidth
+                    value={searchLastName}
+                    onChange={(e) => setSearchLastName(e.target.value)}
+                  />
+                  <TextField
+                    label="NIC Number"
+                    variant="outlined"
+                    fullWidth
+                    value={searchNic}
+                    onChange={(e) => setSearchNic(e.target.value)}
+                  />
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ p: 3 }}>
+              <Button onClick={handleCloseAddModal} variant="text" sx={{ textTransform: 'none', fontWeight: 700 }}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                className="gradient-primary-btn"
+                disabled={verificationLoading}
+                sx={{ px: 3 }}
+              >
+                {verificationLoading ? <CircularProgress size={24} /> : 'Check Patient'}
+              </Button>
+            </DialogActions>
+          </form>
+        )}
+
+        {dialogMode === 'verify' && (
+          <form onSubmit={handleAddTicket}>
+            <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
+              {addError && <Alert severity="error">{addError}</Alert>}
+              
+              <Alert severity="info" sx={{ borderRadius: 3 }}>
+                Patient found. Please verify the details before adding to the queue.
+              </Alert>
+
+              <Card sx={{ bgcolor: '#f8f9fa', borderRadius: 3, boxShadow: 'none', border: '1px solid #e9ecef', p: 2 }}>
+                <CardContent sx={{ p: '8px !important', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Typography variant="body1">
+                    <strong>Name:</strong> {verifiedPatient?.firstName} {verifiedPatient?.lastName}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>NIC Number:</strong> {verifiedPatient?.nicNumber}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>Mobile Number:</strong> {verifiedPatient?.mobileNumber}
+                  </Typography>
+                  {verifiedPatient?.gender && (
+                    <Typography variant="body1">
+                      <strong>Gender:</strong> {verifiedPatient?.gender}
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+
+              <FormControl fullWidth>
+                <InputLabel>Priority</InputLabel>
+                <Select
+                  value={priority}
+                  label="Priority"
+                  onChange={(e) => setPriority(Number(e.target.value))}
+                  startAdornment={<StarRateIcon sx={{ mr: 1, color: 'text.secondary' }} />}
+                >
+                  <MenuItem value={0}>Normal Priority</MenuItem>
+                  <MenuItem value={1}>High Priority</MenuItem>
+                  <MenuItem value={2}>Emergency Priority</MenuItem>
+                </Select>
+              </FormControl>
+            </DialogContent>
+            <DialogActions sx={{ p: 3 }}>
+              <Button onClick={() => setDialogMode('input')} variant="text" sx={{ textTransform: 'none', fontWeight: 700 }}>
+                Back
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                className="gradient-primary-btn"
+                disabled={submitting}
+                sx={{ px: 3 }}
+              >
+                {submitting ? <CircularProgress size={24} /> : 'Confirm & Add to Queue'}
+              </Button>
+            </DialogActions>
+          </form>
+        )}
+
+        {dialogMode === 'select' && (
+          <Box>
+            <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+              {addError && <Alert severity="error">{addError}</Alert>}
+              <Typography variant="body2" color="text.secondary">
+                No patient matches the mobile number <strong>{patientMobile}</strong>, but matching records were found based on your advanced search. Select the correct patient to link this phone number and add to queue:
+              </Typography>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 300, overflowY: 'auto', mt: 1 }}>
+                {searchResults.map((patient) => (
+                  <Card key={patient.id} sx={{ border: '1px solid #e0e0e0', borderRadius: 3, boxShadow: 'none', p: 1.5 }}>
+                    <Grid container alignItems="center" spacing={2}>
+                      <Grid size={{ xs: 8 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                          {patient.firstName} {patient.lastName}
+                        </Typography>
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          NIC: {patient.nicNumber} | Old Mobile: {patient.mobileNumber}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 4 }} sx={{ textAlign: 'right' }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => handleSelectPatient(patient)}
+                          disabled={verificationLoading}
+                          sx={{ textTransform: 'none', borderRadius: 2 }}
+                        >
+                          Select & Link
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                ))}
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ p: 3, justifyContent: 'space-between' }}>
+              <Button onClick={() => setDialogMode('input')} variant="text" sx={{ textTransform: 'none', fontWeight: 700 }}>
+                Back
+              </Button>
+              <Button
+                onClick={() => {
+                  setOpenAddModal(false);
+                  navigate(`/register/patient?redirect=/patient-queue&mobile=${encodeURIComponent(patientMobile)}`);
+                }}
+                variant="contained"
+                color="secondary"
+                sx={{ textTransform: 'none', borderRadius: 2 }}
+              >
+                Register New Patient
+              </Button>
+            </DialogActions>
+          </Box>
+        )}
+
+        {dialogMode === 'notFound' && (
+          <Box>
+            <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 3 }}>
+              <Typography variant="h6" align="center" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                No Patient Record Found
+              </Typography>
+              <Typography variant="body2" color="text.secondary" align="center">
+                We couldn't find any patient matching the mobile number or advanced search details in our database.
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ p: 3, justifyContent: 'space-between' }}>
+              <Button onClick={() => setDialogMode('input')} variant="text" sx={{ textTransform: 'none', fontWeight: 700 }}>
+                Back
+              </Button>
+              <Button
+                onClick={() => {
+                  setOpenAddModal(false);
+                  navigate(`/register/patient?redirect=/patient-queue&mobile=${encodeURIComponent(patientMobile)}`);
+                }}
+                variant="contained"
+                className="gradient-primary-btn"
+                sx={{ textTransform: 'none', px: 3 }}
+              >
+                Register New Patient
+              </Button>
+            </DialogActions>
+          </Box>
+        )}
       </Dialog>
     </Box>
   );
