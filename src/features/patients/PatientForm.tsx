@@ -13,7 +13,7 @@ import {
 import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined'
 import { registerPatient, uploadPatientDocument } from './patientsApi'
 import { useAuth } from '../auth/useAuth'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 interface Props {
   entryPoint: 'direct' | 'doctor'
@@ -22,13 +22,16 @@ interface Props {
 export function PatientForm({ entryPoint }: Props) {
   const { user } = useAuth() // user could be undefined in direct mode, but if doctor mode, we get doctor info
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirectParam = searchParams.get('redirect')
+  const mobileParam = searchParams.get('mobile')
 
   const [nicNumber, setNicNumber] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [gender, setGender] = useState('')
-  const [mobileNumber, setMobileNumber] = useState('')
+  const [mobileNumber, setMobileNumber] = useState(mobileParam || '')
 
   const [nicFront, setNicFront] = useState<File | null>(null)
   const [nicBack, setNicBack] = useState<File | null>(null)
@@ -120,8 +123,17 @@ export function PatientForm({ entryPoint }: Props) {
             You skipped the NIC image upload. You can upload it later from your account settings.
           </Typography>
         )}
-        <Button variant="contained" onClick={() => isDirect ? navigate('/login') : navigate('/dashboard')}>
-          {isDirect ? 'Go to Login' : 'Back to Dashboard'}
+        <Button
+          variant="contained"
+          onClick={() => {
+            if (redirectParam) {
+              navigate(`${redirectParam}?registeredMobile=${mobileNumber}`)
+            } else {
+              isDirect ? navigate('/login') : navigate('/dashboard')
+            }
+          }}
+        >
+          {redirectParam ? 'Return to Queue' : (isDirect ? 'Go to Login' : 'Back to Dashboard')}
         </Button>
       </Card>
     )
