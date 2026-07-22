@@ -8,7 +8,6 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 const ROUTE_REQUIREMENTS: Record<string, { fields: string[]; label: string }[]> = {
   '/reports': [
     { fields: ['specialty'], label: 'Medical Speciality' },
-    { fields: ['qualifications'], label: 'Qualifications' },
     { fields: ['slmcCertificate'], label: 'SLMC Certificate Verification Document' },
   ],
   '/todos': [
