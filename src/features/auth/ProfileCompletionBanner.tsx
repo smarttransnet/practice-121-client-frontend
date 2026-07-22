@@ -12,7 +12,6 @@ const FIELD_LABELS: Record<string, string> = {
   slmcRegNumber: 'SLMC Registration Number',
   nicNumber: 'NIC Number',
   mobileNumber: 'Mobile Number',
-  qualifications: 'Qualifications',
   specialty: 'Speciality',
   slmcCertificate: 'SLMC Certificate Document',
   eSignature: 'E-Signature Verification',
@@ -56,66 +55,105 @@ export function ProfileCompletionBanner() {
   }
 
   return (
-    <Collapse in={true}>
+    <Collapse in={true} unmountOnExit>
       <Paper
-        elevation={2}
+        elevation={0}
         sx={{
-          mb: 3,
-          p: 2,
-          borderRadius: 2,
-          borderLeft: '5px solid',
-          borderColor: 'warning.main',
-          bgcolor: 'warning.light',
-          backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9))',
-          boxShadow: '0 4px 20px 0 rgba(0,0,0,0.05)',
+          mb: 4,
+          p: 3,
+          borderRadius: 4,
+          position: 'relative',
+          overflow: 'hidden',
+          background: 'linear-gradient(145deg, #ffffff 0%, #fdfbf7 100%)',
+          border: '1px solid rgba(251, 191, 36, 0.3)',
+          boxShadow: '0 10px 40px -10px rgba(251, 191, 36, 0.15)',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '6px',
+            height: '100%',
+            background: 'linear-gradient(180deg, #f59e0b 0%, #fbbf24 100%)',
+            borderRadius: '4px 0 0 4px',
+          },
         }}
       >
-        <Stack direction="row" spacing={2} alignItems="flex-start" justifyContent="space-between">
-          <Stack direction="row" spacing={1.5} alignItems="flex-start">
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
+          <Stack direction="row" spacing={2.5} alignItems="flex-start" sx={{ flex: 1 }}>
             <Box
               sx={{
                 display: 'flex',
-                color: 'warning.main',
-                mt: 0.3,
+                color: '#f59e0b',
+                mt: 0.5,
+                p: 1.2,
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%)',
+                boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)',
+                animation: 'pulse 2s infinite',
+                '@keyframes pulse': {
+                  '0%': { boxShadow: '0 0 0 0 rgba(251, 191, 36, 0.4)' },
+                  '70%': { boxShadow: '0 0 0 6px rgba(251, 191, 36, 0)' },
+                  '100%': { boxShadow: '0 0 0 0 rgba(251, 191, 36, 0)' }
+                }
               }}
             >
-              <WarningAmberIcon />
+              <WarningAmberIcon sx={{ fontSize: 28 }} />
             </Box>
             <Box>
-              <Typography variant="subtitle1" fontWeight="bold" color="warning.dark">
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#451a03', mb: 0.5, letterSpacing: '-0.01em' }}>
                 Complete Your Professional Profile
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+              <Typography variant="body2" sx={{ color: '#78350f', mb: 2, fontSize: '0.95rem', opacity: 0.9 }}>
                 Your account is active, but some features are locked until your profile is complete.
               </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1, mb: 1.5 }}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1.2 }}>
                 {missingFields.map((field) => (
                   <Chip
                     key={field}
                     label={FIELD_LABELS[field] ?? field}
                     size="small"
-                    variant="outlined"
-                    color="warning"
-                    sx={{ bgcolor: 'white', fontWeight: 500 }}
+                    sx={{
+                      bgcolor: 'rgba(251, 191, 36, 0.1)',
+                      color: '#b45309',
+                      fontWeight: 700,
+                      border: '1px solid rgba(251, 191, 36, 0.3)',
+                      backdropFilter: 'blur(4px)',
+                      px: 0.5,
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        bgcolor: 'rgba(251, 191, 36, 0.2)',
+                        transform: 'translateY(-1px)'
+                      }
+                    }}
                   />
                 ))}
               </Stack>
             </Box>
           </Stack>
           
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ alignSelf: { xs: 'flex-end', md: 'center' } }}>
             {!isSettingsPage && (
               <Button
                 component={Link}
                 to="/settings"
                 variant="contained"
-                color="warning"
-                size="small"
                 sx={{
-                  fontWeight: 'bold',
-                  boxShadow: 'none',
-                  '&:hover': { boxShadow: 'none' },
-                  borderRadius: 1.5,
+                  fontWeight: 700,
+                  px: 3,
+                  py: 1,
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  boxShadow: '0 4px 14px 0 rgba(245, 158, 11, 0.39)',
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  letterSpacing: '0.02em',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 20px 0 rgba(245, 158, 11, 0.45)',
+                  },
                 }}
               >
                 Complete Profile
@@ -125,7 +163,11 @@ export function ProfileCompletionBanner() {
               size="small"
               onClick={() => setIsDismissed(true)}
               aria-label="dismiss"
-              sx={{ color: 'warning.dark' }}
+              sx={{ 
+                color: '#92400e',
+                bgcolor: 'rgba(251, 191, 36, 0.1)',
+                '&:hover': { bgcolor: 'rgba(251, 191, 36, 0.2)' }
+              }}
             >
               <CloseIcon fontSize="small" />
             </IconButton>
