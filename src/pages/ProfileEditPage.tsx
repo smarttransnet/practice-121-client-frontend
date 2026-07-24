@@ -4,6 +4,7 @@ import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
 import { useAuth } from '../features/auth/useAuth'
 import { httpClient } from '../api/httpClient'
+import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation'
 import {
   Avatar,
   Box,
@@ -329,6 +330,9 @@ export function ProfileEditPage() {
     if (!firstName.trim()) newErrors.firstName = 'First Name is required'
     if (!lastName.trim()) newErrors.lastName = 'Last Name is required'
     if (!specialty) newErrors.specialty = 'Core Speciality is required'
+    if (mobileNumber && !isValidLkMobile(mobileNumber)) {
+      newErrors.mobileNumber = 'Please enter a valid Sri Lankan mobile number (e.g., 077 123 4567).'
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -347,7 +351,7 @@ export function ProfileEditPage() {
         firstName,
         lastName,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth).toISOString() : null,
-        mobileNumber: mobileNumber || null,
+        mobileNumber: mobileNumber ? (normalizeLkMobile(mobileNumber) || mobileNumber) : null,
         gender: gender || null,
         specialty: specialty || null,
         subSpecialty: subSpecialty || null,
@@ -520,7 +524,7 @@ export function ProfileEditPage() {
                   <Box><Typography variant="caption" color="text.secondary">Email Address</Typography><Typography variant="body1" fontWeight={700}>{email || '—'}</Typography></Box>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  {isEdit ? <TextField label="Phone Number" fullWidth value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} /> : <Box><Typography variant="caption" color="text.secondary">Phone Number</Typography><Typography variant="body1" fontWeight={700}>{mobileNumber || '—'}</Typography></Box>}
+                  {isEdit ? <TextField label="Phone Number" fullWidth value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} error={!!errors.mobileNumber} helperText={errors.mobileNumber} /> : <Box><Typography variant="caption" color="text.secondary">Phone Number</Typography><Typography variant="body1" fontWeight={700}>{mobileNumber || '—'}</Typography></Box>}
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   {isEdit ? <TextField label="Date of Birth" type="date" fullWidth value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} InputLabelProps={{ shrink: true }} /> : <Box><Typography variant="caption" color="text.secondary">Date of Birth</Typography><Typography variant="body1" fontWeight={700}>{dateOfBirth || '—'}</Typography></Box>}

@@ -12,6 +12,8 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import type { Nurse } from './types'
 
+import { isValidLkMobile } from '../../utils/lkPhoneValidation'
+
 interface Props {
   nurses: Nurse[]
   onChange: (nurses: Nurse[]) => void
@@ -51,12 +53,19 @@ export function NurseSubform({ nurses, onChange }: Props) {
               />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                fullWidth
-                label="Phone Number"
-                value={nurse.phoneNumber}
-                onChange={e => updateNurse(index, { ...nurse, phoneNumber: e.target.value })}
-              />
+              {(() => {
+                const isPhoneInvalid = !!nurse.phoneNumber && !isValidLkMobile(nurse.phoneNumber)
+                return (
+                  <TextField
+                    fullWidth
+                    label="Phone Number"
+                    value={nurse.phoneNumber}
+                    onChange={e => updateNurse(index, { ...nurse, phoneNumber: e.target.value })}
+                    error={isPhoneInvalid}
+                    helperText={isPhoneInvalid ? 'Invalid LK mobile (e.g. 077 123 4567)' : ''}
+                  />
+                )
+              })()}
             </Grid>
             <Grid size={{ xs: 12, md: 2 }}>
               <Box display="flex" alignItems="center">
