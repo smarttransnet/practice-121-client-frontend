@@ -17,6 +17,16 @@ body {
   color: #0b1220;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+body.dark-theme {
+  background: 
+    radial-gradient(at 0% 0%, rgba(143, 0, 255, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+    #0B0F17;
+  color: #F1F5F9;
 }
 
 /* Custom premium scrollbars */
@@ -46,13 +56,23 @@ body {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
+body.dark-theme .glass-card {
+  background: rgba(18, 24, 38, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
 .glass-card:hover {
   box-shadow: 0 12px 40px rgba(31, 38, 135, 0.07) !important;
   transform: translateY(-2px);
 }
 
+body.dark-theme .glass-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6) !important;
+}
+
 .gradient-primary-btn {
-  background: linear-gradient(135deg, #8F00FF 0%, #5F00FF 100%) !important;
+  background: linear-gradient(135deg, var(--mui-palette-primary-main, #8F00FF) 0%, var(--mui-palette-primary-dark, #5F00FF) 100%) !important;
   color: #ffffff !important;
   box-shadow: 0 4px 14px rgba(143, 0, 255, 0.3) !important;
   border-radius: 12px !important;

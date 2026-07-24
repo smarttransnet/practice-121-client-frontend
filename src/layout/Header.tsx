@@ -1,15 +1,12 @@
 import MenuIcon from '@mui/icons-material/Menu'
-import SearchIcon from '@mui/icons-material/Search'
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined'
 import MailOutlineOutlinedIcon from '@mui/icons-material/MailOutlineOutlined'
-import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined'
 import { 
   AppBar, 
   Box, 
   IconButton, 
   Toolbar, 
   Typography, 
-  InputBase, 
   Stack, 
   Badge 
 } from '@mui/material'
@@ -78,45 +75,6 @@ export function Header({ onOpenMobileMenu, onToggleSidebar, isMobile = false }: 
         >
           <MenuIcon />
         </IconButton>
-        
-        {/* Search Input Bar (mockup style) */}
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            bgcolor: 'rgba(255, 255, 255, 0.5)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.6)',
-            borderRadius: '50px',
-            px: 2,
-            py: 0.75,
-            width: 320,
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
-            transition: 'all 0.25s ease',
-            '&:focus-within': {
-              bgcolor: 'rgba(255, 255, 255, 0.8)',
-              boxShadow: '0 4px 24px rgba(143, 0, 255, 0.06)',
-              width: 360,
-            }
-          }}
-        >
-        <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-        <InputBase 
-          placeholder="Search..." 
-          fullWidth
-          sx={{ 
-            fontSize: '0.875rem', 
-            fontWeight: 500,
-            '& input::placeholder': {
-              color: 'text.secondary',
-              opacity: 0.8
-            }
-          }} 
-        />
-        <IconButton size="small" sx={{ color: 'text.secondary' }}>
-          <TuneOutlinedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-      </Box>
       </Box>
 
       {/* Right Side: Icons and Profile */}
