@@ -11,6 +11,7 @@ import {
   Typography,
   Skeleton,
   ListItemIcon,
+  Divider,
 } from '@mui/material'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
@@ -113,12 +114,13 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
         aria-expanded={open}
         aria-label="User menu"
         sx={{
-          borderRadius: isMobile ? '50%' : '12px',
+          borderRadius: isMobile ? '50%' : '28px', // Google Account style pill shape trigger
           p: isMobile ? 0.25 : 0.75,
-          transition: 'all 0.2s ease-in-out',
+          px: isMobile ? 0.25 : 1.25,
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          bgcolor: open ? '#E8F0FE' : 'transparent',
           '&:hover': {
-            bgcolor: 'rgba(143, 0, 255, 0.04)',
-            transform: 'scale(1.02)',
+            bgcolor: open ? '#C2E7FF' : 'rgba(0, 0, 0, 0.04)',
           },
           textAlign: 'left',
         }}
@@ -131,14 +133,14 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
               onError: () => setImgError(true),
             }}
             sx={{
-              width: isMobile ? 32 : 44,
-              height: isMobile ? 32 : 44,
-              border: `2px solid ${isMobile ? 'rgba(143, 0, 255, 0.15)' : 'rgba(143, 0, 255, 0.25)'}`,
-              boxShadow: '0 4px 12px rgba(143, 0, 255, 0.08)',
+              width: isMobile ? 32 : 40,
+              height: isMobile ? 32 : 40,
+              border: `2px solid ${isMobile ? 'rgba(143, 0, 255, 0.15)' : '#004A77'}`,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
               bgcolor: 'primary.main',
               color: 'white',
               fontWeight: 700,
-              fontSize: isMobile ? '0.85rem' : '1rem',
+              fontSize: isMobile ? '0.85rem' : '0.95rem',
             }}
           >
             {initials}
@@ -157,7 +159,7 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
                 title={user.fullName}
                 sx={{
                   fontWeight: 800,
-                  color: 'text.primary',
+                  color: open ? '#001D35' : 'text.primary',
                   lineHeight: 1.2,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -184,7 +186,7 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
         </Stack>
       </ButtonBase>
 
-      {/* Accessible Dropdown Menu */}
+      {/* Google Account Style Dropdown Menu */}
       <Menu
         anchorEl={anchorEl}
         open={open}
@@ -193,80 +195,144 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         PaperProps={{
-          elevation: 4,
+          elevation: 6,
           sx: {
             mt: 1.5,
-            borderRadius: '16px',
-            minWidth: 200,
-            overflow: 'visible',
-            bgcolor: 'rgba(255, 255, 255, 0.96)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(143, 0, 255, 0.08)',
-            boxShadow: '0 10px 30px rgba(9, 14, 28, 0.12)',
+            borderRadius: '24px', // Rounded Google style paper
+            minWidth: 240,
+            overflow: 'hidden',
+            bgcolor: '#FFFFFF',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.12)',
             zIndex: 1400,
-            '&::before': {
-              content: '""',
-              display: 'block',
-              position: 'absolute',
-              top: 0,
-              right: 22,
-              width: 10,
-              height: 10,
-              bgcolor: 'rgba(255, 255, 255, 0.96)',
-              transform: 'translateY(-50%) rotate(45deg)',
-              zIndex: 0,
-              borderLeft: '1px solid rgba(143, 0, 255, 0.08)',
-              borderTop: '1px solid rgba(143, 0, 255, 0.08)',
-            },
+            p: 1,
             '& .MuiMenuItem-root': {
-              py: 1.25,
-              px: 2,
-              borderRadius: '8px',
-              mx: 1,
+              py: 1,
+              px: 1.5,
+              borderRadius: '24px', // Google style pill menu items
               my: 0.5,
-              fontSize: '0.875rem',
+              fontSize: '0.9rem',
               fontWeight: 600,
               color: 'text.primary',
-              transition: 'all 0.15s ease',
+              transition: 'all 0.2s ease',
               '&:hover': {
-                bgcolor: 'rgba(143, 0, 255, 0.06)',
-                color: 'primary.main',
+                bgcolor: 'rgba(0, 0, 0, 0.04)',
+                '& .profile-menu-circle': {
+                  transform: 'scale(1.08)',
+                },
               },
             },
           },
         }}
       >
+        {/* Top Header Card inside Dropdown */}
+        <Box sx={{ px: 2, py: 1.5, mb: 1, borderRadius: '16px', bgcolor: '#F8F9FA' }}>
+          <Typography variant="body2" sx={{ fontWeight: 800, color: 'text.primary' }}>
+            {user.fullName}
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block' }}>
+            {user.email}
+          </Typography>
+        </Box>
+
+        <Divider sx={{ mb: 1, borderColor: 'rgba(0, 0, 0, 0.06)' }} />
+
+        {/* Edit Profile */}
         <MenuItem onClick={handleEditProfile}>
-          <ListItemIcon>
-            <PersonOutlineIcon fontSize="small" />
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <Box
+              className="profile-menu-circle"
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                bgcolor: '#CEEAD6',
+                color: '#137333',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'transform 0.2s ease',
+              }}
+            >
+              <PersonOutlineIcon sx={{ fontSize: 18 }} />
+            </Box>
           </ListItemIcon>
           Edit Profile
         </MenuItem>
 
+        {/* Public Profile */}
         <MenuItem onClick={() => {
           handleCloseMenu()
           if (user?.accountId) {
             window.open(`#/doctor/${user.accountId}`, '_blank')
           }
         }}>
-          <ListItemIcon>
-            <PublicIcon fontSize="small" />
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <Box
+              className="profile-menu-circle"
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                bgcolor: '#E8F0FE',
+                color: '#1A73E8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'transform 0.2s ease',
+              }}
+            >
+              <PublicIcon sx={{ fontSize: 18 }} />
+            </Box>
           </ListItemIcon>
           Public Profile
         </MenuItem>
 
+        {/* Sign in as */}
         <MenuItem onClick={handleSignInAs}>
-          <ListItemIcon>
-            <SwapHorizIcon fontSize="small" />
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <Box
+              className="profile-menu-circle"
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                bgcolor: '#E8DEF8',
+                color: '#65558F',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'transform 0.2s ease',
+              }}
+            >
+              <SwapHorizIcon sx={{ fontSize: 18 }} />
+            </Box>
           </ListItemIcon>
           Sign in as
         </MenuItem>
 
-        <MenuItem onClick={handleSignOut} sx={{ color: 'error.main', '&:hover': { bgcolor: 'error.lighter', color: 'error.main' } }}>
-          <ListItemIcon sx={{ color: 'inherit' }}>
-            <LogoutIcon fontSize="small" />
+        {/* Sign Out */}
+        <MenuItem onClick={handleSignOut}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <Box
+              className="profile-menu-circle"
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                bgcolor: '#FCE8E6',
+                color: '#D93025',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'transform 0.2s ease',
+              }}
+            >
+              <LogoutIcon sx={{ fontSize: 18 }} />
+            </Box>
           </ListItemIcon>
-          Sign Out
+          <Typography variant="body2" sx={{ fontWeight: 600, color: '#D93025' }}>
+            Sign Out
+          </Typography>
         </MenuItem>
       </Menu>
     </Box>

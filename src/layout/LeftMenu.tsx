@@ -9,27 +9,88 @@ import {
   IconButton
 } from '@mui/material'
 import { NavLink, useLocation } from 'react-router-dom'
-import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
+import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import ConfirmationNumberRoundedIcon from '@mui/icons-material/ConfirmationNumberRounded';
+import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
+import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
+import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
-import LocalHospitalRoundedIcon from '@mui/icons-material/LocalHospitalRounded';
 import LightbulbIcon from '@mui/icons-material/Lightbulb'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import PersonAddAlt1RoundedIcon from '@mui/icons-material/PersonAddAlt1Rounded'
 
 type LeftMenuProps = {
   onNavigate?: () => void
 }
 
+interface MenuItemConfig {
+  label: string
+  to: string
+  icon: React.ReactNode
+  circleBg: string
+  iconColor: string
+  activePillBg: string
+  activeCircleBg: string
+}
+
 export function LeftMenu({ onNavigate }: LeftMenuProps) {
   const location = useLocation()
 
-  const menuItems = [
-    { label: 'Patient Queue', to: '/patient-queue', icon: <LoginRoundedIcon />, active: true },
-    { label: 'Register Patient', to: '/register/patient', icon: <PersonAddAlt1RoundedIcon />, active: true },
-    { label: 'Add Patient', to: '/patients/new', icon: <PersonAddAlt1RoundedIcon />, active: true },
-    { label: 'Doctor', to: '/doctor', icon: <LocalHospitalRoundedIcon />, active: true },
-    { label: 'Settings', to: '/settings', icon: <SettingsRoundedIcon />, active: true },
+  const menuItems: MenuItemConfig[] = [
+    {
+      label: 'Dashboard',
+      to: '/dashboard',
+      icon: <HomeRoundedIcon sx={{ fontSize: 20 }} />,
+      circleBg: '#E8F0FE',
+      iconColor: '#1A73E8',
+      activePillBg: '#C2E7FF',
+      activeCircleBg: '#004A77',
+    },
+    {
+      label: 'Patient Queue',
+      to: '/patient-queue',
+      icon: <ConfirmationNumberRoundedIcon sx={{ fontSize: 20 }} />,
+      circleBg: '#E8DEF8',
+      iconColor: '#65558F',
+      activePillBg: '#F3E8FF',
+      activeCircleBg: '#8F00FF',
+    },
+    {
+      label: 'Register Patient',
+      to: '/register/patient',
+      icon: <BadgeRoundedIcon sx={{ fontSize: 20 }} />,
+      circleBg: '#CEEAD6',
+      iconColor: '#137333',
+      activePillBg: '#E6F4EA',
+      activeCircleBg: '#137333',
+    },
+    {
+      label: 'Add Patient',
+      to: '/patients/new',
+      icon: <PersonAddRoundedIcon sx={{ fontSize: 20 }} />,
+      circleBg: '#D2E3FC',
+      iconColor: '#1967D2',
+      activePillBg: '#D3E3FD',
+      activeCircleBg: '#1967D2',
+    },
+    {
+      label: 'Reports',
+      to: '/reports',
+      icon: <AssessmentRoundedIcon sx={{ fontSize: 20 }} />,
+      circleBg: '#FFE7D9',
+      iconColor: '#E37400',
+      activePillBg: '#FEF7E0',
+      activeCircleBg: '#E37400',
+    },
+    {
+      label: 'Settings',
+      to: '/settings',
+      icon: <SettingsRoundedIcon sx={{ fontSize: 20 }} />,
+      circleBg: '#E8F0FE',
+      iconColor: '#1A73E8',
+      activePillBg: '#C2E7FF',
+      activeCircleBg: '#004A77',
+    },
   ]
 
   return (
@@ -38,7 +99,7 @@ export function LeftMenu({ onNavigate }: LeftMenuProps) {
         display: 'flex', 
         flexDirection: 'column', 
         height: '100%',
-        p: 2.5,
+        p: 2,
         justifyContent: 'space-between',
       }}
     >
@@ -49,8 +110,9 @@ export function LeftMenu({ onNavigate }: LeftMenuProps) {
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between',
-            mb: 4,
-            px: 0.5
+            mb: 3,
+            px: 1,
+            pt: 0.5,
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -85,61 +147,75 @@ export function LeftMenu({ onNavigate }: LeftMenuProps) {
           </IconButton>
         </Box>
 
-        {/* Navigation List */}
-        <List sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        {/* Google Account Style Navigation List */}
+        <List sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
           {menuItems.map((item) => {
-            const isSelected = location.pathname === item.to || (item.to === '/dashboard' && location.pathname === '/')
-            
-            if (item.active) {
-              return (
-                <ListItemButton
-                  key={item.to}
-                  component={NavLink}
-                  to={item.to}
-                  onClick={onNavigate}
-                  selected={isSelected}
-                  sx={{
-                    px: 2,
-                    py: 1.2,
-                  }}
-                >
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText
-                    primary={item.label}
-                    primaryTypographyProps={{ 
-                      fontWeight: isSelected ? 800 : 700, 
-                      fontSize: '0.875rem' 
+            const isSelected = 
+              location.pathname === item.to || 
+              (item.to === '/dashboard' && location.pathname === '/') ||
+              (item.to === '/settings' && location.pathname.startsWith('/settings'))
+
+            return (
+              <ListItemButton
+                key={item.to}
+                component={NavLink}
+                to={item.to}
+                onClick={onNavigate}
+                selected={isSelected}
+                sx={{
+                  borderRadius: '28px', // Full Pill Shape (Google Account style)
+                  px: 1.5,
+                  py: 0.75,
+                  minHeight: 48,
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  bgcolor: isSelected ? item.activePillBg : 'transparent',
+                  '&.Mui-selected': {
+                    bgcolor: item.activePillBg,
+                    '&:hover': {
+                      bgcolor: item.activePillBg,
+                    },
+                  },
+                  '&:hover': {
+                    bgcolor: isSelected ? item.activePillBg : 'rgba(0, 0, 0, 0.04)',
+                    '& .google-nav-circle': {
+                      transform: 'scale(1.05)',
+                    },
+                  },
+                }}
+              >
+                {/* Circular Icon Badge Container */}
+                <ListItemIcon sx={{ minWidth: 44 }}>
+                  <Box
+                    className="google-nav-circle"
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: '50%',
+                      bgcolor: isSelected ? item.activeCircleBg : item.circleBg,
+                      color: isSelected ? '#FFFFFF' : item.iconColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: isSelected ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
                     }}
-                  />
-                </ListItemButton>
-              )
-            } else {
-              // Placeholder styling for items that are not implemented yet, matching the aesthetic perfectly
-              return (
-                <ListItemButton
-                  key={item.to}
-                  disabled
-                  sx={{
-                    px: 2,
-                    py: 1.2,
-                    opacity: 0.5,
-                    '& .MuiListItemIcon-root': {
-                      color: 'text.secondary'
-                    }
+                  >
+                    {item.icon}
+                  </Box>
+                </ListItemIcon>
+
+                {/* Menu Item Text */}
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{ 
+                    fontWeight: isSelected ? 800 : 600, 
+                    fontSize: '0.925rem',
+                    color: isSelected ? '#001D35' : 'text.primary',
+                    sx: { transition: 'color 0.2s ease' }
                   }}
-                >
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText
-                    primary={item.label}
-                    primaryTypographyProps={{ 
-                      fontWeight: 700, 
-                      fontSize: '0.875rem',
-                      color: 'text.secondary'
-                    }}
-                  />
-                </ListItemButton>
-              )
-            }
+                />
+              </ListItemButton>
+            )
           })}
         </List>
       </Box>
@@ -148,7 +224,7 @@ export function LeftMenu({ onNavigate }: LeftMenuProps) {
       <Box 
         sx={{ 
           position: 'relative',
-          mt: 4,
+          mt: 3,
           pt: 3, // Padding top to accommodate the floating badge
         }}
       >
@@ -223,5 +299,3 @@ export function LeftMenu({ onNavigate }: LeftMenuProps) {
     </Box>
   )
 }
-
-

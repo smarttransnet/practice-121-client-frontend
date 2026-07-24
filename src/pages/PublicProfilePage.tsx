@@ -62,8 +62,8 @@ export function PublicProfilePage() {
 
   useEffect(() => {
     async function fetchProfile() {
+      const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000'
       try {
-        const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000'
         const response = await fetch(`${apiBase}/api/public/doctors/${id}`)
         
         if (!response.ok) {
@@ -83,7 +83,12 @@ export function PublicProfilePage() {
           setPracticeCentres(pcData || [])
         }
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : String(err))
+        const msg = err instanceof Error ? err.message : String(err)
+        if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed')) {
+          setError(`Unable to connect to backend server (${apiBase}). Please ensure the API server is running locally.`)
+        } else {
+          setError(msg)
+        }
       } finally {
         setLoading(false)
       }

@@ -31,8 +31,8 @@ export function PracticeCentresTab() {
       }))
       setCentres(mapped)
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { title?: string } }; message?: string };
-      setError(err.response?.data?.title || err.message || 'Failed to load practice centres')
+      const err = e as { response?: { data?: { title?: string } }; message?: string; userFriendlyMessage?: string };
+      setError(err.userFriendlyMessage || err.response?.data?.title || err.message || 'Failed to load practice centres')
     } finally {
       setLoading(false)
     }

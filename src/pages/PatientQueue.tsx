@@ -350,8 +350,7 @@ export const PatientQueue = () => {
         setSelectedCentre(res.data[0]);
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.detail || err.message || 'Failed to load practice centres');
+      setError(err.userFriendlyMessage || err.message || 'Failed to load practice centres');
     } finally {
       setLoadingCentres(false);
     }
@@ -364,8 +363,7 @@ export const PatientQueue = () => {
       const data = await getPatientQueue(centreId, doctorId, visitDate);
       setQueue(data);
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Failed to fetch patient queue tickets');
+      setError(err.userFriendlyMessage || err.message || 'Failed to load patient queue');
     } finally {
       setLoadingQueue(false);
     }
