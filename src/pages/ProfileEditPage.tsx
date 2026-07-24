@@ -8,6 +8,7 @@ import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation'
 import { isValidNic, normalizeNic } from '../utils/nicDecoder'
 import {
   Avatar,
+  Autocomplete,
   Box,
   Button,
   Card,
@@ -36,6 +37,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
+import { MEDICAL_QUALIFICATIONS } from '../data/medicalQualifications'
 
 interface QualificationItem {
   id?: string;
@@ -488,7 +490,7 @@ export function ProfileEditPage() {
               Edit Profile
             </Button>
           )}
-          <Stack component="form" onSubmit={handleSaveSubmit} spacing={4}>
+          <Stack component="form" onSubmit={handleSaveSubmit} autoComplete="off" spacing={4}>
 
             {saveError && (
               <Alert severity="error" sx={{ borderRadius: '12px' }}>
@@ -632,7 +634,36 @@ export function ProfileEditPage() {
                           {isEdit ? (
                             <Grid container spacing={2} alignItems="center">
                               <Grid size={{ xs: 12, sm: 5 }}>
-                                <TextField label="Qualification Name" fullWidth size="small" value={q.name} onChange={e => handleQualificationChange(idx, e.target.value)} />
+                                <Autocomplete
+                                  freeSolo
+                                  options={MEDICAL_QUALIFICATIONS}
+                                  getOptionLabel={(option) => typeof option === 'string' ? option : `${option.title} - ${option.fullName}`}
+                                  value={q.name}
+                                  onInputChange={(_, newValue) => handleQualificationChange(idx, newValue)}
+                                  onChange={(_, newValue) => {
+                                    if (typeof newValue === 'string') {
+                                      handleQualificationChange(idx, newValue)
+                                    } else if (newValue) {
+                                      handleQualificationChange(idx, newValue.title)
+                                    }
+                                  }}
+                                  renderInput={(params) => (
+                                    <TextField
+                                      {...params}
+                                      label="Qualification Name"
+                                      fullWidth
+                                      size="small"
+                                      placeholder="Type to search e.g. MBBS, MD, FRCP..."
+                                      slotProps={{
+                                        htmlInput: {
+                                          ...params.inputProps,
+                                          autoComplete: 'off',
+                                          spellCheck: true,
+                                        },
+                                      }}
+                                    />
+                                  )}
+                                />
                               </Grid>
                               <Grid size={{ xs: 12, sm: 5 }}>
                                 <Button component="label" variant="outlined" size="small" startIcon={<CloudUploadIcon />} fullWidth>

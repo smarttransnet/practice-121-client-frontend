@@ -62,6 +62,7 @@ export function TodosForm() {
     <Box
       component="form"
       onSubmit={handleSubmit}
+      autoComplete="off"
       sx={{
         display: 'flex',
         flexDirection: 'column',

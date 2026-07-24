@@ -183,7 +183,7 @@ export function PatientForm({ entryPoint }: Props) {
           </Typography>
         </Stack>
 
-        <Box component="form" onSubmit={(e) => handleSubmit(e, false)} sx={{ width: '100%' }}>
+        <Box component="form" onSubmit={(e) => handleSubmit(e, false)} autoComplete="off" sx={{ width: '100%' }}>
           <Stack spacing={2.5}>
             {error && <Alert severity="error">{error}</Alert>}
 

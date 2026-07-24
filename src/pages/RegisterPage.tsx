@@ -105,7 +105,7 @@ export function RegisterPage() {
               </Typography>
             </Box>
 
-            <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+            <Box component="form" onSubmit={handleSubmit} autoComplete="off" sx={{ width: '100%' }}>
               <Stack spacing={2.5}>
                 {(validationError || error) && (
                   <Alert severity="error" sx={{ borderRadius: 2 }}>
