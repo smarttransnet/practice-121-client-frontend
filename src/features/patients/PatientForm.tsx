@@ -14,6 +14,7 @@ import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined'
 import { registerPatient, uploadPatientDocument } from './patientsApi'
 import { useAuth } from '../auth/useAuth'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLkPhoneInput } from '../../hooks/useLkPhoneInput'
 
 interface Props {
   entryPoint: 'direct' | 'doctor'
@@ -31,7 +32,7 @@ export function PatientForm({ entryPoint }: Props) {
   const [lastName, setLastName] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [gender, setGender] = useState('')
-  const [mobileNumber, setMobileNumber] = useState(mobileParam || '')
+  const phoneInput = useLkPhoneInput({ initialValue: mobileParam || '' })
 
   const [nicFront, setNicFront] = useState<File | null>(null)
   const [nicBack, setNicBack] = useState<File | null>(null)
@@ -58,7 +59,7 @@ export function PatientForm({ entryPoint }: Props) {
     // Validation
     if (!nicNumber.trim()) return setError('NIC is required')
     if (!firstName.trim()) return setError('First Name is required')
-    if (!mobileNumber.trim()) return setError('Mobile Number is required')
+    if (!phoneInput.validate()) return
 
     if (isDirect) {
       if (!lastName.trim()) return setError('Last Name is required')
@@ -72,6 +73,8 @@ export function PatientForm({ entryPoint }: Props) {
       }
     }
 
+    const finalMobile = phoneInput.normalizedValue || phoneInput.value.trim()
+
     try {
       setIsLoading(true)
 
@@ -81,7 +84,7 @@ export function PatientForm({ entryPoint }: Props) {
         lastName: lastName || undefined,
         dateOfBirth: dateOfBirth || undefined,
         gender: gender || undefined,
-        mobileNumber,
+        mobileNumber: finalMobile,
         createdByDoctorId: !isDirect ? user?.accountId : undefined
       })
 
@@ -106,7 +109,7 @@ export function PatientForm({ entryPoint }: Props) {
       if (redirectParam) {
         setTimeout(() => {
           const separator = redirectParam.includes('?') ? '&' : '?';
-          navigate(`${redirectParam}${separator}registeredMobile=${encodeURIComponent(mobileNumber)}`)
+          navigate(`${redirectParam}${separator}registeredMobile=${encodeURIComponent(finalMobile)}`)
         }, 1500)
       } else if (!isDirect) {
         setTimeout(() => navigate('/dashboard'), 1500)
@@ -228,8 +231,11 @@ export function PatientForm({ entryPoint }: Props) {
               label="Mobile Number"
               fullWidth
               required
-              value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value)}
+              value={phoneInput.value}
+              onChange={(e) => phoneInput.onChange(e.target.value)}
+              onBlur={phoneInput.onBlur}
+              error={!!phoneInput.error}
+              helperText={phoneInput.error || 'e.g., 077 123 4567'}
             />
 
             {/* NIC Upload Section */}

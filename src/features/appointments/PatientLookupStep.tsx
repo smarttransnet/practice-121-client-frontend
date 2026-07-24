@@ -20,6 +20,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import { getPatientByMobilePublic, searchPatientsPublic } from './appointmentApi';
+import { isValidLkMobile, normalizeLkMobile } from '../../utils/lkPhoneValidation';
 
 export interface PatientRecord {
   id: string;
@@ -70,7 +71,13 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
     setLoading(true);
     try {
       if (hasMobile) {
-        const patient = await getPatientByMobilePublic(searchMobile.trim());
+        if (!isValidLkMobile(searchMobile)) {
+          setError('Please enter a valid Sri Lankan mobile number (e.g., 077 123 4567).');
+          setLoading(false);
+          return;
+        }
+        const normalizedMobile = normalizeLkMobile(searchMobile) ?? searchMobile.trim();
+        const patient = await getPatientByMobilePublic(normalizedMobile);
         if (patient) {
           setFoundPatient(patient);
           setMode('confirm');

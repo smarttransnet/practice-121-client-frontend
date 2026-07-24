@@ -54,6 +54,7 @@ import {
   type PatientQueueTicket,
   type Patient
 } from '../features/patient-queue/patientQueueApi';
+import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation';
 
 interface TimeBlock {
   id: string;
@@ -393,7 +394,12 @@ export const PatientQueue = () => {
 
       // 1. Check if patient exists by mobile number if provided
       if (hasMobile) {
-        const patient = await getPatientByMobile(trimmedMobile);
+        if (!isValidLkMobile(trimmedMobile)) {
+          setAddError('Please enter a valid Sri Lankan mobile number (e.g., 077 123 4567).');
+          return;
+        }
+        const normalizedMobile = normalizeLkMobile(trimmedMobile) ?? trimmedMobile;
+        const patient = await getPatientByMobile(normalizedMobile);
         if (patient) {
           setVerifiedPatient(patient);
           setDialogMode('verify');
@@ -432,7 +438,7 @@ export const PatientQueue = () => {
       setVerificationLoading(true);
       setAddError(null);
       
-      const newMobile = patientMobile.trim();
+      const newMobile = normalizeLkMobile(patientMobile) ?? patientMobile.trim();
       if (newMobile && newMobile !== patient.mobileNumber) {
         // Update mobile in database to link
         await updatePatientMobile(patient.id, newMobile);
