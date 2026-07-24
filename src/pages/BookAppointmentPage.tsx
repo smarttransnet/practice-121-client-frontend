@@ -23,6 +23,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { AppBreadcrumbs } from '../components/AppBreadcrumbs';
 import { AppointmentCalendar } from '../features/appointments/AppointmentCalendar';
 import { PatientLookupStep, type PatientRecord } from '../features/appointments/PatientLookupStep';
 import { getCentreAvailability, bookAppointment, type DayAvailability } from '../features/appointments/appointmentApi';
@@ -306,7 +307,7 @@ export function BookAppointmentPage() {
       <title>{pageTitle}</title>
       <meta name="description" content={`Book an appointment with ${doctorName} at ${clinicName}. Choose an available date and confirm your slot online.`} />
 
-      <Box sx={{ minHeight: '100vh', bgcolor: '#F8F9FA' }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         {/* Header Banner */}
         <Box sx={{ height: 140, background: 'linear-gradient(135deg, #8F00FF 0%, #B854FF 100%)', position: 'relative' }}>
           <Container maxWidth="md" sx={{ height: '100%', display: 'flex', alignItems: 'flex-end', pb: 2 }}>
@@ -321,6 +322,7 @@ export function BookAppointmentPage() {
         </Box>
 
         <Container maxWidth="md" sx={{ mt: -4, position: 'relative', zIndex: 2, pb: 8 }}>
+          <AppBreadcrumbs />
           {/* Page heading card */}
           <Card elevation={0} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', mb: 3, overflow: 'hidden' }}>
             <Box sx={{ background: 'linear-gradient(135deg, rgba(143,0,255,0.04) 0%, rgba(184,84,255,0.04) 100%)', p: 3 }}>
