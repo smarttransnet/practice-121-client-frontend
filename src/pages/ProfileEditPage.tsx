@@ -122,7 +122,7 @@ export function ProfileEditPage() {
       await fetchQualifications()
       
     } catch (err: any) {
-      setPageError(err.message ?? 'Failed to load profile details. Please try again.')
+      setPageError(err.userFriendlyMessage || err.message || 'Failed to load profile details. Please try again.')
       if (err.response?.status === 401) {
         logout()
       }

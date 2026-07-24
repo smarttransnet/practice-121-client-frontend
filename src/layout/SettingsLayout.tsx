@@ -7,6 +7,7 @@ import {
 } from '@mui/material'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import StarBorderIcon from '@mui/icons-material/StarBorder'
+import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded'
 
 export function SettingsLayout() {
   const location = useLocation()
@@ -24,7 +25,7 @@ export function SettingsLayout() {
         Settings
       </Typography>
 
-      {/* Universal Horizontal Tabs */}
+      {/* Universal Horizontal Tabs with Google Account style pastel circular icons */}
       <Box
         sx={{
           mb: 4,
@@ -50,7 +51,24 @@ export function SettingsLayout() {
             label="Profile"
             component={NavLink}
             to="/settings/profile-edit"
-            icon={<PersonOutlineIcon />}
+            icon={
+              <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  bgcolor: currentTab === 0 ? '#004A77' : '#CEEAD6',
+                  color: currentTab === 0 ? '#FFFFFF' : '#137333',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  mr: 1,
+                }}
+              >
+                <PersonOutlineIcon sx={{ fontSize: 18 }} />
+              </Box>
+            }
             iconPosition="start"
             sx={{
               fontWeight: 700, 
@@ -73,7 +91,24 @@ export function SettingsLayout() {
             label="Favorites List"
             component={NavLink}
             to="/settings/favorites-list"
-            icon={<StarBorderIcon />}
+            icon={
+              <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  bgcolor: currentTab === 1 ? '#E37400' : '#FFE7D9',
+                  color: currentTab === 1 ? '#FFFFFF' : '#E37400',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  mr: 1,
+                }}
+              >
+                <StarBorderIcon sx={{ fontSize: 18 }} />
+              </Box>
+            }
             iconPosition="start"
             sx={{
               fontWeight: 700, 
@@ -96,6 +131,25 @@ export function SettingsLayout() {
             label="Practice Centres"
             component={NavLink}
             to="/settings/practice-centres"
+            icon={
+              <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  bgcolor: currentTab === 2 ? '#8F00FF' : '#E8DEF8',
+                  color: currentTab === 2 ? '#FFFFFF' : '#65558F',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  mr: 1,
+                }}
+              >
+                <BusinessRoundedIcon sx={{ fontSize: 18 }} />
+              </Box>
+            }
+            iconPosition="start"
             sx={{
               fontWeight: 700, 
               fontSize: '0.9rem',
