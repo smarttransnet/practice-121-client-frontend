@@ -18,12 +18,18 @@ export interface PatientQueueTicket {
 
 export interface Patient {
   id: string;
-  nicNumber: string;
+  nicNumber?: string;
   firstName: string;
   lastName?: string;
   dateOfBirth?: string;
   gender?: string;
   mobileNumber: string;
+  parentId?: string;
+}
+
+export interface PatientLookupResponse {
+  primaryPatient: Patient;
+  children: Patient[];
 }
 
 export const getPatientQueue = async (
@@ -49,6 +55,7 @@ export const addPatientQueueTicket = async (data: {
   practiceCentreId: string;
   priority: number;
   visitDate?: string;
+  patientId?: string;
 }): Promise<string> => {
   const response = await httpClient.post<string>('/api/patient-queue', data);
   return response.data;
@@ -65,9 +72,9 @@ export const reorderPatientQueue = async (ticketIds: string[]): Promise<void> =>
   await httpClient.put('/api/patient-queue/reorder', { ticketIds });
 };
 
-export const getPatientByMobile = async (mobileNumber: string): Promise<Patient | null> => {
+export const getPatientByMobile = async (mobileNumber: string): Promise<PatientLookupResponse | null> => {
   try {
-    const response = await httpClient.get<Patient>(`/api/patients/by-mobile?mobileNumber=${encodeURIComponent(mobileNumber)}`);
+    const response = await httpClient.get<PatientLookupResponse>(`/api/patients/by-mobile?mobileNumber=${encodeURIComponent(mobileNumber)}`);
     return response.data;
   } catch (err: any) {
     if (err.response?.status === 404) {

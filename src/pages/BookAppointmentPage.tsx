@@ -193,6 +193,7 @@ export function BookAppointmentPage() {
         doctorAccountId: doctorId,
         practiceCentreId: centreId,
         visitDate: formatDateLocal(selectedDate),
+        patientId: confirmedPatient.id,
       });
       setBookingResult(result);
     } catch (err: any) {

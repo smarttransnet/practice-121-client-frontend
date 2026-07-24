@@ -55,6 +55,8 @@ import {
   type Patient
 } from '../features/patient-queue/patientQueueApi';
 import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation';
+import { FamilyPatientSelector } from '../features/patients/FamilyPatientSelector';
+import { AddChildModal } from '../features/patients/AddChildModal';
 
 interface TimeBlock {
   id: string;
@@ -240,9 +242,12 @@ export const PatientQueue = () => {
   const [searchFirstName, setSearchFirstName] = useState('');
   const [searchLastName, setSearchLastName] = useState('');
   const [searchNic, setSearchNic] = useState('');
+  const [primaryPatientRecord, setPrimaryPatientRecord] = useState<Patient | null>(null);
+  const [verifiedChildren, setVerifiedChildren] = useState<Patient[]>([]);
   const [verifiedPatient, setVerifiedPatient] = useState<Patient | null>(null);
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [verificationLoading, setVerificationLoading] = useState(false);
+  const [openAddChildModal, setOpenAddChildModal] = useState(false);
 
   // Drag and drop state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -397,9 +402,11 @@ export const PatientQueue = () => {
           return;
         }
         const normalizedMobile = normalizeLkMobile(trimmedMobile) ?? trimmedMobile;
-        const patient = await getPatientByMobile(normalizedMobile);
-        if (patient) {
-          setVerifiedPatient(patient);
+        const lookupResult = await getPatientByMobile(normalizedMobile);
+        if (lookupResult) {
+          setPrimaryPatientRecord(lookupResult.primaryPatient);
+          setVerifiedChildren(lookupResult.children || []);
+          setVerifiedPatient(lookupResult.primaryPatient);
           setDialogMode('verify');
           return;
         }
@@ -437,15 +444,15 @@ export const PatientQueue = () => {
       setAddError(null);
       
       const newMobile = normalizeLkMobile(patientMobile) ?? patientMobile.trim();
+      let updatedPatient = patient;
       if (newMobile && newMobile !== patient.mobileNumber) {
         // Update mobile in database to link
         await updatePatientMobile(patient.id, newMobile);
-        const updatedPatient = { ...patient, mobileNumber: newMobile };
-        setVerifiedPatient(updatedPatient);
-      } else {
-        // Keep their current mobile number if newMobile is empty
-        setVerifiedPatient(patient);
+        updatedPatient = { ...patient, mobileNumber: newMobile };
       }
+      setPrimaryPatientRecord(updatedPatient);
+      setVerifiedChildren([]);
+      setVerifiedPatient(updatedPatient);
       setDialogMode('verify');
     } catch (err: any) {
       console.error(err);
@@ -464,9 +471,12 @@ export const PatientQueue = () => {
     setSearchFirstName('');
     setSearchLastName('');
     setSearchNic('');
+    setPrimaryPatientRecord(null);
+    setVerifiedChildren([]);
     setVerifiedPatient(null);
     setSearchResults([]);
     setAddError(null);
+    setOpenAddChildModal(false);
   };
 
   const handleAddTicket = async (e: React.FormEvent) => {
@@ -477,7 +487,8 @@ export const PatientQueue = () => {
       setSubmitting(true);
       setAddError(null);
       await addPatientQueueTicket({
-        patientMobile: verifiedPatient.mobileNumber,
+        patientMobile: primaryPatientRecord?.mobileNumber || verifiedPatient.mobileNumber,
+        patientId: verifiedPatient.id,
         doctorId: selectedCentre.doctorId,
         practiceCentreId: selectedCentre.id,
         priority: priority,
@@ -941,27 +952,49 @@ export const PatientQueue = () => {
               {addError && <Alert severity="error">{addError}</Alert>}
               
               <Alert severity="info" sx={{ borderRadius: 3 }}>
-                Patient found. Please verify the details before adding to the queue.
+                Patient record found. Select who this appointment/queue ticket is for:
               </Alert>
 
-              <Card sx={{ bgcolor: '#f8f9fa', borderRadius: 3, boxShadow: 'none', border: '1px solid #e9ecef', p: 2 }}>
-                <CardContent sx={{ p: '8px !important', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  <Typography variant="body1">
-                    <strong>Name:</strong> {verifiedPatient?.firstName} {verifiedPatient?.lastName}
-                  </Typography>
-                  <Typography variant="body1">
-                    <strong>NIC Number:</strong> {verifiedPatient?.nicNumber}
-                  </Typography>
-                  <Typography variant="body1">
-                    <strong>Mobile Number:</strong> {verifiedPatient?.mobileNumber}
-                  </Typography>
-                  {verifiedPatient?.gender && (
+              {primaryPatientRecord ? (
+                <FamilyPatientSelector
+                  primaryPatient={primaryPatientRecord}
+                  children={verifiedChildren}
+                  selectedPatientId={verifiedPatient?.id || primaryPatientRecord.id}
+                  onSelectPatient={(p) => setVerifiedPatient(p)}
+                  onOpenAddChild={() => setOpenAddChildModal(true)}
+                />
+              ) : (
+                <Card sx={{ bgcolor: '#f8f9fa', borderRadius: 3, boxShadow: 'none', border: '1px solid #e9ecef', p: 2 }}>
+                  <CardContent sx={{ p: '8px !important', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                     <Typography variant="body1">
-                      <strong>Gender:</strong> {verifiedPatient?.gender}
+                      <strong>Name:</strong> {verifiedPatient?.firstName} {verifiedPatient?.lastName}
                     </Typography>
-                  )}
-                </CardContent>
-              </Card>
+                    <Typography variant="body1">
+                      <strong>NIC Number:</strong> {verifiedPatient?.nicNumber}
+                    </Typography>
+                    <Typography variant="body1">
+                      <strong>Mobile Number:</strong> {verifiedPatient?.mobileNumber}
+                    </Typography>
+                    {verifiedPatient?.gender && (
+                      <Typography variant="body1">
+                        <strong>Gender:</strong> {verifiedPatient?.gender}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {primaryPatientRecord && (
+                <AddChildModal
+                  open={openAddChildModal}
+                  parentId={primaryPatientRecord.id}
+                  onClose={() => setOpenAddChildModal(false)}
+                  onChildAdded={(newChild) => {
+                    setVerifiedChildren(prev => [...prev, newChild]);
+                    setVerifiedPatient(newChild);
+                  }}
+                />
+              )}
 
               <FormControl fullWidth>
                 <InputLabel>Priority</InputLabel>

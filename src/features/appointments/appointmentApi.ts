@@ -37,6 +37,7 @@ export const bookAppointment = async (data: {
   doctorAccountId: string;
   practiceCentreId: string;
   visitDate: string; // YYYY-MM-DD
+  patientId?: string;
 }): Promise<BookAppointmentResult> => {
   const res = await fetch(`${API_BASE}/api/public/appointments`, {
     method: 'POST',
@@ -46,6 +47,7 @@ export const bookAppointment = async (data: {
       doctorAccountId: data.doctorAccountId,
       practiceCentreId: data.practiceCentreId,
       visitDate: data.visitDate,
+      patientId: data.patientId,
     }),
   });
 
@@ -65,7 +67,10 @@ export const bookAppointment = async (data: {
 
 export const getPatientByMobilePublic = async (
   mobileNumber: string,
-): Promise<{ id: string; firstName: string; lastName?: string; nicNumber: string; mobileNumber: string } | null> => {
+): Promise<{
+  primaryPatient: { id: string; firstName: string; lastName?: string; nicNumber?: string; dateOfBirth?: string; gender?: string; mobileNumber: string; parentId?: string };
+  children: { id: string; firstName: string; lastName?: string; nicNumber?: string; dateOfBirth?: string; gender?: string; mobileNumber: string; parentId?: string }[];
+} | null> => {
   const res = await fetch(
     `${API_BASE}/api/patients/by-mobile?mobileNumber=${encodeURIComponent(mobileNumber)}`,
   );
