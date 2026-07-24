@@ -121,7 +121,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
         <ChildCareIcon color="primary" /> Add Child Patient
       </DialogTitle>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} autoComplete="off">
         <DialogContent sx={{ pt: 1 }}>
           <Stack spacing={2.5}>
             {error && (

@@ -168,7 +168,34 @@ export const ColorThemeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             },
           },
         },
+        MuiTextField: {
+          defaultProps: {
+            autoComplete: 'off',
+            slotProps: {
+              htmlInput: {
+                autoComplete: 'off',
+                spellCheck: true,
+              },
+            },
+          },
+        },
+        MuiInputBase: {
+          defaultProps: {
+            autoComplete: 'off',
+            inputProps: {
+              autoComplete: 'off',
+              spellCheck: true,
+            },
+          },
+        },
         MuiOutlinedInput: {
+          defaultProps: {
+            autoComplete: 'off',
+            inputProps: {
+              autoComplete: 'off',
+              spellCheck: true,
+            },
+          },
           styleOverrides: {
             root: {
               borderRadius: 16,
