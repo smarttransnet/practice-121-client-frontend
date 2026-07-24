@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   Stack,
-  Chip,
   Link as MuiLink,
 } from '@mui/material';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
@@ -21,13 +20,18 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import { getPatientByMobilePublic, searchPatientsPublic } from './appointmentApi';
 import { isValidLkMobile, normalizeLkMobile } from '../../utils/lkPhoneValidation';
+import { FamilyPatientSelector } from '../patients/FamilyPatientSelector';
+import { AddChildModal } from '../patients/AddChildModal';
 
 export interface PatientRecord {
   id: string;
   firstName: string;
   lastName?: string;
-  nicNumber: string;
+  nicNumber?: string;
+  dateOfBirth?: string;
+  gender?: string;
   mobileNumber: string;
+  parentId?: string;
 }
 
 interface Props {
@@ -45,12 +49,19 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [foundPatient, setFoundPatient] = useState<PatientRecord | null>(null);
+  
+  const [primaryPatient, setPrimaryPatient] = useState<PatientRecord | null>(null);
+  const [childrenPatients, setChildrenPatients] = useState<PatientRecord[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<PatientRecord | null>(null);
   const [searchResults, setSearchResults] = useState<PatientRecord[]>([]);
   const [mode, setMode] = useState<'input' | 'notFound' | 'select' | 'confirm'>('input');
 
+  const [openAddChildModal, setOpenAddChildModal] = useState(false);
+
   const reset = () => {
-    setFoundPatient(null);
+    setPrimaryPatient(null);
+    setChildrenPatients([]);
+    setSelectedPatient(null);
     setSearchResults([]);
     setError(null);
     setMode('input');
@@ -77,9 +88,11 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
           return;
         }
         const normalizedMobile = normalizeLkMobile(searchMobile) ?? searchMobile.trim();
-        const patient = await getPatientByMobilePublic(normalizedMobile);
-        if (patient) {
-          setFoundPatient(patient);
+        const lookupResult = await getPatientByMobilePublic(normalizedMobile);
+        if (lookupResult) {
+          setPrimaryPatient(lookupResult.primaryPatient);
+          setChildrenPatients(lookupResult.children || []);
+          setSelectedPatient(lookupResult.primaryPatient);
           setMode('confirm');
           return;
         }
@@ -99,7 +112,9 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
       if (results.length === 0) {
         setMode('notFound');
       } else if (results.length === 1) {
-        setFoundPatient(results[0]);
+        setPrimaryPatient(results[0]);
+        setChildrenPatients([]);
+        setSelectedPatient(results[0]);
         setMode('confirm');
       } else {
         setSearchResults(results);
@@ -121,13 +136,20 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
   }, [initialMobile]);
 
   const handleSelectFromResults = (patient: PatientRecord) => {
-    setFoundPatient(patient);
+    setPrimaryPatient(patient);
+    setChildrenPatients([]);
+    setSelectedPatient(patient);
     setSearchResults([]);
     setMode('confirm');
   };
 
-  // ---------- Confirm card ----------
-  if (mode === 'confirm' && foundPatient) {
+  const handleChildAdded = (newChild: PatientRecord) => {
+    setChildrenPatients(prev => [...prev, newChild]);
+    setSelectedPatient(newChild);
+  };
+
+  // ---------- Confirm card with Family Selector ----------
+  if (mode === 'confirm' && primaryPatient && selectedPatient) {
     return (
       <Box>
         <Alert
@@ -135,32 +157,37 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
           severity="success"
           sx={{ mb: 2, borderRadius: 2 }}
         >
-          Patient record found!
+          Patient record found! Select who this appointment is for below:
         </Alert>
-        <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'primary.light', mb: 3 }}>
-          <CardContent>
-            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              {foundPatient.firstName} {foundPatient.lastName ?? ''}
-            </Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
-              <Chip label={`NIC: ${foundPatient.nicNumber}`} size="small" variant="outlined" />
-              <Chip label={`Mobile: ${foundPatient.mobileNumber}`} size="small" variant="outlined" />
-            </Stack>
-          </CardContent>
-        </Card>
-        <Stack direction="row" spacing={2}>
+
+        <FamilyPatientSelector
+          primaryPatient={primaryPatient}
+          children={childrenPatients}
+          selectedPatientId={selectedPatient.id}
+          onSelectPatient={(p) => setSelectedPatient(p)}
+          onOpenAddChild={() => setOpenAddChildModal(true)}
+        />
+
+        <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
           <Button variant="outlined" onClick={reset} sx={{ borderRadius: 6, textTransform: 'none' }}>
             Not me – Search Again
           </Button>
           <Button
             variant="contained"
             color="primary"
-            onClick={() => onPatientConfirmed(foundPatient)}
+            onClick={() => onPatientConfirmed(selectedPatient)}
             sx={{ borderRadius: 6, textTransform: 'none', fontWeight: 700, flex: 1 }}
           >
-            Yes, This Is Me – Continue
+            Confirm Patient: {selectedPatient.firstName} {selectedPatient.lastName ?? ''}
           </Button>
         </Stack>
+
+        <AddChildModal
+          open={openAddChildModal}
+          parentId={primaryPatient.id}
+          onClose={() => setOpenAddChildModal(false)}
+          onChildAdded={handleChildAdded}
+        />
       </Box>
     );
   }
