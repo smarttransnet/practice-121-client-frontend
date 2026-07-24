@@ -9,11 +9,8 @@ import {
   IconButton
 } from '@mui/material'
 import { NavLink, useLocation } from 'react-router-dom'
-import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded'
-import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
 import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
-import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import LocalHospitalRoundedIcon from '@mui/icons-material/LocalHospitalRounded';
 import LightbulbIcon from '@mui/icons-material/Lightbulb'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
@@ -27,18 +24,12 @@ type LeftMenuProps = {
 export function LeftMenu({ onNavigate }: LeftMenuProps) {
   const location = useLocation()
 
-  // Map the application's actual routes to the high-fidelity labels in the screenshot
   const menuItems = [
-    { label: 'Dashboard', to: '/dashboard', icon: <DashboardRoundedIcon />, active: true },
-    { label: 'Patient Cases', to: '/reports', icon: <PeopleAltRoundedIcon />, active: true },
-    { label: 'Add Patient', to: '/patients/new', icon: <PersonAddAlt1RoundedIcon />, active: true },
-    { label: 'Settings', to: '/settings', icon: <SettingsRoundedIcon />, active: true },
     { label: 'Patient Queue', to: '/patient-queue', icon: <LoginRoundedIcon />, active: true },
-    { label: 'Login', to: '/login', icon: <LoginRoundedIcon />, active: true },
-    { label: 'Register', to: '/register', icon: <PersonAddAlt1RoundedIcon />, active: true },
     { label: 'Register Patient', to: '/register/patient', icon: <PersonAddAlt1RoundedIcon />, active: true },
-    { label: 'Verify OTP', to: '/verify-otp', icon: <SecurityRoundedIcon />, active: true },
+    { label: 'Add Patient', to: '/patients/new', icon: <PersonAddAlt1RoundedIcon />, active: true },
     { label: 'Doctor', to: '/doctor', icon: <LocalHospitalRoundedIcon />, active: true },
+    { label: 'Settings', to: '/settings', icon: <SettingsRoundedIcon />, active: true },
   ]
 
   return (

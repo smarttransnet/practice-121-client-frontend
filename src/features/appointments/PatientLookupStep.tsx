@@ -215,7 +215,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
             color="primary"
             startIcon={<PersonAddAltIcon />}
             component={MuiLink}
-            href={`/register/patient?redirect=${encodeURIComponent(registrationReturnUrl)}`}
+            href={`#/register/patient?redirect=${encodeURIComponent(registrationReturnUrl)}`}
             sx={{ borderRadius: 6, textTransform: 'none', fontWeight: 700, flex: 1, textDecoration: 'none' }}
           >
             Register as New Patient
@@ -308,7 +308,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
       <Divider sx={{ my: 2 }} />
       <Typography variant="caption" color="text.secondary" align="center" display="block">
         Not registered yet?{' '}
-        <MuiLink href={`/register/patient?redirect=${encodeURIComponent(registrationReturnUrl)}`} underline="hover" color="primary">
+        <MuiLink href={`#/register/patient?redirect=${encodeURIComponent(registrationReturnUrl)}`} underline="hover" color="primary">
           Register here
         </MuiLink>
       </Typography>
