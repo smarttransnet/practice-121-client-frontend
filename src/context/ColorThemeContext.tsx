@@ -172,19 +172,100 @@ export const ColorThemeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           styleOverrides: {
             root: {
               borderRadius: 16,
-              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.4)',
-              border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.5)',
+              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.6)',
               transition: 'all 0.2s ease',
               color: isDark ? '#F1F5F9' : '#0B1220',
               '&:hover': {
-                backgroundColor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.6)',
+                backgroundColor: isDark ? 'rgba(30, 41, 59, 0.85)' : 'rgba(255, 255, 255, 0.85)',
               },
               '&.Mui-focused': {
-                backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.8)',
+                backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : '#FFFFFF',
               },
               '& .MuiOutlinedInput-notchedOutline': {
-                border: 'none',
+                border: isDark ? '1.5px solid rgba(255, 255, 255, 0.2)' : '1.5px solid rgba(143, 0, 255, 0.25)',
+                transition: 'border-color 0.2s ease, border-width 0.2s ease',
               },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.45)' : colors.primary,
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: colors.primary,
+                borderWidth: '2px',
+              },
+            },
+            input: {
+              color: isDark ? '#F1F5F9' : '#0B1220',
+              '&::placeholder': {
+                color: isDark ? '#94A3B8' : '#64748B',
+                opacity: 1,
+              },
+            },
+          },
+        },
+        MuiSelect: {
+          styleOverrides: {
+            icon: {
+              color: isDark ? '#94A3B8' : colors.primary,
+              right: 12,
+              transition: 'all 0.2s ease',
+            },
+            select: {
+              color: isDark ? '#F1F5F9' : '#0B1220',
+              paddingRight: '38px !important',
+              display: 'flex',
+              alignItems: 'center',
+            },
+          },
+        },
+        MuiInputLabel: {
+          styleOverrides: {
+            root: {
+              color: isDark ? '#94A3B8' : '#64748B',
+              '&.Mui-focused': {
+                color: colors.primary,
+              },
+            },
+          },
+        },
+        MuiFormLabel: {
+          styleOverrides: {
+            root: {
+              color: isDark ? '#94A3B8' : '#64748B',
+              '&.Mui-focused': {
+                color: colors.primary,
+              },
+            },
+          },
+        },
+        MuiMenuItem: {
+          styleOverrides: {
+            root: {
+              color: isDark ? '#F1F5F9' : '#0B1220',
+              borderRadius: 8,
+              margin: '2px 6px',
+              '&:hover': {
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(143, 0, 255, 0.06)',
+              },
+              '&.Mui-selected': {
+                backgroundColor: isDark ? 'rgba(143, 0, 255, 0.25)' : 'rgba(143, 0, 255, 0.12)',
+                color: isDark ? '#FFFFFF' : colors.primaryDark,
+                fontWeight: 700,
+                '&:hover': {
+                  backgroundColor: isDark ? 'rgba(143, 0, 255, 0.35)' : 'rgba(143, 0, 255, 0.18)',
+                },
+              },
+            },
+          },
+        },
+        MuiTableCell: {
+          styleOverrides: {
+            root: {
+              color: isDark ? '#F1F5F9' : '#0B1220',
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+            },
+            head: {
+              color: isDark ? '#94A3B8' : '#475569',
+              fontWeight: 800,
             },
           },
         },

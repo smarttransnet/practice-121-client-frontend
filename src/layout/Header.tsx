@@ -10,6 +10,7 @@ import {
   Stack, 
   Badge 
 } from '@mui/material'
+import { NavLink } from 'react-router-dom'
 import { ProfileDropdown } from './ProfileDropdown'
 
 type HeaderProps = {
@@ -42,7 +43,18 @@ export function Header({ onOpenMobileMenu, onToggleSidebar, isMobile = false }: 
             <MenuIcon />
           </IconButton>
           
-          <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>
+          <Typography 
+            variant="subtitle2" 
+            component={NavLink} 
+            to="/dashboard" 
+            sx={{ 
+              fontWeight: 900, 
+              color: 'text.primary', 
+              textDecoration: 'none',
+              cursor: 'pointer',
+              '&:hover': { opacity: 0.8 } 
+            }}
+          >
             Practice121
           </Typography>
 

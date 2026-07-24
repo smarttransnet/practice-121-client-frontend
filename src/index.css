@@ -85,3 +85,29 @@ body.dark-theme .glass-card:hover {
   transform: scale(1.02);
 }
 
+/* Dark mode font & accessibility form control overrides */
+body.dark-theme input,
+body.dark-theme select,
+body.dark-theme textarea {
+  color: #F1F5F9;
+}
+
+body.dark-theme option {
+  background-color: #121826;
+  color: #F1F5F9;
+}
+
+body.dark-theme .MuiTypography-root {
+  color: inherit;
+}
+
+/* Controller Accessibility & Border Highlighting */
+.MuiOutlinedInput-root {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+body.dark-theme .MuiOutlinedInput-root {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+

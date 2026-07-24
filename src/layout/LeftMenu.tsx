@@ -114,7 +114,23 @@ export function LeftMenu({ onNavigate }: LeftMenuProps) {
             pt: 0.5,
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box 
+            component={NavLink} 
+            to="/dashboard" 
+            onClick={onNavigate}
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1.5,
+              textDecoration: 'none',
+              cursor: 'pointer',
+              transition: 'transform 0.2s ease, opacity 0.2s ease',
+              '&:hover': {
+                opacity: 0.9,
+                transform: 'scale(1.02)',
+              },
+            }}
+          >
             {/* Signature violet circular logo */}
             <Box 
               sx={{ 

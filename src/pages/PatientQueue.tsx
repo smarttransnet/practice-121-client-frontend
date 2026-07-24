@@ -29,8 +29,8 @@ import {
   Tooltip,
   ButtonBase
 } from '@mui/material';
-import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AppBreadcrumbs } from '../components/AppBreadcrumbs';
 import AddIcon from '@mui/icons-material/Add';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CheckIcon from '@mui/icons-material/Check';
@@ -584,19 +584,11 @@ export const PatientQueue = () => {
   const completedCount = queue.filter(q => q.status === 4).length;
 
   return (
-    <Box sx={{ minHeight: '100vh', p: 4, bgcolor: '#f4f6f9' }}>
+    <Box sx={{ minHeight: '100vh', p: 4, bgcolor: 'background.default' }}>
+      <AppBreadcrumbs />
       {/* Top Header Card */}
       <Box className="glass-card" sx={{ p: 3, mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button
-            component={NavLink}
-            to="/dashboard"
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 700 }}
-          >
-            Back to Portal
-          </Button>
           <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
             Patient Queue
           </Typography>

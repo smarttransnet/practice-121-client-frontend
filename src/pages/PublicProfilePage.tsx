@@ -20,6 +20,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import EventAvailableIcon from '@mui/icons-material/EventAvailable'
+import { AppBreadcrumbs } from '../components/AppBreadcrumbs'
 import 'react-quill-new/dist/quill.snow.css'
 
 type PracticeCentreResponse = {
@@ -101,7 +102,7 @@ export function PublicProfilePage() {
 
   if (loading) {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: '#F8F9FA' }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         <Box sx={{ height: 180, background: 'linear-gradient(135deg, #8F00FF 0%, #B854FF 100%)' }} />
         <Container maxWidth="lg" sx={{ mt: -10, position: 'relative', zIndex: 2, pb: 6 }}>
           <Grid container spacing={3}>
@@ -150,7 +151,7 @@ export function PublicProfilePage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#F8F9FA' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Banner / Header */}
       <Box
         sx={{
@@ -161,6 +162,7 @@ export function PublicProfilePage() {
       />
 
       <Container maxWidth="lg" sx={{ mt: -10, position: 'relative', zIndex: 2, pb: 6 }}>
+        <AppBreadcrumbs />
         <Grid container spacing={3} alignItems="flex-start">
           {/* Left Column: Profile Card */}
           <Grid size={{ xs: 12, md: 6, lg: 6 }}>
