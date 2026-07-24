@@ -5,7 +5,6 @@ import {
   ListItemIcon, 
   ListItemText, 
   Typography, 
-  Button,
   IconButton
 } from '@mui/material'
 import { NavLink, useLocation } from 'react-router-dom'
@@ -17,7 +16,7 @@ import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import LightbulbIcon from '@mui/icons-material/Lightbulb'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import { ThemeSelectorBox } from '../features/theme/ThemeSelectorBox'
 
 type LeftMenuProps = {
   onNavigate?: () => void
@@ -220,81 +219,9 @@ export function LeftMenu({ onNavigate }: LeftMenuProps) {
         </List>
       </Box>
 
-      {/* Bottom Promo Card (Expert Insights) */}
-      <Box 
-        sx={{ 
-          position: 'relative',
-          mt: 3,
-          pt: 3, // Padding top to accommodate the floating badge
-        }}
-      >
-        {/* Floating Lightbulb Badge */}
-        <Box 
-          sx={{ 
-            position: 'absolute',
-            top: 10,
-            left: 20,
-            width: 44,
-            height: 44,
-            borderRadius: '50%',
-            bgcolor: '#FFFFFF',
-            border: '1px solid rgba(143, 0, 255, 0.1)',
-            boxShadow: '0 8px 24px rgba(31, 38, 135, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 2,
-          }}
-        >
-          <Box 
-            sx={{ 
-              width: 32, 
-              height: 32, 
-              borderRadius: '50%', 
-              bgcolor: 'rgba(143, 0, 255, 0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <LightbulbIcon sx={{ color: '#8F00FF', fontSize: 18 }} />
-          </Box>
-        </Box>
-
-        {/* Promo Card Body */}
-        <Box 
-          sx={{ 
-            bgcolor: 'rgba(255, 255, 255, 0.45)',
-            border: '1px solid rgba(255, 255, 255, 0.7)',
-            borderRadius: '20px',
-            p: 2.5,
-            pt: 4, // More top padding for the badge overlap
-            boxShadow: '0 8px 32px rgba(31, 38, 135, 0.03)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1.5,
-          }}
-        >
-          <Typography variant="body2" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '0.9rem' }}>
-            Expert Insights
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.4 }}>
-            Actionable analysis from shaping researchers the future of AI.
-          </Typography>
-          <Button 
-            variant="contained" 
-            className="gradient-primary-btn"
-            fullWidth
-            endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
-            sx={{ 
-              py: 1, 
-              fontSize: '0.75rem',
-              borderRadius: '12px',
-            }}
-          >
-            Unlock Insights
-          </Button>
-        </Box>
+      {/* Color Theme Selection Component */}
+      <Box sx={{ mt: 3 }}>
+        <ThemeSelectorBox />
       </Box>
     </Box>
   )

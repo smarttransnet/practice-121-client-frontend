@@ -6,16 +6,14 @@ import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
-import { CssBaseline, ThemeProvider } from '@mui/material'
 import './index.css'
 import App from './app/App'
-import { appTheme } from './app/theme'
+import { ColorThemeProvider } from './context/ColorThemeContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider theme={appTheme}>
-      <CssBaseline />
+    <ColorThemeProvider>
       <App />
-    </ThemeProvider>
+    </ColorThemeProvider>
   </StrictMode>,
 )
