@@ -13,6 +13,7 @@ import ChildCareIcon from '@mui/icons-material/ChildCare';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { calculateAge } from '../../utils/ageHelper';
+import { formatDisplayDate } from '../../utils/dateUtils';
 
 export interface PatientOption {
   id: string;
@@ -146,7 +147,7 @@ export const FamilyPatientSelector: React.FC<FamilyPatientSelectorProps> = ({
                       </Box>
                       <Typography variant="caption" color="text.secondary">
                         {child.gender ? `${child.gender} • ` : ''}
-                        DOB: {child.dateOfBirth ? new Date(child.dateOfBirth).toLocaleDateString() : 'N/A'}
+                        DOB: {child.dateOfBirth ? formatDisplayDate(child.dateOfBirth) : 'N/A'}
                         {ageInfo.formatted ? ` (${ageInfo.formatted})` : ''}
                       </Typography>
                     </Box>

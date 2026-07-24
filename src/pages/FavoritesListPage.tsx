@@ -17,6 +17,7 @@ import {
   deleteFavorite 
 } from '../api/favorites'
 import type { FavoriteMedicine } from '../api/favorites'
+import { formatDisplayDate } from '../utils/dateUtils'
 
 export function FavoritesListPage() {
   const [favorites, setFavorites] = useState<FavoriteMedicine[]>([])
@@ -137,7 +138,7 @@ export function FavoritesListPage() {
       headerName: 'Added On', 
       flex: 1, 
       minWidth: 150,
-      valueFormatter: (value) => new Date(value).toLocaleDateString() 
+      valueFormatter: (value) => formatDisplayDate(value) 
     },
     {
       field: 'actions',

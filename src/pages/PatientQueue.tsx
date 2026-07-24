@@ -55,6 +55,7 @@ import {
   type Patient
 } from '../features/patient-queue/patientQueueApi';
 import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation';
+import { formatDisplayDate, formatDisplayDateLong } from '../utils/dateUtils';
 import { FamilyPatientSelector } from '../features/patients/FamilyPatientSelector';
 import { AddChildModal } from '../features/patients/AddChildModal';
 
@@ -139,12 +140,12 @@ const CalendarPicker = ({
   const showNext = currentMonth.getFullYear() < maxDate.getFullYear() || currentMonth.getMonth() < maxDate.getMonth();
 
   return (
-    <Box sx={{ width: '100%', bgcolor: '#ffffff', borderRadius: 3, p: 2, border: '1px solid #e0e0e0' }}>
+    <Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 3, p: 2, border: '1px solid', borderColor: 'divider' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <IconButton size="small" onClick={handlePrevMonth} disabled={!showPrev}>
           <ChevronLeftIcon />
         </IconButton>
-        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
           {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
         </Typography>
         <IconButton size="small" onClick={handleNextMonth} disabled={!showNext}>
@@ -188,19 +189,19 @@ const CalendarPicker = ({
                   bgcolor: isSelected 
                     ? 'primary.main' 
                     : isSelectable 
-                      ? 'rgba(143, 0, 255, 0.06)' 
+                      ? 'rgba(143, 0, 255, 0.12)' 
                       : 'transparent',
                   color: isSelected 
                     ? '#ffffff' 
                     : isSelectable 
-                      ? '#8F00FF' 
-                      : '#b0b0b0',
+                      ? 'primary.main' 
+                      : 'text.disabled',
                   opacity: isSelectable ? 1 : 0.4,
                   '&:hover': {
                     bgcolor: isSelected 
                       ? 'primary.dark' 
                       : isSelectable 
-                        ? 'rgba(143, 0, 255, 0.15)' 
+                        ? 'rgba(143, 0, 255, 0.22)' 
                         : 'transparent',
                   },
                   transition: 'all 0.2s'
@@ -672,7 +673,7 @@ export const PatientQueue = () => {
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
                     {selectedDate && selectedDate.toDateString() === new Date().toDateString() 
                       ? "Today's Statistics" 
-                      : `Statistics for ${selectedDate?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                      : `Statistics for ${formatDisplayDate(selectedDate)}`}
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 4 }}>
@@ -722,7 +723,7 @@ export const PatientQueue = () => {
             <Card className="glass-card" sx={{ p: 1 }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                  Patient Queue - {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : ''}
+                  Patient Queue - {selectedDate ? formatDisplayDateLong(selectedDate) : ''}
                 </Typography>
 
                 {loadingQueue ? (

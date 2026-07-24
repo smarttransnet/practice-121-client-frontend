@@ -90,6 +90,7 @@ export function TodosForm() {
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
         InputLabelProps={{ shrink: true }}
+        helperText="Format: DD/MM/YYYY HH:mm"
         fullWidth
       />
 
