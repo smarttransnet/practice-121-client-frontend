@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createHashRouter, Navigate } from 'react-router-dom';
 import { AppLayout } from '../layout/AppLayout';
 import { DashboardPage } from '../pages/DashboardPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
@@ -19,7 +19,7 @@ import { CreatePatientPage } from '../pages/CreatePatientPage';
 import { PatientQueue } from '../pages/PatientQueue';
 import { BookAppointmentPage } from '../pages/BookAppointmentPage';
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   { path: '/patient-queue', element: <PatientQueue /> },
   { path: '/book/:doctorId/centre/:centreId', element: <BookAppointmentPage /> },
   { path: '/login', element: <LoginPage /> },

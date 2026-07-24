@@ -74,7 +74,7 @@ export function PublicProfilePage() {
         }
         
         const data = await response.json()
-        setProfile(data.value)
+        setProfile(data.value || data)
         
         // Fetch practice centres
         const pcResponse = await fetch(`${apiBase}/api/public/doctors/${id}/practice-centres`)

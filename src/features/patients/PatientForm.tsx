@@ -102,9 +102,14 @@ export function PatientForm({ entryPoint }: Props) {
       setSuccess(true)
       setSkippedUpload(skipUploads || (!nicFront && !nicBack))
       
-      // If it's doctor flow, maybe redirect after a bit
-      if (!isDirect) {
-        setTimeout(() => navigate('/dashboard'), 2000)
+      // Automatically redirect if a redirect URL is present, or if it's the doctor flow
+      if (redirectParam) {
+        setTimeout(() => {
+          const separator = redirectParam.includes('?') ? '&' : '?';
+          navigate(`${redirectParam}${separator}registeredMobile=${encodeURIComponent(mobileNumber)}`)
+        }, 1500)
+      } else if (!isDirect) {
+        setTimeout(() => navigate('/dashboard'), 1500)
       }
 
     } catch (err: any) {
@@ -115,14 +120,6 @@ export function PatientForm({ entryPoint }: Props) {
   }
 
   if (success) {
-    const getButtonLabel = () => {
-      if (!redirectParam) {
-        return isDirect ? 'Go to Login' : 'Back to Dashboard';
-      }
-      if (redirectParam.includes('/book/')) return 'Continue Booking';
-      return 'Return to Queue';
-    };
-
     return (
       <Card className="glass-card" sx={{ p: 4, maxWidth: 500, mx: 'auto', mt: 4, textAlign: 'center' }}>
         <Alert severity="success" sx={{ mb: 2 }}>Patient account created successfully!</Alert>
@@ -131,19 +128,18 @@ export function PatientForm({ entryPoint }: Props) {
             You skipped the NIC image upload. You can upload it later from your account settings.
           </Typography>
         )}
-        <Button
-          variant="contained"
-          onClick={() => {
-            if (redirectParam) {
-              const separator = redirectParam.includes('?') ? '&' : '?';
-              navigate(`${redirectParam}${separator}registeredMobile=${encodeURIComponent(mobileNumber)}`)
-            } else {
-              isDirect ? navigate('/login') : navigate('/dashboard')
-            }
-          }}
-        >
-          {getButtonLabel()}
-        </Button>
+        {(redirectParam || !isDirect) ? (
+          <Typography variant="body2" color="primary" sx={{ mt: 2, mb: 1, fontWeight: 500 }}>
+            Redirecting...
+          </Typography>
+        ) : (
+          <Button
+            variant="contained"
+            onClick={() => navigate('/login')}
+          >
+            Go to Login
+          </Button>
+        )}
       </Card>
     )
   }
