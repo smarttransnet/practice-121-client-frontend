@@ -5,6 +5,7 @@ import 'react-quill-new/dist/quill.snow.css'
 import { useAuth } from '../features/auth/useAuth'
 import { httpClient } from '../api/httpClient'
 import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation'
+import { isValidNic, normalizeNic } from '../utils/nicDecoder'
 import {
   Avatar,
   Box,
@@ -333,6 +334,9 @@ export function ProfileEditPage() {
     if (mobileNumber && !isValidLkMobile(mobileNumber)) {
       newErrors.mobileNumber = 'Please enter a valid Sri Lankan mobile number (e.g., 077 123 4567).'
     }
+    if (nicNumber && !isValidNic(nicNumber)) {
+      newErrors.nicNumber = 'Please enter a valid Sri Lankan NIC number.'
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -356,7 +360,7 @@ export function ProfileEditPage() {
         specialty: specialty || null,
         subSpecialty: subSpecialty || null,
         bio: bio || null,
-        nicNumber: nicNumber || null,
+        nicNumber: nicNumber ? (normalizeNic(nicNumber) || nicNumber) : null,
         slmcRegNumber: slmcRegNumber || null
       }
 
@@ -543,7 +547,7 @@ export function ProfileEditPage() {
                   ) : <Box><Typography variant="caption" color="text.secondary">Gender</Typography><Typography variant="body1" fontWeight={700}>{gender || '—'}</Typography></Box>}
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  {isEdit ? <TextField label="NIC Number" fullWidth value={nicNumber} onChange={e => setNicNumber(e.target.value)} /> : <Box><Typography variant="caption" color="text.secondary">NIC Number</Typography><Typography variant="body1" fontWeight={700}>{nicNumber || '—'}</Typography></Box>}
+                  {isEdit ? <TextField label="NIC Number" fullWidth value={nicNumber} onChange={e => setNicNumber(e.target.value)} error={!!errors.nicNumber} helperText={errors.nicNumber || 'e.g., 882441524V or 199824401524'} /> : <Box><Typography variant="caption" color="text.secondary">NIC Number</Typography><Typography variant="body1" fontWeight={700}>{nicNumber || '—'}</Typography></Box>}
                 </Grid>
               </Grid>
             </Box>

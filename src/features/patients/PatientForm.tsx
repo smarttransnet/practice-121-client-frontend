@@ -15,6 +15,7 @@ import { registerPatient, uploadPatientDocument } from './patientsApi'
 import { useAuth } from '../auth/useAuth'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLkPhoneInput } from '../../hooks/useLkPhoneInput'
+import { useNicAutoFill } from '../../hooks/useNicAutoFill'
 
 interface Props {
   entryPoint: 'direct' | 'doctor'
@@ -27,12 +28,18 @@ export function PatientForm({ entryPoint }: Props) {
   const redirectParam = searchParams.get('redirect')
   const mobileParam = searchParams.get('mobile')
 
-  const [nicNumber, setNicNumber] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [gender, setGender] = useState('')
   const phoneInput = useLkPhoneInput({ initialValue: mobileParam || '' })
+
+  const nicInput = useNicAutoFill({
+    onAutoFill: (extractedDob, extractedGender) => {
+      setDateOfBirth(extractedDob)
+      setGender(extractedGender)
+    }
+  })
 
   const [nicFront, setNicFront] = useState<File | null>(null)
   const [nicBack, setNicBack] = useState<File | null>(null)
@@ -57,7 +64,8 @@ export function PatientForm({ entryPoint }: Props) {
     setSkippedUpload(false)
 
     // Validation
-    if (!nicNumber.trim()) return setError('NIC is required')
+    if (!nicInput.nicNumber.trim()) return setError('NIC is required')
+    if (!nicInput.isValid) return setError(nicInput.error || 'Please enter a valid Sri Lankan NIC number.')
     if (!firstName.trim()) return setError('First Name is required')
     if (!phoneInput.validate()) return
 
@@ -74,12 +82,13 @@ export function PatientForm({ entryPoint }: Props) {
     }
 
     const finalMobile = phoneInput.normalizedValue || phoneInput.value.trim()
+    const finalNic = nicInput.normalizedNic || nicInput.nicNumber.trim()
 
     try {
       setIsLoading(true)
 
       const patientId = await registerPatient({
-        nicNumber,
+        nicNumber: finalNic,
         firstName,
         lastName: lastName || undefined,
         dateOfBirth: dateOfBirth || undefined,
@@ -178,13 +187,23 @@ export function PatientForm({ entryPoint }: Props) {
           <Stack spacing={2.5}>
             {error && <Alert severity="error">{error}</Alert>}
 
-            <TextField
-              label="NIC Number"
-              fullWidth
-              required
-              value={nicNumber}
-              onChange={(e) => setNicNumber(e.target.value)}
-            />
+            <Box>
+              <TextField
+                label="NIC Number"
+                fullWidth
+                required
+                value={nicInput.nicNumber}
+                onChange={(e) => nicInput.handleNicChange(e.target.value)}
+                onBlur={nicInput.handleBlur}
+                error={!!nicInput.error}
+                helperText={nicInput.error || 'e.g., 882441524V or 199824401524'}
+              />
+              {nicInput.autoFilled && (
+                <Typography variant="caption" color="success.main" sx={{ mt: 0.5, display: 'block', fontWeight: 600 }}>
+                  ✨ Auto-filled Date of Birth &amp; Gender from NIC. Please verify your details.
+                </Typography>
+              )}
+            </Box>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <TextField
