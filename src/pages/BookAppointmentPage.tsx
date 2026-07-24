@@ -51,24 +51,9 @@ interface DoctorInfo {
   profilePictureUrl?: string;
 }
 
+import { formatDisplayDate, formatDisplayDateLong, formatIsoDate } from '../utils/dateUtils';
+
 const STEPS = ['Select Date', 'Your Details', 'Confirm'];
-
-function formatDateLocal(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-function formatDisplayDate(dateStr: string): string {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
 
 export function BookAppointmentPage() {
   const { doctorId, centreId } = useParams<{ doctorId: string; centreId: string }>();
@@ -193,7 +178,7 @@ export function BookAppointmentPage() {
         patientMobile: confirmedPatient.mobileNumber,
         doctorAccountId: doctorId,
         practiceCentreId: centreId,
-        visitDate: formatDateLocal(selectedDate),
+        visitDate: formatIsoDate(selectedDate),
         patientId: confirmedPatient.id,
       });
       setBookingResult(result);
@@ -207,7 +192,7 @@ export function BookAppointmentPage() {
   const doctorName = doctor?.fullName ?? locationState?.doctorName ?? 'Doctor';
   const clinicName = centre?.clinicName ?? locationState?.clinicName ?? 'Clinic';
   const pageTitle = `Book Appointment – ${doctorName} at ${clinicName}`;
-  const returnUrl = `/book/${doctorId}/centre/${centreId}${selectedDate ? `?returnDate=${formatDateLocal(selectedDate)}` : ''}`;
+  const returnUrl = `/book/${doctorId}/centre/${centreId}${selectedDate ? `?returnDate=${formatIsoDate(selectedDate)}` : ''}`;
 
   // --- Success screen ---
   if (bookingResult) {
@@ -443,7 +428,7 @@ export function BookAppointmentPage() {
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">Visit Date</Typography>
                         <Typography variant="body2" fontWeight={600}>
-                          {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                          {formatDisplayDateLong(selectedDate)}
                         </Typography>
                       </Box>
                       <Divider />

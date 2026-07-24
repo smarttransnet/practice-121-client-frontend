@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -20,44 +20,20 @@ import LocationOnIcon from '@mui/icons-material/LocationOn'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import EventAvailableIcon from '@mui/icons-material/EventAvailable'
-import { AppBreadcrumbs } from '../components/AppBreadcrumbs'
+import { SEOHead } from '../components/SEOHead'
+import {
+  buildDoctorSeoMetadata,
+  buildPhysicianJsonLd,
+  getFullImageUrl,
+} from '../utils/seoUtils'
+import type { PracticeCentreData, DoctorProfileData } from '../utils/seoUtils'
 import 'react-quill-new/dist/quill.snow.css'
-
-type PracticeCentreResponse = {
-  id: string
-  clinicName: string
-  districtName: string
-  mohAreaName: string
-  placeName: string
-  sessionGroups: {
-    id: string
-    daysOfWeek: string[]
-    timeBlocks: {
-      id: string
-      label: string
-      startTime: string
-      endTime: string
-    }[]
-  }[]
-}
-
-type PublicDoctorResponse = {
-  accountId: string
-  fullName: string
-  firstName?: string
-  lastName?: string
-  specialty?: string
-  subSpecialty?: string
-  profilePictureUrl?: string
-  bio?: string
-  qualifications: { name: string }[]
-}
 
 export function PublicProfilePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [profile, setProfile] = useState<PublicDoctorResponse | null>(null)
-  const [practiceCentres, setPracticeCentres] = useState<PracticeCentreResponse[]>([])
+  const [profile, setProfile] = useState<DoctorProfileData | null>(null)
+  const [practiceCentres, setPracticeCentres] = useState<PracticeCentreData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -100,11 +76,22 @@ export function PublicProfilePage() {
     }
   }, [id])
 
+  const seoMetadata = useMemo(
+    () => buildDoctorSeoMetadata(id || '', profile, practiceCentres),
+    [id, profile, practiceCentres]
+  )
+
+  const physicianJsonLd = useMemo(
+    () => buildPhysicianJsonLd(id || '', profile, practiceCentres),
+    [id, profile, practiceCentres]
+  )
+
   if (loading) {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-        <Box sx={{ height: 180, background: 'linear-gradient(135deg, #8F00FF 0%, #B854FF 100%)' }} />
-        <Container maxWidth="lg" sx={{ mt: -10, position: 'relative', zIndex: 2, pb: 6 }}>
+        <SEOHead seoData={seoMetadata} jsonLd={physicianJsonLd} />
+        <Box sx={{ height: { xs: 140, sm: 180 }, background: 'linear-gradient(135deg, #8F00FF 0%, #B854FF 100%)' }} />
+        <Container maxWidth="lg" sx={{ mt: { xs: -8, sm: -10 }, position: 'relative', zIndex: 2, pb: 6 }}>
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 6, lg: 6 }}>
               <Card elevation={0} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
@@ -136,6 +123,7 @@ export function PublicProfilePage() {
   if (error || !profile) {
     return (
       <Container maxWidth="md" sx={{ mt: 8, textAlign: 'center' }}>
+        <SEOHead seoData={seoMetadata} jsonLd={physicianJsonLd} />
         <Typography variant="h5" color="error">
           {error || 'Profile not found'}
         </Typography>
@@ -143,30 +131,28 @@ export function PublicProfilePage() {
     )
   }
 
-  const getFullImageUrl = (url: string | null | undefined) => {
-    if (!url) return undefined
-    if (url.startsWith('http')) return url
-    const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000'
-    return `${apiBase.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
-  }
-
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box component="main" sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <SEOHead seoData={seoMetadata} jsonLd={physicianJsonLd} />
+
       {/* Banner / Header */}
       <Box
+        component="header"
+        aria-label="Doctor Profile Header Banner"
         sx={{
-          height: 180,
+          height: { xs: 140, sm: 180 },
           background: 'linear-gradient(135deg, #8F00FF 0%, #B854FF 100%)',
           position: 'relative',
         }}
       />
 
-      <Container maxWidth="lg" sx={{ mt: -10, position: 'relative', zIndex: 2, pb: 6 }}>
-        <AppBreadcrumbs />
-        <Grid container spacing={3} alignItems="flex-start">
+      <Container maxWidth="lg" sx={{ mt: { xs: -8, sm: -10 }, position: 'relative', zIndex: 2, pb: 6 }}>
+        <Grid container spacing={{ xs: 2.5, md: 3 }} alignItems="flex-start">
           {/* Left Column: Profile Card */}
           <Grid size={{ xs: 12, md: 6, lg: 6 }}>
             <Card
+              component="section"
+              aria-labelledby="doctor-profile-name"
               elevation={0}
               sx={{
                 borderRadius: 4,
@@ -177,38 +163,59 @@ export function PublicProfilePage() {
               }}
             >
               {/* Avatar Section */}
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: -7 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: { xs: -6, sm: -7 } }}>
                 <Avatar
                   src={getFullImageUrl(profile.profilePictureUrl)}
                   alt={profile.fullName}
                   sx={{
-                    width: 140,
-                    height: 140,
+                    width: { xs: 120, sm: 140 },
+                    height: { xs: 120, sm: 140 },
                     border: '5px solid white',
                     boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                     bgcolor: 'primary.main',
-                    fontSize: '2.5rem',
+                    fontSize: { xs: '2rem', sm: '2.5rem' },
                   }}
                 >
                   {profile.fullName.charAt(0)}
                 </Avatar>
               </Box>
 
-              <CardContent sx={{ pt: 2, px: 3, pb: 4 }}>
+              <CardContent sx={{ pt: 2, px: { xs: 2, sm: 3 }, pb: 4 }}>
                 {/* Header Info */}
                 <Box textAlign="center" mb={2}>
-                  <Typography variant="h5" fontWeight="800" gutterBottom>
+                  <Typography
+                    id="doctor-profile-name"
+                    component="h1"
+                    variant="h5"
+                    fontWeight="800"
+                    gutterBottom
+                    sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' }, wordBreak: 'break-word' }}
+                  >
                     {profile.fullName}
                   </Typography>
                   
                   {(profile.specialty || profile.subSpecialty) && (
-                    <Typography variant="subtitle1" color="text.secondary" fontWeight="500" gutterBottom sx={{ lineHeight: 1.3, mb: 1.5 }}>
+                    <Typography
+                      variant="subtitle1"
+                      color="text.secondary"
+                      fontWeight="500"
+                      gutterBottom
+                      sx={{ lineHeight: 1.3, mb: 1.5, fontSize: { xs: '0.9rem', sm: '1rem' } }}
+                    >
                       {profile.specialty} {profile.subSpecialty ? `• ${profile.subSpecialty}` : ''}
                     </Typography>
                   )}
 
                   {profile.qualifications && profile.qualifications.length > 0 && (
-                    <Stack direction="row" spacing={0.5} justifyContent="center" flexWrap="wrap" sx={{ gap: 1 }}>
+                    <Stack
+                      component="section"
+                      aria-label="Doctor Qualifications"
+                      direction="row"
+                      spacing={0.5}
+                      justifyContent="center"
+                      flexWrap="wrap"
+                      sx={{ gap: 1 }}
+                    >
                       {profile.qualifications.map((q, index) => (
                         <Chip
                           key={index}
@@ -232,11 +239,18 @@ export function PublicProfilePage() {
                 {profile.bio && (
                   <>
                     <Divider sx={{ my: 2.5 }} />
-                    <Box>
-                      <Typography variant="subtitle1" fontWeight="700" gutterBottom sx={{ color: 'primary.main', mb: 1 }}>
+                    <Box component="section" aria-labelledby="doctor-about-heading">
+                      <Typography
+                        id="doctor-about-heading"
+                        component="h2"
+                        variant="subtitle1"
+                        fontWeight="700"
+                        gutterBottom
+                        sx={{ color: 'primary.main', mb: 1, fontSize: '1rem' }}
+                      >
                         About
                       </Typography>
-                      <Box className="ql-snow" sx={{ '& .ql-editor': { p: 0, minHeight: 'auto', color: 'text.secondary', lineHeight: 1.6, fontSize: '0.95rem', fontFamily: 'inherit' } }}>
+                      <Box className="ql-snow" sx={{ '& .ql-editor': { p: 0, minHeight: 'auto', color: 'text.secondary', lineHeight: 1.6, fontSize: '0.95rem', fontFamily: 'inherit', wordBreak: 'break-word' } }}>
                         <Box className="ql-editor" dangerouslySetInnerHTML={{ __html: profile.bio }} />
                       </Box>
                     </Box>
@@ -249,17 +263,26 @@ export function PublicProfilePage() {
           {/* Right Column: Sessions */}
           <Grid size={{ xs: 12, md: 6, lg: 6 }}>
             <Card
+              component="section"
+              aria-labelledby="available-sessions-heading"
               elevation={0}
               sx={{
                 borderRadius: 4,
                 border: '1px solid',
                 borderColor: 'divider',
                 boxShadow: '0px 12px 24px -4px rgba(143, 0, 255, 0.04)',
-                bgcolor: 'white',
+                bgcolor: 'background.paper',
               }}
             >
-              <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-                <Typography variant="h6" fontWeight="700" gutterBottom sx={{ color: 'primary.main', mb: 3 }}>
+              <CardContent sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
+                <Typography
+                  id="available-sessions-heading"
+                  component="h2"
+                  variant="h6"
+                  fontWeight="700"
+                  gutterBottom
+                  sx={{ color: 'primary.main', mb: 3, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
+                >
                   Available Sessions
                 </Typography>
 
@@ -274,7 +297,7 @@ export function PublicProfilePage() {
                           key={centre.id}
                           variant="outlined" 
                           sx={{ 
-                            p: 2.5, 
+                            p: { xs: 2, sm: 2.5 }, 
                             borderRadius: 3,
                             borderColor: 'divider',
                             transition: 'transform 0.2s, box-shadow 0.2s',
@@ -287,16 +310,13 @@ export function PublicProfilePage() {
                         >
                           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', gap: 2, mb: 1.5 }}>
                             <Box>
-                              <Typography variant="subtitle1" fontWeight="700" sx={{ mb: 0.25 }}>
+                              <Typography variant="subtitle1" fontWeight="700" sx={{ mb: 0.25, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
                                 {title}
                               </Typography>
-                              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ color: 'text.secondary' }}>
-                                <LocationOnIcon sx={{ fontSize: '1.1rem', opacity: 0.7 }} />
-                                <Typography variant="body2">{location}</Typography>
-                              </Stack>
+                              <AddressLocation location={location} />
                             </Box>
                             
-                            <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', width: { xs: '100%', sm: 'auto' } }}>
                               <Button 
                                 variant="contained" 
                                 color="primary"
@@ -312,6 +332,7 @@ export function PublicProfilePage() {
                                   borderRadius: 6, 
                                   px: 2.5, 
                                   py: 0.75, 
+                                  width: { xs: '100%', sm: 'auto' },
                                   textTransform: 'none', 
                                   fontWeight: 600,
                                   boxShadow: '0 4px 10px 0 rgba(143, 0, 255, 0.3)',
@@ -384,6 +405,17 @@ export function PublicProfilePage() {
           </Grid>
         </Grid>
       </Container>
+    </Box>
+  )
+}
+
+function AddressLocation({ location }: { location: string }) {
+  return (
+    <Box component="address" sx={{ fontStyle: 'normal', m: 0 }}>
+      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ color: 'text.secondary' }}>
+        <LocationOnIcon sx={{ fontSize: '1.1rem', opacity: 0.7 }} />
+        <Typography variant="body2">{location}</Typography>
+      </Stack>
     </Box>
   )
 }

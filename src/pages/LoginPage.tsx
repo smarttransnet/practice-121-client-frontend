@@ -140,9 +140,11 @@ export function LoginPage() {
           maxWidth: 450,
           borderRadius: 4,
           backdropFilter: 'blur(10px)',
-          bgcolor: 'rgba(255, 255, 255, 0.95)',
+          bgcolor: 'background.paper',
+          color: 'text.primary',
           boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          border: '1px solid',
+          borderColor: 'divider',
           p: 2,
         }}
       >
@@ -234,7 +236,7 @@ export function LoginPage() {
               </Stack>
             </Box>
 
-            <Divider sx={{ width: '100%', my: 1 }}>OR</Divider>
+            <Divider sx={{ width: '100%', my: 1, color: 'text.secondary' }}>OR</Divider>
 
             {!isGoogleConfigured && (
               <Alert 
@@ -263,12 +265,13 @@ export function LoginPage() {
               sx={{
                 borderRadius: 2.5,
                 py: 1.5,
-                borderColor: 'grey.300',
                 fontWeight: 'bold',
-                bgcolor: 'white',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'white',
+                color: 'text.primary',
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'grey.300',
                 '&:hover': {
-                  bgcolor: 'grey.50',
-                  borderColor: 'grey.400',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'grey.50',
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.4)' : 'grey.400',
                 },
               }}
             >

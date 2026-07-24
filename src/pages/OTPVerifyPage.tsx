@@ -134,9 +134,11 @@ export function OTPVerifyPage() {
           maxWidth: 450,
           borderRadius: 4,
           backdropFilter: 'blur(10px)',
-          bgcolor: 'rgba(255, 255, 255, 0.95)',
+          bgcolor: 'background.paper',
+          color: 'text.primary',
           boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          border: '1px solid',
+          borderColor: 'divider',
           p: 2,
         }}
       >
