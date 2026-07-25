@@ -22,6 +22,7 @@ import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import MedicalServicesOutlinedIcon from '@mui/icons-material/MedicalServicesOutlined'
 import GoogleIcon from '@mui/icons-material/Google'
+import { GoogleGIcon } from '../components/GoogleGIcon'
 
 export function LoginPage() {
   const { login, googleLogin, error, clearError, isLoading } = useAuth()
@@ -93,7 +94,7 @@ export function LoginPage() {
     if (isGoogleConfigured) {
       setValidationError(null)
       clearError()
-      const redirectUri = `${window.location.origin}/login`
+      const redirectUri = window.location.origin + window.location.pathname
       const nonce = Math.random().toString(36).substring(2, 15)
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=id_token&scope=openid%20profile%20email&nonce=${nonce}`
       window.location.href = authUrl
@@ -260,7 +261,7 @@ export function LoginPage() {
               color="inherit"
               size="large"
               fullWidth
-              startIcon={<GoogleIcon sx={{ color: '#db4437' }} />}
+              startIcon={<GoogleGIcon size={20} />}
               onClick={handleGoogleSignIn}
               sx={{
                 borderRadius: 2.5,
