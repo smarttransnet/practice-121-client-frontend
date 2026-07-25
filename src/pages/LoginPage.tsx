@@ -278,6 +278,9 @@ export function LoginPage() {
             >
               Sign In with Google
             </Button>
+            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', fontSize: '0.7rem', opacity: 0.8 }}>
+              Redirect URI: <code>{window.location.origin + window.location.pathname}</code>
+            </Typography>
 
             <Typography variant="body2" align="center" color="text.secondary">
               Don't have an account?{' '}
