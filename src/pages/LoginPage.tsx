@@ -22,6 +22,7 @@ import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import MedicalServicesOutlinedIcon from '@mui/icons-material/MedicalServicesOutlined'
 import GoogleIcon from '@mui/icons-material/Google'
+import { GoogleGIcon } from '../components/GoogleGIcon'
 
 export function LoginPage() {
   const { login, googleLogin, error, clearError, isLoading } = useAuth()
@@ -260,7 +261,7 @@ export function LoginPage() {
               color="inherit"
               size="large"
               fullWidth
-              startIcon={<GoogleIcon sx={{ color: '#db4437' }} />}
+              startIcon={<GoogleGIcon size={20} />}
               onClick={handleGoogleSignIn}
               sx={{
                 borderRadius: 2.5,
