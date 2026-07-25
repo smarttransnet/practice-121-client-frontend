@@ -43,28 +43,41 @@ export function LoginPage() {
   const [simName, setSimName] = useState('Dr. Sunil Perera')
   const [simEmail, setSimEmail] = useState('sunil.perera@example.com')
 
-  // Handle parsing returned Google ID Token from URL hash
+  // Handle parsing returned Google ID Token from URL hash or sessionStorage
   useEffect(() => {
+    let idToken: string | null = null
+
+    // 1. Direct hash check
     const hash = window.location.hash
-    if (hash) {
-      const params = new URLSearchParams(hash.substring(1))
-      const idToken = params.get('id_token')
-      if (idToken) {
-        // Clear hash from URL immediately to keep URL bar clean
-        window.history.replaceState(null, '', window.location.pathname)
-        
-        const loginWithToken = async () => {
-          setValidationError(null)
-          clearError()
-          try {
-            await googleLogin(idToken)
-            navigate('/verify-otp')
-          } catch (err) {
-            // Error is handled by authStore/useAuth
-          }
-        }
-        loginWithToken()
+    if (hash && hash.includes('id_token=')) {
+      const match = hash.match(/id_token=([^&]+)/)
+      if (match && match[1]) {
+        idToken = match[1]
       }
+    }
+
+    // 2. Pending sessionStorage token check
+    if (!idToken) {
+      idToken = sessionStorage.getItem('pending_google_id_token')
+      if (idToken) {
+        sessionStorage.removeItem('pending_google_id_token')
+      }
+    }
+
+    if (idToken) {
+      window.history.replaceState(null, '', window.location.pathname + '#/login')
+      
+      const loginWithToken = async () => {
+        setValidationError(null)
+        clearError()
+        try {
+          await googleLogin(idToken!)
+          navigate('/verify-otp')
+        } catch (err) {
+          // Error is handled by authStore/useAuth
+        }
+      }
+      loginWithToken()
     }
   }, [googleLogin, navigate, clearError])
 
