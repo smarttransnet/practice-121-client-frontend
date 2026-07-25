@@ -94,7 +94,7 @@ export function LoginPage() {
     if (isGoogleConfigured) {
       setValidationError(null)
       clearError()
-      const redirectUri = `${window.location.origin}/login`
+      const redirectUri = window.location.origin + window.location.pathname
       const nonce = Math.random().toString(36).substring(2, 15)
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=id_token&scope=openid%20profile%20email&nonce=${nonce}`
       window.location.href = authUrl
