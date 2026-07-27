@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -27,7 +27,8 @@ import {
   CircularProgress,
   Alert,
   Tooltip,
-  ButtonBase
+  ButtonBase,
+  Stack,
 } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppBreadcrumbs } from '../components/AppBreadcrumbs';
@@ -42,6 +43,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { httpClient } from '../api/httpClient';
 import {
   getPatientQueue,
@@ -58,6 +60,14 @@ import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation';
 import { formatDisplayDate, formatDisplayDateLong } from '../utils/dateUtils';
 import { FamilyPatientSelector } from '../features/patients/FamilyPatientSelector';
 import { AddChildModal } from '../features/patients/AddChildModal';
+
+interface DaySessionInfo {
+  id: string;
+  label: string;
+  timeRange: string;
+  startTime: string;
+  endTime: string;
+}
 
 interface TimeBlock {
   id: string;
@@ -256,6 +266,57 @@ export const PatientQueue = () => {
   // Future Booking Date states
   const [availableDates, setAvailableDates] = useState<Date[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string>('ALL');
+  const [targetSessionId, setTargetSessionId] = useState<string>('');
+
+  // Compute active sessions for the selected date
+  const daySessions = useMemo<DaySessionInfo[]>(() => {
+    if (!selectedDate || !selectedCentre?.sessionGroups) return [];
+    const dayAbbr = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][selectedDate.getDay()];
+    const sessions: DaySessionInfo[] = [];
+
+    selectedCentre.sessionGroups.forEach((group) => {
+      const isDayActive = group.daysOfWeek?.some(d => d.toUpperCase() === dayAbbr);
+      if (isDayActive) {
+        if (group.timeBlocks && group.timeBlocks.length > 0) {
+          group.timeBlocks.forEach((tb) => {
+            sessions.push({
+              id: tb.id,
+              label: tb.label || 'Session',
+              timeRange: `${tb.startTime} - ${tb.endTime}`,
+              startTime: tb.startTime,
+              endTime: tb.endTime,
+            });
+          });
+        } else {
+          sessions.push({
+            id: group.id,
+            label: 'Scheduled Session',
+            timeRange: 'Regular Practice Hours',
+            startTime: '09:00',
+            endTime: '17:00',
+          });
+        }
+      }
+    });
+    return sessions;
+  }, [selectedDate, selectedCentre]);
+
+  useEffect(() => {
+    setSelectedSessionId('ALL');
+    if (daySessions.length > 0) {
+      setTargetSessionId(daySessions[0].id);
+    } else {
+      setTargetSessionId('');
+    }
+  }, [selectedCentre, selectedDate, daySessions]);
+
+  const getSessionTickets = (sessionId: string) => {
+    if (sessionId === 'ALL' || daySessions.length <= 1) return queue;
+    const sessionIndex = daySessions.findIndex((s: DaySessionInfo) => s.id === sessionId);
+    if (sessionIndex === -1) return queue;
+    return queue.filter((_, idx) => idx % daySessions.length === sessionIndex);
+  };
 
   const getDayString = (date: Date) => {
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -722,9 +783,41 @@ export const PatientQueue = () => {
           <Grid size={{ xs: 12, md: 8 }}>
             <Card className="glass-card" sx={{ p: 1 }}>
               <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
                   Patient Queue - {selectedDate ? formatDisplayDateLong(selectedDate) : ''}
                 </Typography>
+
+                {daySessions.length > 0 && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="caption" fontWeight={700} color="text.secondary" display="block" mb={1} sx={{ letterSpacing: 0.5 }}>
+                      SCHEDULED SESSIONS
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
+                      <Chip
+                        label={`All Sessions (${queue.length})`}
+                        color={selectedSessionId === 'ALL' ? 'primary' : 'default'}
+                        variant={selectedSessionId === 'ALL' ? 'filled' : 'outlined'}
+                        onClick={() => setSelectedSessionId('ALL')}
+                        sx={{ fontWeight: 700, borderRadius: 3, cursor: 'pointer' }}
+                      />
+                      {daySessions.map((session: DaySessionInfo) => {
+                        const sessTickets = getSessionTickets(session.id);
+                        const isSelected = selectedSessionId === session.id;
+                        return (
+                          <Chip
+                            key={session.id}
+                            icon={<AccessTimeIcon fontSize="small" />}
+                            label={`${session.label} (${session.timeRange}) • ${sessTickets.length} Patients`}
+                            color={isSelected ? 'primary' : 'default'}
+                            variant={isSelected ? 'filled' : 'outlined'}
+                            onClick={() => setSelectedSessionId(session.id)}
+                            sx={{ fontWeight: 700, borderRadius: 3, cursor: 'pointer' }}
+                          />
+                        );
+                      })}
+                    </Stack>
+                  </Box>
+                )}
 
                 {loadingQueue ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -736,6 +829,127 @@ export const PatientQueue = () => {
                       No patients in the queue for this date.
                     </Typography>
                   </Box>
+                ) : selectedSessionId === 'ALL' && daySessions.length > 1 ? (
+                  <Stack spacing={3}>
+                    {daySessions.map((session: DaySessionInfo) => {
+                      const sessTickets = getSessionTickets(session.id);
+                      return (
+                        <Paper key={session.id} variant="outlined" sx={{ p: 2, borderRadius: 3, bgcolor: 'background.paper' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <AccessTimeIcon color="primary" fontSize="small" />
+                              <Typography variant="subtitle1" fontWeight={800} color="primary.main">
+                                {session.label} ({session.timeRange})
+                              </Typography>
+                            </Box>
+                            <Chip label={`${sessTickets.length} Patients`} color="primary" size="small" sx={{ fontWeight: 700 }} />
+                          </Box>
+
+                          {sessTickets.length === 0 ? (
+                            <Typography variant="body2" color="text.secondary" align="center" py={2}>
+                              No patients in queue for this session.
+                            </Typography>
+                          ) : (
+                            <TableContainer component={Paper} sx={{ boxShadow: 'none', background: 'transparent' }}>
+                              <Table>
+                                <TableHead>
+                                  <TableRow>
+                                    <TableCell sx={{ width: 50 }}></TableCell>
+                                    <TableCell sx={{ fontWeight: 700 }}>No.</TableCell>
+                                    <TableCell sx={{ fontWeight: 700 }}>Patient Name</TableCell>
+                                    <TableCell sx={{ fontWeight: 700 }}>Mobile</TableCell>
+                                    <TableCell sx={{ fontWeight: 700 }}>Priority</TableCell>
+                                    <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                                    <TableCell sx={{ fontWeight: 700, textAlign: 'right' }}>Actions</TableCell>
+                                  </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  {sessTickets.map((ticket, index) => (
+                                    <TableRow
+                                      key={ticket.id}
+                                      draggable
+                                      onDragStart={(e) => handleDragStart(e, index)}
+                                      onDragOver={(e) => handleDragOver(e, index)}
+                                      onDragEnd={handleDragEnd}
+                                      sx={{
+                                        '&:last-child td, &:last-child th': { border: 0 },
+                                        opacity: draggedIndex === index ? 0.5 : 1,
+                                        backgroundColor: draggedIndex === index ? 'rgba(0,0,0,0.05)' : 'inherit',
+                                        transition: 'opacity 0.2s, background-color 0.2s',
+                                      }}
+                                    >
+                                      <TableCell sx={{ width: 50 }}>
+                                        <DragIndicatorIcon sx={{ color: 'text.secondary', cursor: 'grab', display: 'block', margin: 'auto' }} />
+                                      </TableCell>
+                                      <TableCell sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+                                        #{ticket.queueNumber}
+                                      </TableCell>
+                                      <TableCell sx={{ fontWeight: 600 }}>{ticket.patientName}</TableCell>
+                                      <TableCell>{ticket.patientMobile}</TableCell>
+                                      <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
+                                      <TableCell>{getStatusChip(ticket.status)}</TableCell>
+                                      <TableCell sx={{ textAlign: 'right' }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                          {ticket.status === 0 && (
+                                            <Tooltip title="Mark Ready">
+                                              <IconButton color="secondary" onClick={() => handleUpdateStatus(ticket.id, 1)}>
+                                                <CheckIcon />
+                                              </IconButton>
+                                            </Tooltip>
+                                          )}
+                                          {(ticket.status === 0 || ticket.status === 1) && (
+                                            <Tooltip title="Call Patient">
+                                              <IconButton color="warning" onClick={() => handleUpdateStatus(ticket.id, 2)}>
+                                                <RecordVoiceOverIcon />
+                                              </IconButton>
+                                            </Tooltip>
+                                          )}
+                                          {ticket.status === 2 && (
+                                            <Tooltip title="Start Consultation">
+                                              <IconButton color="info" onClick={() => handleUpdateStatus(ticket.id, 3)}>
+                                                <PlayArrowIcon />
+                                              </IconButton>
+                                            </Tooltip>
+                                          )}
+                                          {ticket.status === 3 && (
+                                            <Tooltip title="Complete Consultation">
+                                              <IconButton color="success" onClick={() => handleUpdateStatus(ticket.id, 4)}>
+                                                <CheckIcon />
+                                              </IconButton>
+                                            </Tooltip>
+                                          )}
+                                          {ticket.status < 4 && (
+                                            <>
+                                              <Tooltip title="No Show">
+                                                <Button
+                                                  size="small"
+                                                  variant="outlined"
+                                                  color="error"
+                                                  sx={{ textTransform: 'none', px: 1, py: 0.5, borderRadius: 2 }}
+                                                  onClick={() => handleUpdateStatus(ticket.id, 6)}
+                                                >
+                                                  No Show
+                                                </Button>
+                                              </Tooltip>
+                                              <Tooltip title="Cancel">
+                                                <IconButton color="error" onClick={() => handleUpdateStatus(ticket.id, 5)}>
+                                                  <CloseIcon />
+                                                </IconButton>
+                                              </Tooltip>
+                                            </>
+                                          )}
+                                        </Box>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </TableContainer>
+                          )}
+                        </Paper>
+                      );
+                    })}
+                  </Stack>
                 ) : (
                   <TableContainer component={Paper} sx={{ boxShadow: 'none', background: 'transparent' }}>
                     <Table>
@@ -751,7 +965,7 @@ export const PatientQueue = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {queue.map((ticket, index) => (
+                        {(selectedSessionId === 'ALL' ? queue : getSessionTickets(selectedSessionId)).map((ticket, index) => (
                           <TableRow
                             key={ticket.id}
                             draggable
@@ -987,6 +1201,24 @@ export const PatientQueue = () => {
                     setVerifiedPatient(newChild);
                   }}
                 />
+              )}
+
+              {daySessions.length > 1 && (
+                <FormControl fullWidth>
+                  <InputLabel>Session</InputLabel>
+                  <Select
+                    value={targetSessionId}
+                    label="Session"
+                    onChange={(e) => setTargetSessionId(e.target.value)}
+                    startAdornment={<AccessTimeIcon sx={{ mr: 1, color: 'text.secondary' }} />}
+                  >
+                    {daySessions.map((session: DaySessionInfo) => (
+                      <MenuItem key={session.id} value={session.id}>
+                        {session.label} ({session.timeRange})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               )}
 
               <FormControl fullWidth>
