@@ -549,6 +549,24 @@ export const PatientQueue = () => {
     try {
       setSubmitting(true);
       setAddError(null);
+
+      // Client-side duplicate check for the same session
+      const targetSessionTickets = targetSessionId ? getSessionTickets(targetSessionId) : queue;
+      const isAlreadyInSession = targetSessionTickets.some(t => {
+        if (t.status >= 4) return false; // Completed, Cancelled, No Show allowed
+        if (verifiedPatient.id && t.patientId) {
+          return t.patientId === verifiedPatient.id;
+        }
+        return false;
+      });
+
+      if (isAlreadyInSession) {
+        const patientDisplayName = `${verifiedPatient.firstName} ${verifiedPatient.lastName || ''}`.trim();
+        setAddError(`Patient (${patientDisplayName}) is already in the queue for this session.`);
+        setSubmitting(false);
+        return;
+      }
+
       await addPatientQueueTicket({
         patientMobile: primaryPatientRecord?.mobileNumber || verifiedPatient.mobileNumber,
         patientId: verifiedPatient.id,
@@ -562,7 +580,7 @@ export const PatientQueue = () => {
       refreshQueue();
     } catch (err: any) {
       console.error(err);
-      setAddError(err.message || 'Failed to add patient to queue');
+      setAddError(err.userFriendlyMessage || err.response?.data?.detail || err.message || 'Failed to add patient to queue');
     } finally {
       setSubmitting(false);
     }
