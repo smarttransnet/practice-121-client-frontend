@@ -1,14 +1,12 @@
 import MenuIcon from '@mui/icons-material/Menu'
-import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined'
-import MailOutlineOutlinedIcon from '@mui/icons-material/MailOutlineOutlined'
+
 import { 
   AppBar, 
   Box, 
   IconButton, 
   Toolbar, 
   Typography, 
-  Stack, 
-  Badge 
+  Stack 
 } from '@mui/material'
 import { NavLink } from 'react-router-dom'
 import { ProfileDropdown } from './ProfileDropdown'
@@ -93,39 +91,9 @@ export function Header({ onOpenMobileMenu, onToggleSidebar, isMobile = false }: 
       <Stack direction="row" spacing={2.5} alignItems="center">
         {/* Rounded Action Icons */}
         <Stack direction="row" spacing={1.5}>
-          <IconButton 
-            sx={{ 
-              bgcolor: 'rgba(255, 255, 255, 0.6)', 
-              border: '1px solid rgba(255, 255, 255, 0.7)',
-              width: 40,
-              height: 40,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)',
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                transform: 'scale(1.05)',
-              }
-            }}
-          >
-            <MailOutlineOutlinedIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
-          </IconButton>
+
           
-          <IconButton 
-            sx={{ 
-              bgcolor: 'rgba(255, 255, 255, 0.6)', 
-              border: '1px solid rgba(255, 255, 255, 0.7)',
-              width: 40,
-              height: 40,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)',
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                transform: 'scale(1.05)',
-              }
-            }}
-          >
-            <Badge color="error" variant="dot" overlap="circular">
-              <NotificationsNoneOutlinedIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
-            </Badge>
-          </IconButton>
+
         </Stack>
 
         <ProfileDropdown />
