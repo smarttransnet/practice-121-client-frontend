@@ -14,7 +14,7 @@ import {
   Divider,
 } from '@mui/material'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
+
 import LogoutIcon from '@mui/icons-material/Logout'
 import PublicIcon from '@mui/icons-material/Public'
 
@@ -73,11 +73,7 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
     navigate('/settings/profile-edit', { state: { mode: 'edit' } })
   }
 
-  const handleSignInAs = async () => {
-    handleCloseMenu()
-    await logout()
-    navigate('/login')
-  }
+  
 
   const handleSignOut = async () => {
     handleCloseMenu()
@@ -310,29 +306,6 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
             </Box>
           </ListItemIcon>
           Public Profile
-        </MenuItem>
-
-        {/* Sign in as */}
-        <MenuItem onClick={handleSignInAs}>
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <Box
-              className="profile-menu-circle"
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(143, 0, 255, 0.2)' : '#E8DEF8',
-                color: (theme) => theme.palette.mode === 'dark' ? '#C180FF' : '#65558F',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'transform 0.2s ease',
-              }}
-            >
-              <SwapHorizIcon sx={{ fontSize: 18 }} />
-            </Box>
-          </ListItemIcon>
-          Sign in as
         </MenuItem>
 
         {/* Sign Out */}

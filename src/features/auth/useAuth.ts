@@ -20,6 +20,8 @@ export function useAuth() {
     logout: store.logout,
     fetchProfile: store.fetchProfile,
     updateProfile: store.updateProfile,
+    forgotPassword: store.forgotPassword,
+    resetPassword: store.resetPassword,
     clearError: store.clearError,
   }
 }
