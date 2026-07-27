@@ -40,10 +40,11 @@ import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import SettingsPhoneIcon from '@mui/icons-material/SettingsPhone';
 import StarRateIcon from '@mui/icons-material/StarRate';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { httpClient } from '../api/httpClient';
 import {
   getPatientQueue,
@@ -554,7 +555,8 @@ export const PatientQueue = () => {
         doctorId: selectedCentre.doctorId,
         practiceCentreId: selectedCentre.id,
         priority: priority,
-        visitDate: selectedDate ? formatDateLocal(selectedDate) : undefined
+        visitDate: selectedDate ? formatDateLocal(selectedDate) : undefined,
+        sessionId: targetSessionId || undefined
       });
       handleCloseAddModal();
       refreshQueue();
@@ -608,6 +610,50 @@ export const PatientQueue = () => {
     }
   };
 
+  const handleMoveUp = async (ticketIndex: number, currentList: PatientQueueTicket[]) => {
+    if (ticketIndex <= 0) return;
+    const itemToMove = currentList[ticketIndex];
+    const prevItem = currentList[ticketIndex - 1];
+
+    const mainIndex = queue.findIndex(t => t.id === itemToMove.id);
+    const mainPrevIndex = queue.findIndex(t => t.id === prevItem.id);
+    if (mainIndex === -1 || mainPrevIndex === -1) return;
+
+    const newQueue = [...queue];
+    const [moved] = newQueue.splice(mainIndex, 1);
+    newQueue.splice(mainPrevIndex, 0, moved);
+
+    setQueue(newQueue);
+    try {
+      await reorderPatientQueue(newQueue.map(t => t.id));
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Failed to reorder queue');
+    }
+  };
+
+  const handleMoveDown = async (ticketIndex: number, currentList: PatientQueueTicket[]) => {
+    if (ticketIndex >= currentList.length - 1) return;
+    const itemToMove = currentList[ticketIndex];
+    const nextItem = currentList[ticketIndex + 1];
+
+    const mainIndex = queue.findIndex(t => t.id === itemToMove.id);
+    const mainNextIndex = queue.findIndex(t => t.id === nextItem.id);
+    if (mainIndex === -1 || mainNextIndex === -1) return;
+
+    const newQueue = [...queue];
+    const [moved] = newQueue.splice(mainIndex, 1);
+    newQueue.splice(mainNextIndex, 0, moved);
+
+    setQueue(newQueue);
+    try {
+      await reorderPatientQueue(newQueue.map(t => t.id));
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Failed to reorder queue');
+    }
+  };
+
   const getPriorityChip = (prio: number) => {
     switch (prio) {
       case 2: // Emergency
@@ -639,6 +685,224 @@ export const PatientQueue = () => {
         return <Chip label="Unknown" size="small" />;
     }
   };
+
+  const renderQueueList = (ticketsList: PatientQueueTicket[]) => (
+    <Box sx={{ width: '100%' }}>
+      {/* Mobile Touch-Friendly Card View (< 900px / md) */}
+      <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2 }}>
+        {ticketsList.map((ticket, index) => (
+          <Card
+            key={ticket.id}
+            variant="outlined"
+            sx={{
+              p: 2,
+              borderRadius: 3,
+              borderColor: 'divider',
+              backgroundColor: draggedIndex === index ? 'action.hover' : 'background.paper',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                {/* Touch-Friendly Move Up/Down Buttons */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', bgcolor: 'action.hover', borderRadius: 2, p: 0.25 }}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleMoveUp(index, ticketsList)}
+                    disabled={index === 0}
+                    sx={{ p: 0.25 }}
+                    title="Move Up"
+                  >
+                    <KeyboardArrowUpIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleMoveDown(index, ticketsList)}
+                    disabled={index === ticketsList.length - 1}
+                    sx={{ p: 0.25 }}
+                    title="Move Down"
+                  >
+                    <KeyboardArrowDownIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+                <Chip
+                  label={`#${index + 1}`}
+                  color="primary"
+                  sx={{ fontWeight: 800, fontSize: '1rem', height: 32, px: 0.5 }}
+                />
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                    {ticket.patientName}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {ticket.patientMobile}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box>{getPriorityChip(ticket.priority)}</Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+              <Box>{getStatusChip(ticket.status)}</Box>
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                {ticket.status === 0 && (
+                  <IconButton color="secondary" size="small" onClick={() => handleUpdateStatus(ticket.id, 1)}>
+                    <CheckIcon fontSize="small" />
+                  </IconButton>
+                )}
+                {(ticket.status === 0 || ticket.status === 1) && (
+                  <IconButton color="warning" size="small" onClick={() => handleUpdateStatus(ticket.id, 2)}>
+                    <RecordVoiceOverIcon fontSize="small" />
+                  </IconButton>
+                )}
+                {ticket.status === 2 && (
+                  <IconButton color="info" size="small" onClick={() => handleUpdateStatus(ticket.id, 3)}>
+                    <PlayArrowIcon fontSize="small" />
+                  </IconButton>
+                )}
+                {ticket.status === 3 && (
+                  <IconButton color="success" size="small" onClick={() => handleUpdateStatus(ticket.id, 4)}>
+                    <CheckIcon fontSize="small" />
+                  </IconButton>
+                )}
+                {ticket.status < 4 && (
+                  <>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      sx={{ textTransform: 'none', px: 1, py: 0.25, fontSize: '0.75rem', borderRadius: 2 }}
+                      onClick={() => handleUpdateStatus(ticket.id, 6)}
+                    >
+                      No Show
+                    </Button>
+                    <IconButton color="error" size="small" onClick={() => handleUpdateStatus(ticket.id, 5)}>
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </>
+                )}
+              </Box>
+            </Box>
+          </Card>
+        ))}
+      </Box>
+
+      {/* Desktop Table View (>= 900px / md) */}
+      <TableContainer component={Paper} sx={{ display: { xs: 'none', md: 'block' }, boxShadow: 'none', background: 'transparent' }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ width: 80, fontWeight: 700 }}>Arrange</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>No.</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Patient Name</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Mobile</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Priority</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 700, textAlign: 'right' }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {ticketsList.map((ticket, index) => (
+              <TableRow
+                key={ticket.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                sx={{
+                  '&:last-child td, &:last-child th': { border: 0 },
+                  opacity: draggedIndex === index ? 0.5 : 1,
+                  backgroundColor: draggedIndex === index ? 'rgba(0,0,0,0.05)' : 'inherit',
+                  transition: 'opacity 0.2s, background-color 0.2s',
+                }}
+              >
+                <TableCell sx={{ width: 80 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleMoveUp(index, ticketsList)}
+                      disabled={index === 0}
+                      title="Move Up"
+                    >
+                      <KeyboardArrowUpIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleMoveDown(index, ticketsList)}
+                      disabled={index === ticketsList.length - 1}
+                      title="Move Down"
+                    >
+                      <KeyboardArrowDownIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+                  #{index + 1}
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{ticket.patientName}</TableCell>
+                <TableCell>{ticket.patientMobile}</TableCell>
+                <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
+                <TableCell>{getStatusChip(ticket.status)}</TableCell>
+                <TableCell sx={{ textAlign: 'right' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                    {ticket.status === 0 && (
+                      <Tooltip title="Mark Ready">
+                        <IconButton color="secondary" onClick={() => handleUpdateStatus(ticket.id, 1)}>
+                          <CheckIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {(ticket.status === 0 || ticket.status === 1) && (
+                      <Tooltip title="Call Patient">
+                        <IconButton color="warning" onClick={() => handleUpdateStatus(ticket.id, 2)}>
+                          <RecordVoiceOverIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {ticket.status === 2 && (
+                      <Tooltip title="Start Consultation">
+                        <IconButton color="info" onClick={() => handleUpdateStatus(ticket.id, 3)}>
+                          <PlayArrowIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {ticket.status === 3 && (
+                      <Tooltip title="Complete Consultation">
+                        <IconButton color="success" onClick={() => handleUpdateStatus(ticket.id, 4)}>
+                          <CheckIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {ticket.status < 4 && (
+                      <>
+                        <Tooltip title="No Show">
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            sx={{ textTransform: 'none', px: 1, py: 0.5, borderRadius: 2 }}
+                            onClick={() => handleUpdateStatus(ticket.id, 6)}
+                          >
+                            No Show
+                          </Button>
+                        </Tooltip>
+                        <Tooltip title="Cancel">
+                          <IconButton color="error" onClick={() => handleUpdateStatus(ticket.id, 5)}>
+                            <CloseIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    )}
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
+  );
 
   // Calculate statistics
   const waitingCount = queue.filter(q => q.status === 0 || q.status === 1).length;
@@ -850,217 +1114,14 @@ export const PatientQueue = () => {
                               No patients in queue for this session.
                             </Typography>
                           ) : (
-                            <TableContainer component={Paper} sx={{ boxShadow: 'none', background: 'transparent' }}>
-                              <Table>
-                                <TableHead>
-                                  <TableRow>
-                                    <TableCell sx={{ width: 50 }}></TableCell>
-                                    <TableCell sx={{ fontWeight: 700 }}>No.</TableCell>
-                                    <TableCell sx={{ fontWeight: 700 }}>Patient Name</TableCell>
-                                    <TableCell sx={{ fontWeight: 700 }}>Mobile</TableCell>
-                                    <TableCell sx={{ fontWeight: 700 }}>Priority</TableCell>
-                                    <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-                                    <TableCell sx={{ fontWeight: 700, textAlign: 'right' }}>Actions</TableCell>
-                                  </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                  {sessTickets.map((ticket, index) => (
-                                    <TableRow
-                                      key={ticket.id}
-                                      draggable
-                                      onDragStart={(e) => handleDragStart(e, index)}
-                                      onDragOver={(e) => handleDragOver(e, index)}
-                                      onDragEnd={handleDragEnd}
-                                      sx={{
-                                        '&:last-child td, &:last-child th': { border: 0 },
-                                        opacity: draggedIndex === index ? 0.5 : 1,
-                                        backgroundColor: draggedIndex === index ? 'rgba(0,0,0,0.05)' : 'inherit',
-                                        transition: 'opacity 0.2s, background-color 0.2s',
-                                      }}
-                                    >
-                                      <TableCell sx={{ width: 50 }}>
-                                        <DragIndicatorIcon sx={{ color: 'text.secondary', cursor: 'grab', display: 'block', margin: 'auto' }} />
-                                      </TableCell>
-                                      <TableCell sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                                        #{ticket.queueNumber}
-                                      </TableCell>
-                                      <TableCell sx={{ fontWeight: 600 }}>{ticket.patientName}</TableCell>
-                                      <TableCell>{ticket.patientMobile}</TableCell>
-                                      <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
-                                      <TableCell>{getStatusChip(ticket.status)}</TableCell>
-                                      <TableCell sx={{ textAlign: 'right' }}>
-                                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                                          {ticket.status === 0 && (
-                                            <Tooltip title="Mark Ready">
-                                              <IconButton color="secondary" onClick={() => handleUpdateStatus(ticket.id, 1)}>
-                                                <CheckIcon />
-                                              </IconButton>
-                                            </Tooltip>
-                                          )}
-                                          {(ticket.status === 0 || ticket.status === 1) && (
-                                            <Tooltip title="Call Patient">
-                                              <IconButton color="warning" onClick={() => handleUpdateStatus(ticket.id, 2)}>
-                                                <RecordVoiceOverIcon />
-                                              </IconButton>
-                                            </Tooltip>
-                                          )}
-                                          {ticket.status === 2 && (
-                                            <Tooltip title="Start Consultation">
-                                              <IconButton color="info" onClick={() => handleUpdateStatus(ticket.id, 3)}>
-                                                <PlayArrowIcon />
-                                              </IconButton>
-                                            </Tooltip>
-                                          )}
-                                          {ticket.status === 3 && (
-                                            <Tooltip title="Complete Consultation">
-                                              <IconButton color="success" onClick={() => handleUpdateStatus(ticket.id, 4)}>
-                                                <CheckIcon />
-                                              </IconButton>
-                                            </Tooltip>
-                                          )}
-                                          {ticket.status < 4 && (
-                                            <>
-                                              <Tooltip title="No Show">
-                                                <Button
-                                                  size="small"
-                                                  variant="outlined"
-                                                  color="error"
-                                                  sx={{ textTransform: 'none', px: 1, py: 0.5, borderRadius: 2 }}
-                                                  onClick={() => handleUpdateStatus(ticket.id, 6)}
-                                                >
-                                                  No Show
-                                                </Button>
-                                              </Tooltip>
-                                              <Tooltip title="Cancel">
-                                                <IconButton color="error" onClick={() => handleUpdateStatus(ticket.id, 5)}>
-                                                  <CloseIcon />
-                                                </IconButton>
-                                              </Tooltip>
-                                            </>
-                                          )}
-                                        </Box>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </TableContainer>
+                            renderQueueList(sessTickets)
                           )}
                         </Paper>
                       );
                     })}
                   </Stack>
                 ) : (
-                  <TableContainer component={Paper} sx={{ boxShadow: 'none', background: 'transparent' }}>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ width: 50 }}></TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>No.</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Patient Name</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Mobile</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Priority</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-                          <TableCell sx={{ fontWeight: 700, textAlign: 'right' }}>Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {(selectedSessionId === 'ALL' ? queue : getSessionTickets(selectedSessionId)).map((ticket, index) => (
-                          <TableRow
-                            key={ticket.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, index)}
-                            onDragOver={(e) => handleDragOver(e, index)}
-                            onDragEnd={handleDragEnd}
-                            sx={{
-                              '&:last-child td, &:last-child th': { border: 0 },
-                              opacity: draggedIndex === index ? 0.5 : 1,
-                              backgroundColor: draggedIndex === index ? 'rgba(0,0,0,0.05)' : 'inherit',
-                              transition: 'opacity 0.2s, background-color 0.2s',
-                            }}
-                          >
-                            <TableCell sx={{ width: 50 }}>
-                              <DragIndicatorIcon sx={{ color: 'text.secondary', cursor: 'grab', display: 'block', margin: 'auto' }} />
-                            </TableCell>
-                            <TableCell sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                              #{ticket.queueNumber}
-                            </TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>{ticket.patientName}</TableCell>
-                            <TableCell>{ticket.patientMobile}</TableCell>
-                            <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
-                            <TableCell>{getStatusChip(ticket.status)}</TableCell>
-                            <TableCell sx={{ textAlign: 'right' }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                                {ticket.status === 0 && (
-                                  <Tooltip title="Mark Ready">
-                                    <IconButton
-                                      color="secondary"
-                                      onClick={() => handleUpdateStatus(ticket.id, 1)}
-                                    >
-                                      <CheckIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                {(ticket.status === 0 || ticket.status === 1) && (
-                                  <Tooltip title="Call Patient">
-                                    <IconButton
-                                      color="warning"
-                                      onClick={() => handleUpdateStatus(ticket.id, 2)}
-                                    >
-                                      <RecordVoiceOverIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                {ticket.status === 2 && (
-                                  <Tooltip title="Start Consultation">
-                                    <IconButton
-                                      color="info"
-                                      onClick={() => handleUpdateStatus(ticket.id, 3)}
-                                    >
-                                      <PlayArrowIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                {ticket.status === 3 && (
-                                  <Tooltip title="Complete Consultation">
-                                    <IconButton
-                                      color="success"
-                                      onClick={() => handleUpdateStatus(ticket.id, 4)}
-                                    >
-                                      <CheckIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                {ticket.status < 4 && (
-                                  <>
-                                    <Tooltip title="No Show">
-                                      <Button
-                                        size="small"
-                                        variant="outlined"
-                                        color="error"
-                                        sx={{ textTransform: 'none', px: 1, py: 0.5, borderRadius: 2 }}
-                                        onClick={() => handleUpdateStatus(ticket.id, 6)}
-                                      >
-                                        No Show
-                                      </Button>
-                                    </Tooltip>
-                                    <Tooltip title="Cancel">
-                                      <IconButton
-                                        color="error"
-                                        onClick={() => handleUpdateStatus(ticket.id, 5)}
-                                      >
-                                        <CloseIcon />
-                                      </IconButton>
-                                    </Tooltip>
-                                  </>
-                                )}
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                  renderQueueList(selectedSessionId === 'ALL' ? queue : getSessionTickets(selectedSessionId))
                 )}
               </CardContent>
             </Card>
