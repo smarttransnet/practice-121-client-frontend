@@ -230,6 +230,15 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
     );
   }
 
+  const buildRegistrationUrl = () => {
+    let url = `#/register/patient?redirect=${encodeURIComponent(registrationReturnUrl)}`;
+    if (mobile.trim()) url += `&mobile=${encodeURIComponent(mobile.trim())}`;
+    if (firstName.trim()) url += `&firstName=${encodeURIComponent(firstName.trim())}`;
+    if (lastName.trim()) url += `&lastName=${encodeURIComponent(lastName.trim())}`;
+    if (nicNumber.trim()) url += `&nicNumber=${encodeURIComponent(nicNumber.trim())}`;
+    return url;
+  };
+
   // ---------- Not found ----------
   if (mode === 'notFound') {
     return (
@@ -249,7 +258,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
             color="primary"
             startIcon={<PersonAddAltIcon />}
             component={MuiLink}
-            href={`#/register/patient?redirect=${encodeURIComponent(registrationReturnUrl)}`}
+            href={buildRegistrationUrl()}
             sx={{ borderRadius: 6, textTransform: 'none', fontWeight: 700, flex: 1, textDecoration: 'none' }}
           >
             Register as New Patient
@@ -342,7 +351,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
       <Divider sx={{ my: 2 }} />
       <Typography variant="caption" color="text.secondary" align="center" display="block">
         Not registered yet?{' '}
-        <MuiLink href={`#/register/patient?redirect=${encodeURIComponent(registrationReturnUrl)}`} underline="hover" color="primary">
+        <MuiLink href={buildRegistrationUrl()} underline="hover" color="primary">
           Register here
         </MuiLink>
       </Typography>

@@ -32,6 +32,11 @@ export const AppBreadcrumbs: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Hide breadcrumbs entirely on booking flow
+  if (location.pathname.startsWith('/book')) {
+    return null;
+  }
+
   const pathnames = location.pathname.split('/').filter((x) => x);
 
   // If on dashboard/home index, render clean single home indicator or skip

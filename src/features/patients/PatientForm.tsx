@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Card,
@@ -11,6 +11,7 @@ import {
   MenuItem,
 } from '@mui/material'
 import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { registerPatient, uploadPatientDocument } from './patientsApi'
 import { useAuth } from '../auth/useAuth'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -27,19 +28,30 @@ export function PatientForm({ entryPoint }: Props) {
   const [searchParams] = useSearchParams()
   const redirectParam = searchParams.get('redirect')
   const mobileParam = searchParams.get('mobile')
+  const firstNameParam = searchParams.get('firstName')
+  const lastNameParam = searchParams.get('lastName')
+  const nicParam = searchParams.get('nicNumber')
 
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
+  const [firstName, setFirstName] = useState(firstNameParam || '')
+  const [lastName, setLastName] = useState(lastNameParam || '')
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [gender, setGender] = useState('')
   const phoneInput = useLkPhoneInput({ initialValue: mobileParam || '' })
 
   const nicInput = useNicAutoFill({
+    initialNic: nicParam || '',
     onAutoFill: (extractedDob, extractedGender) => {
       setDateOfBirth(extractedDob)
       setGender(extractedGender)
     }
   })
+
+  useEffect(() => {
+    if (nicParam) {
+      nicInput.handleNicChange(nicParam)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nicParam])
 
   const [nicFront, setNicFront] = useState<File | null>(null)
   const [nicBack, setNicBack] = useState<File | null>(null)
@@ -159,6 +171,16 @@ export function PatientForm({ entryPoint }: Props) {
   return (
     <Card className="glass-card" sx={{ p: 2, maxWidth: 600, mx: 'auto', mt: 4 }}>
       <CardContent>
+        <Box sx={{ width: '100%', mb: 1 }}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate(-1)}
+            sx={{ textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}
+          >
+            Back
+          </Button>
+        </Box>
+
         <Stack spacing={3} alignItems="center" mb={2}>
           <Box
             sx={{
@@ -273,26 +295,33 @@ export function PatientForm({ entryPoint }: Props) {
               {isDirect && (
                 <Button
                   type="button"
-                  variant="outlined"
-                  color="secondary"
+                  variant="contained"
+                  color="primary"
                   size="large"
                   fullWidth
                   disabled={isLoading}
                   onClick={(e) => handleSubmit(e, true)}
+                  className="gradient-primary-btn"
+                  sx={{
+                    borderRadius: 6,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    py: 1.5,
+                  }}
                 >
-                  Skip Upload & Register
+                  {isLoading ? 'Saving...' : 'Skip Upload & Register'}
                 </Button>
               )}
               <Button
                 type="submit"
-                variant="contained"
+                variant={isDirect ? "outlined" : "contained"}
                 color="primary"
                 size="large"
                 fullWidth
                 disabled={isLoading}
-                className="gradient-primary-btn"
+                sx={{ borderRadius: 6, textTransform: 'none', fontWeight: 600, py: 1.5 }}
               >
-                {isLoading ? 'Saving...' : (isDirect ? 'Register with NIC' : 'Create Patient')}
+                {isLoading ? 'Saving...' : (isDirect ? 'Register with NIC Upload' : 'Create Patient')}
               </Button>
             </Stack>
 

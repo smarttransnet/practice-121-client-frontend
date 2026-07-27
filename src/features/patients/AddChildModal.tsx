@@ -43,7 +43,8 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
   onClose,
   onChildAdded,
 }) => {
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState('');
 
@@ -51,7 +52,8 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const resetForm = () => {
-    setFullName('');
+    setFirstName('');
+    setLastName('');
     setDateOfBirth('');
     setGender('');
     setError(null);
@@ -66,9 +68,9 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
     e.preventDefault();
     setError(null);
 
-    // 1. Validate full name
-    if (!fullName.trim()) {
-      setError('Child full name is required.');
+    // 1. Validate First Name
+    if (!firstName.trim()) {
+      setError('Child first name is required.');
       return;
     }
 
@@ -87,8 +89,11 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
 
     setSubmitting(true);
     try {
+      const constructedFullName = `${firstName.trim()} ${lastName.trim()}`.trim();
       const childData = await addChildPatient(parentId, {
-        fullName: fullName.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim() || undefined,
+        fullName: constructedFullName,
         dateOfBirth,
         gender,
       });
@@ -134,19 +139,33 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
               Register a child under the primary parent account. The child must be under 18 years of age.
             </Typography>
 
-            <TextField
-              label="Child Full Name"
-              placeholder="e.g. Tommy Perera"
-              fullWidth
-              required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              slotProps={{
-                input: {
-                  id: 'add-child-name-input',
-                },
-              }}
-            />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+              <TextField
+                label="First Name"
+                placeholder="e.g. Tommy"
+                fullWidth
+                required
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                slotProps={{
+                  input: {
+                    id: 'add-child-first-name-input',
+                  },
+                }}
+              />
+              <TextField
+                label="Last Name"
+                placeholder="e.g. Perera"
+                fullWidth
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                slotProps={{
+                  input: {
+                    id: 'add-child-last-name-input',
+                  },
+                }}
+              />
+            </Stack>
 
             <Box>
               <TextField
