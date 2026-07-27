@@ -45,7 +45,7 @@ export function AppointmentCalendar({ availabilityMap, selectedDate, onSelectDat
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const maxDate = new Date(today);
-  maxDate.setDate(today.getDate() + 27);
+  maxDate.setMonth(today.getMonth() + 3);
 
   const [currentMonth, setCurrentMonth] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1),

@@ -11,12 +11,15 @@ import {
   Alert,
   Link,
   CircularProgress,
+  useTheme,
 } from '@mui/material'
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
 
 export function OTPVerifyPage() {
   const { verifyOtp, resendOtp, otpSessionId, error, clearError, isLoading } = useAuth()
   const navigate = useNavigate()
+  const theme = useTheme()
+  const isDark = theme.palette.mode === 'dark'
 
   const [otpCode, setOtpCode] = useState<string[]>(Array(6).fill(''))
   const [countdown, setCountdown] = useState(60)
@@ -30,6 +33,12 @@ export function OTPVerifyPage() {
     // If no session is active, go back to login
     if (!otpSessionId) {
       navigate('/login')
+    } else {
+      // Auto-focus the first cell on load
+      const focusTimer = setTimeout(() => {
+        inputRefs.current[0]?.focus()
+      }, 100)
+      return () => clearTimeout(focusTimer)
     }
   }, [otpSessionId, navigate])
 
@@ -195,10 +204,11 @@ export function OTPVerifyPage() {
                       fontWeight: 'bold',
                       borderRadius: '12px',
                       border: '2px solid',
-                      borderColor: digit ? '#1976d2' : '#ccc',
+                      borderColor: digit ? '#3b82f6' : (isDark ? '#334155' : '#cbd5e1'),
                       outline: 'none',
-                      backgroundColor: 'white',
-                      boxShadow: digit ? '0 0 8px 0 rgba(25, 118, 210, 0.25)' : 'none',
+                      backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                      color: isDark ? '#f8fafc' : '#0f172a',
+                      boxShadow: digit ? '0 0 8px 0 rgba(59, 130, 246, 0.35)' : 'none',
                       transition: 'all 0.2s',
                     }}
                   />

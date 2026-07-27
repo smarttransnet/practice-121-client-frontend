@@ -20,7 +20,7 @@ export const getCentreAvailability = async (
   const today = new Date();
   const from = formatDateLocal(today);
   const toDate = new Date(today);
-  toDate.setDate(today.getDate() + 27);
+  toDate.setMonth(today.getMonth() + 3);
   const to = formatDateLocal(toDate);
 
   const res = await fetch(
@@ -38,6 +38,7 @@ export const bookAppointment = async (data: {
   practiceCentreId: string;
   visitDate: string; // YYYY-MM-DD
   patientId?: string;
+  sessionId?: string;
 }): Promise<BookAppointmentResult> => {
   const res = await fetch(`${API_BASE}/api/public/appointments`, {
     method: 'POST',
@@ -48,6 +49,7 @@ export const bookAppointment = async (data: {
       practiceCentreId: data.practiceCentreId,
       visitDate: data.visitDate,
       patientId: data.patientId,
+      sessionId: data.sessionId,
     }),
   });
 

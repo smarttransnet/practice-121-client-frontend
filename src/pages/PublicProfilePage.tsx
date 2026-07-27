@@ -250,7 +250,22 @@ export function PublicProfilePage() {
                       >
                         About
                       </Typography>
-                      <Box className="ql-snow" sx={{ '& .ql-editor': { p: 0, minHeight: 'auto', color: 'text.secondary', lineHeight: 1.6, fontSize: '0.95rem', fontFamily: 'inherit', wordBreak: 'break-word' } }}>
+                      <Box className="ql-snow" sx={{
+                        '& .ql-editor': {
+                          p: 0,
+                          minHeight: 'auto',
+                          color: 'text.primary',
+                          lineHeight: 1.6,
+                          fontSize: '0.95rem',
+                          fontFamily: 'inherit',
+                          wordBreak: 'break-word',
+                          border: 'none',
+                        },
+                        '& .ql-editor *, & .ql-editor span, & .ql-editor p, & .ql-editor div, & .ql-editor strong, & .ql-editor h1, & .ql-editor h2, & .ql-editor h3, & .ql-editor h4, & .ql-editor h5, & .ql-editor h6': {
+                          backgroundColor: 'transparent !important',
+                          color: 'inherit !important',
+                        },
+                      }}>
                         <Box className="ql-editor" dangerouslySetInnerHTML={{ __html: profile.bio }} />
                       </Box>
                     </Box>

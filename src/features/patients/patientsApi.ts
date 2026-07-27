@@ -64,7 +64,9 @@ export const uploadPatientDocument = async (
 export const addChildPatient = async (
   parentId: string,
   data: {
-    fullName: string
+    firstName: string
+    lastName?: string
+    fullName?: string
     dateOfBirth: string
     gender: string
   }
