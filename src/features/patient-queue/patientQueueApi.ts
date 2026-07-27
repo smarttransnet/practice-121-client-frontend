@@ -6,6 +6,7 @@ export interface PatientQueueTicket {
   queueOrder: number;
   patientMobile: string;
   patientName: string;
+  patientId?: string;
   doctorId: string;
   practiceCentreId: string;
   visitDate: string;
