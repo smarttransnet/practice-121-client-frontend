@@ -9,6 +9,7 @@ export interface PatientQueueTicket {
   doctorId: string;
   practiceCentreId: string;
   visitDate: string;
+  sessionId?: string;
   status: number; // PatientQueueStatus
   priority: number; // PatientQueuePriority
   createdAt: string;
@@ -56,6 +57,7 @@ export const addPatientQueueTicket = async (data: {
   priority: number;
   visitDate?: string;
   patientId?: string;
+  sessionId?: string;
 }): Promise<string> => {
   const response = await httpClient.post<string>('/api/patient-queue', data);
   return response.data;
