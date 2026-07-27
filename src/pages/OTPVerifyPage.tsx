@@ -166,9 +166,6 @@ export function OTPVerifyPage() {
               <Typography variant="body2" color="text.secondary">
                 For security, we sent a 6-digit one-time passcode (MFA) to your registered email.
               </Typography>
-              <Typography variant="caption" color="text.disabled" display="block" sx={{ mt: 1 }}>
-                (Check the backend API console/logger to copy the simulated OTP code)
-              </Typography>
             </Box>
 
             <Stack spacing={2.5} sx={{ width: '100%' }}>
