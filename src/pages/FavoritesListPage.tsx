@@ -290,7 +290,7 @@ export function FavoritesListPage() {
                 freeSolo
                 options={suggestions}
                 getOptionLabel={(option) => typeof option === 'string' ? option : option.genericName}
-                value={genericName}
+                inputValue={genericName}
                 onInputChange={(_, newValue) => {
                   setGenericName(newValue)
                   if (formErrors.genericName && newValue.trim()) {
@@ -300,7 +300,11 @@ export function FavoritesListPage() {
                     loadSuggestions(newValue)
                   }
                 }}
-                onChange={(_, newValue) => handleSelectSuggestion(newValue)}
+                onChange={(_, newValue) => {
+                  if (newValue) {
+                    handleSelectSuggestion(newValue)
+                  }
+                }}
                 renderOption={(props, option) => {
                   if (typeof option === 'string') return <li {...props}>{option}</li>
                   const { key, ...otherProps } = props
@@ -386,7 +390,7 @@ export function FavoritesListPage() {
               <Autocomplete
                 freeSolo
                 options={categoryOptions}
-                value={category}
+                inputValue={category}
                 onInputChange={(_, newValue) => {
                   setCategory(newValue)
                   if (formErrors.category && newValue.trim()) {
@@ -394,7 +398,7 @@ export function FavoritesListPage() {
                   }
                 }}
                 onChange={(_, newValue) => {
-                  const val = newValue || ''
+                  const val = typeof newValue === 'string' ? newValue : (newValue || '')
                   setCategory(val)
                   if (formErrors.category && val.trim()) {
                     setFormErrors(prev => ({ ...prev, category: false }))
