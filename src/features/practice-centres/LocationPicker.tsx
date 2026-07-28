@@ -31,18 +31,20 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
   }, [])
 
   const selectedDistrictId = useMemo(() => {
-    return districtsList.find(d => d.name === district)?.id
+    if (!district) return undefined
+    return districtsList.find(d => d.name.trim().toLowerCase() === district.trim().toLowerCase())?.id
   }, [district, districtsList])
 
   const selectedMohAreaId = useMemo(() => {
-    return mohAreasList.find(m => m.name === mohArea)?.id
+    if (!mohArea) return undefined
+    return mohAreasList.find(m => m.name.trim().toLowerCase() === mohArea.trim().toLowerCase())?.id
   }, [mohArea, mohAreasList])
 
   // Fetch MOH areas when district changes
   useEffect(() => {
     if (selectedDistrictId) {
       httpClient.get<ApiLocation[]>(`/api/locations/moh-areas?districtId=${selectedDistrictId}`)
-        .then(res => setMohAreasList(res.data))
+        .then(res => setMohAreasList(Array.isArray(res.data) ? res.data : []))
         .catch(console.error)
     } else {
       setMohAreasList([])
@@ -53,7 +55,7 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
   useEffect(() => {
     if (selectedMohAreaId) {
       httpClient.get<ApiLocation[]>(`/api/locations/places?mohAreaId=${selectedMohAreaId}`)
-        .then(res => setPlacesList(res.data))
+        .then(res => setPlacesList(Array.isArray(res.data) ? res.data : []))
         .catch(console.error)
     } else {
       setPlacesList([])
@@ -70,6 +72,7 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
         <Autocomplete
           options={districtNames}
           value={district || null}
+          isOptionEqualToValue={(option, val) => !val || option.trim().toLowerCase() === String(val).trim().toLowerCase()}
           onChange={(_, val) => {
             onChange('district', val || '')
             onChange('mohArea', '')
@@ -85,6 +88,7 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
         <Autocomplete
           options={mohAreaNames}
           value={mohArea || null}
+          isOptionEqualToValue={(option, val) => !val || option.trim().toLowerCase() === String(val).trim().toLowerCase()}
           onChange={(_, val) => {
             onChange('mohArea', val || '')
             onChange('placeName', '')
