@@ -143,5 +143,36 @@ body.dark-theme .ql-editor.ql-blank::before {
   color: rgba(241, 245, 249, 0.5) !important;
 }
 
+/* Strip inline background highlights and force clean readable text in Quill rich text content */
+.ql-editor [style*="background"],
+.ql-editor [style*="background-color"] {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+body.dark-theme .ql-editor,
+body.dark-theme .ql-editor *,
+body.dark-theme .ql-editor [style],
+body.dark-theme .ql-editor span,
+body.dark-theme .ql-editor p,
+body.dark-theme .ql-editor div,
+body.dark-theme .ql-editor li,
+body.dark-theme .ql-editor ul,
+body.dark-theme .ql-editor ol,
+body.dark-theme .ql-editor strong,
+body.dark-theme .ql-editor em,
+body.dark-theme .ql-editor u,
+body.dark-theme .ql-editor a,
+body.dark-theme .ql-editor h1,
+body.dark-theme .ql-editor h2,
+body.dark-theme .ql-editor h3,
+body.dark-theme .ql-editor h4,
+body.dark-theme .ql-editor h5,
+body.dark-theme .ql-editor h6 {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: #F1F5F9 !important;
+}
+
 
 
