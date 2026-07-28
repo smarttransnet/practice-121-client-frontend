@@ -154,11 +154,14 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
             }
             return (option as any).title;
           }}
-          renderOption={(props, option) => (
-            <li {...props} key={(option as any).title}>
-              {(option as any).title}
-            </li>
-          )}
+          renderOption={(props, option) => {
+            const { key, ...otherProps } = props as any;
+            return (
+              <li key={key || (option as any).title} {...otherProps}>
+                {(option as any).title}
+              </li>
+            );
+          }}
           freeSolo
           disabled={!mohArea}
           renderInput={(params) => (
