@@ -729,8 +729,9 @@ export function ProfileEditPage() {
                         wordBreak: 'break-word',
                         border: 'none',
                       },
-                      '& .ql-editor *, & .ql-editor span, & .ql-editor p, & .ql-editor div, & .ql-editor strong, & .ql-editor h1, & .ql-editor h2, & .ql-editor h3, & .ql-editor h4, & .ql-editor h5, & .ql-editor h6': {
+                      '& .ql-editor *, & .ql-editor [style], & .ql-editor span, & .ql-editor p, & .ql-editor div, & .ql-editor li, & .ql-editor ul, & .ql-editor ol, & .ql-editor strong, & .ql-editor em, & .ql-editor u, & .ql-editor a, & .ql-editor h1, & .ql-editor h2, & .ql-editor h3, & .ql-editor h4, & .ql-editor h5, & .ql-editor h6': {
                         backgroundColor: 'transparent !important',
+                        background: 'transparent !important',
                         color: 'inherit !important',
                       },
                     }}>

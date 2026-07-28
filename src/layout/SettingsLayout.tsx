@@ -1,4 +1,5 @@
-import { Outlet, NavLink, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import React from 'react'
 import {
   Box,
   Typography,
@@ -11,13 +12,21 @@ import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded'
 
 export function SettingsLayout() {
   const location = useLocation()
+  const navigate = useNavigate()
   
-  // Currently on profile-edit, or index (which redirects to profile-edit)
-  const isProfileEdit = location.pathname === '/settings/profile-edit' || location.pathname === '/settings'
-  const isFavorites = location.pathname === '/settings/favorites-list'
-  const isPracticeCentres = location.pathname === '/settings/practice-centres'
-  
-  const currentTab = isProfileEdit ? 0 : isFavorites ? 1 : isPracticeCentres ? 2 : 0
+  const currentTabPath = location.pathname.startsWith('/settings/favorites-list')
+    ? '/settings/favorites-list'
+    : location.pathname.startsWith('/settings/practice-centres')
+    ? '/settings/practice-centres'
+    : '/settings/profile-edit'
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
+    navigate(newValue)
+  }
+
+  const isProfile = currentTabPath === '/settings/profile-edit'
+  const isFavorites = currentTabPath === '/settings/favorites-list'
+  const isPractice = currentTabPath === '/settings/practice-centres'
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -34,7 +43,8 @@ export function SettingsLayout() {
         }}
       >
         <Tabs
-          value={currentTab}
+          value={currentTabPath}
+          onChange={handleTabChange}
           textColor="primary"
           indicatorColor="primary"
           aria-label="settings tabs"
@@ -48,17 +58,16 @@ export function SettingsLayout() {
           }}
         >
           <Tab
+            value="/settings/profile-edit"
             label="Profile"
-            component={NavLink}
-            to="/settings/profile-edit"
             icon={
               <Box
                 sx={{
                   width: 28,
                   height: 28,
                   borderRadius: '50%',
-                  bgcolor: currentTab === 0 ? '#004A77' : '#CEEAD6',
-                  color: currentTab === 0 ? '#FFFFFF' : '#137333',
+                  bgcolor: isProfile ? '#004A77' : '#CEEAD6',
+                  color: isProfile ? '#FFFFFF' : '#137333',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -88,17 +97,16 @@ export function SettingsLayout() {
             }}
           />
           <Tab
+            value="/settings/favorites-list"
             label="Favorites List"
-            component={NavLink}
-            to="/settings/favorites-list"
             icon={
               <Box
                 sx={{
                   width: 28,
                   height: 28,
                   borderRadius: '50%',
-                  bgcolor: currentTab === 1 ? '#E37400' : '#FFE7D9',
-                  color: currentTab === 1 ? '#FFFFFF' : '#E37400',
+                  bgcolor: isFavorites ? '#E37400' : '#FFE7D9',
+                  color: isFavorites ? '#FFFFFF' : '#E37400',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -128,17 +136,16 @@ export function SettingsLayout() {
             }}
           />
           <Tab
+            value="/settings/practice-centres"
             label="Practice Centres"
-            component={NavLink}
-            to="/settings/practice-centres"
             icon={
               <Box
                 sx={{
                   width: 28,
                   height: 28,
                   borderRadius: '50%',
-                  bgcolor: currentTab === 2 ? '#8F00FF' : '#E8DEF8',
-                  color: currentTab === 2 ? '#FFFFFF' : '#65558F',
+                  bgcolor: isPractice ? '#8F00FF' : '#E8DEF8',
+                  color: isPractice ? '#FFFFFF' : '#65558F',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
