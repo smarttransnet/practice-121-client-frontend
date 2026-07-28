@@ -110,4 +110,38 @@ body.dark-theme .MuiOutlinedInput-root {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Dark theme Quill editor overrides */
+body.dark-theme .ql-toolbar.ql-snow {
+  background-color: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+body.dark-theme .ql-toolbar.ql-snow .ql-stroke {
+  stroke: #F1F5F9 !important;
+}
+body.dark-theme .ql-toolbar.ql-snow .ql-fill {
+  fill: #F1F5F9 !important;
+}
+body.dark-theme .ql-toolbar.ql-snow .ql-picker {
+  color: #F1F5F9 !important;
+}
+body.dark-theme .ql-toolbar.ql-snow .ql-picker-options {
+  background-color: #1E293B !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+body.dark-theme .ql-container.ql-snow {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background-color: rgba(15, 23, 42, 0.4);
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+body.dark-theme .ql-editor {
+  color: #F1F5F9 !important;
+}
+body.dark-theme .ql-editor.ql-blank::before {
+  color: rgba(241, 245, 249, 0.5) !important;
+}
+
+
 
