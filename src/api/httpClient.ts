@@ -1,6 +1,19 @@
 import axios from 'axios'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000'
+const getBaseUrl = (): string => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL
+  }
+  const isCloudDeployment =
+    typeof window !== 'undefined' &&
+    (window.location.hostname.includes('storage.googleapis.com') || window.location.hostname.includes('run.app'))
+  if (isCloudDeployment) {
+    return 'https://practice121-api-687271578749.asia-southeast1.run.app'
+  }
+  return 'http://localhost:5000'
+}
+
+const baseURL = getBaseUrl()
 
 export const httpClient = axios.create({
   baseURL,
