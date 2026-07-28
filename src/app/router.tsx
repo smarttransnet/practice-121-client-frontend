@@ -38,7 +38,6 @@ const router = createHashRouter([
         <AppLayout />
       </ProtectedRoute>
     ),
-    errorElement: <NotFoundPage />,
     children: [
       { index: true, element: <DashboardPage /> },
       { path: 'dashboard', element: <DashboardPage /> },
