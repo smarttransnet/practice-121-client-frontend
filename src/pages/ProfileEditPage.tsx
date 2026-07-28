@@ -705,24 +705,39 @@ export function ProfileEditPage() {
                   '.ql-container': {
                     borderBottomLeftRadius: '8px',
                     borderBottomRightRadius: '8px',
-                    borderColor: 'rgba(0, 0, 0, 0.23)'
+                    borderColor: 'divider'
                   },
                   '.ql-toolbar': {
                     borderTopLeftRadius: '8px',
                     borderTopRightRadius: '8px',
-                    borderColor: 'rgba(0, 0, 0, 0.23)'
+                    borderColor: 'divider'
                   }
                 }}>
                   <ReactQuill theme="snow" value={bio} onChange={setBio} placeholder="Write something about yourself..." />
                 </Box>
               ) : (
-                <Box sx={{ p: 3, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 2 }}>
+                <Box sx={{ p: 3, bgcolor: 'action.hover', borderRadius: 2 }}>
                   {bio ? (
-                    <Box className="ql-snow" sx={{ '& .ql-editor': { p: 0, minHeight: 'auto', fontSize: '1rem', fontFamily: 'inherit' } }}>
+                    <Box className="ql-snow" sx={{
+                      '& .ql-editor': {
+                        p: 0,
+                        minHeight: 'auto',
+                        color: 'text.primary',
+                        lineHeight: 1.6,
+                        fontSize: '1rem',
+                        fontFamily: 'inherit',
+                        wordBreak: 'break-word',
+                        border: 'none',
+                      },
+                      '& .ql-editor *, & .ql-editor span, & .ql-editor p, & .ql-editor div, & .ql-editor strong, & .ql-editor h1, & .ql-editor h2, & .ql-editor h3, & .ql-editor h4, & .ql-editor h5, & .ql-editor h6': {
+                        backgroundColor: 'transparent !important',
+                        color: 'inherit !important',
+                      },
+                    }}>
                       <Box className="ql-editor" dangerouslySetInnerHTML={{ __html: bio }} />
                     </Box>
                   ) : (
-                    <Typography variant="body1" sx={{ lineHeight: 1.8 }}>No bio provided.</Typography>
+                    <Typography variant="body1" sx={{ lineHeight: 1.8, color: 'text.secondary' }}>No bio provided.</Typography>
                   )}
                 </Box>
               )}
