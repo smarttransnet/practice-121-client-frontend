@@ -97,7 +97,7 @@ export function LoginPage() {
 
     try {
       await login(email, password)
-      navigate('/verify-otp')
+      navigate('/dashboard')
     } catch (err) {
       // Error handled by store
     }

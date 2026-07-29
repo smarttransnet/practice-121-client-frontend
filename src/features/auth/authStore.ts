@@ -40,7 +40,7 @@ type AuthState = {
   isLoading: boolean
   error: string | null
 
-  login: (email: string, password: string) => Promise<string>
+  login: (email: string, password: string) => Promise<UserProfile>
   register: (name: string, email: string, password: string) => Promise<string>
   googleLogin: (idToken: string) => Promise<UserProfile>
   verifyOtp: (code: string) => Promise<UserProfile>
@@ -86,9 +86,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await httpClient.post('/api/auth/login', { email, password })
       const resData = response.data
       if (resData.success) {
-        const { accountId, otpSessionId } = resData.data
-        set({ otpSessionId, otpAccountId: accountId, isLoading: false })
-        return otpSessionId
+        const { accessToken, profileCompletionStatus, accountId, email: userEmail, fullName } = resData.data
+        
+        localStorage.setItem('token', accessToken)
+        const userObj: UserProfile = {
+          accountId,
+          email: userEmail,
+          fullName,
+          completionStatus: profileCompletionStatus,
+        }
+        localStorage.setItem('user', JSON.stringify(userObj))
+        
+        httpClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`
+
+        set({
+          token: accessToken,
+          user: userObj,
+          isAuthenticated: true,
+          otpSessionId: null,
+          otpAccountId: null,
+          isLoading: false,
+        })
+        return userObj
       } else {
         throw new Error(resData.error?.message ?? 'Login failed')
       }
