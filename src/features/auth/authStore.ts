@@ -42,7 +42,7 @@ type AuthState = {
 
   login: (email: string, password: string) => Promise<string>
   register: (name: string, email: string, password: string) => Promise<string>
-  googleLogin: (idToken: string) => Promise<string>
+  googleLogin: (idToken: string) => Promise<UserProfile>
   verifyOtp: (code: string) => Promise<UserProfile>
   resendOtp: () => Promise<void>
   logout: () => Promise<void>
@@ -124,9 +124,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await httpClient.post('/api/auth/google', { idToken })
       const resData = response.data
       if (resData.success) {
-        const { accountId, otpSessionId } = resData.data
-        set({ otpSessionId, otpAccountId: accountId, isLoading: false })
-        return otpSessionId
+        const { accessToken, profileCompletionStatus, accountId, email, fullName } = resData.data
+        
+        localStorage.setItem('token', accessToken)
+        const userObj: UserProfile = {
+          accountId,
+          email,
+          fullName,
+          completionStatus: profileCompletionStatus,
+        }
+        localStorage.setItem('user', JSON.stringify(userObj))
+        
+        httpClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`
+
+        set({
+          token: accessToken,
+          user: userObj,
+          isAuthenticated: true,
+          otpSessionId: null,
+          otpAccountId: null,
+          isLoading: false,
+        })
+        return userObj
       } else {
         throw new Error(resData.error?.message ?? 'Google Login failed')
       }
