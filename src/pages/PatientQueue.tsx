@@ -316,7 +316,12 @@ export const PatientQueue = () => {
     if (sessionId === 'ALL' || daySessions.length <= 1) return queue;
     const sessionIndex = daySessions.findIndex((s: DaySessionInfo) => s.id === sessionId);
     if (sessionIndex === -1) return queue;
-    return queue.filter((_, idx) => idx % daySessions.length === sessionIndex);
+    return queue.filter((t, idx) => {
+      if (t.sessionId) {
+        return t.sessionId === sessionId;
+      }
+      return idx % daySessions.length === sessionIndex;
+    });
   };
 
   const getDayString = (date: Date) => {
