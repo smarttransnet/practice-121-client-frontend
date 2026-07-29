@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { 
   Box, Typography, Card, CardContent, Button, TextField,
-  Tooltip, CircularProgress, Snackbar, Alert, Grid, Autocomplete, Chip, Paper
+  Tooltip, CircularProgress, Snackbar, Alert, Grid, Chip, Paper, ClickAwayListener, List, ListItemButton
 } from '@mui/material'
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
 import type { GridColDef } from '@mui/x-data-grid'
@@ -28,6 +28,10 @@ export function FavoritesListPage() {
   const [saving, setSaving] = useState<boolean>(false)
   const [fetchingSuggestions, setFetchingSuggestions] = useState<boolean>(false)
   
+  // Suggestion Dropdown Open State
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false)
+  const genericInputRef = useRef<HTMLDivElement>(null)
+
   // Form State - 6 Fields
   const [editId, setEditId] = useState<string | null>(null)
   const [genericName, setGenericName] = useState('')
@@ -37,8 +41,7 @@ export function FavoritesListPage() {
   const [frequency, setFrequency] = useState('')
   const [duration, setDuration] = useState('')
 
-  // Validation Error State
-  const [formErrors, setFormErrors] = useState({ genericName: false, category: false })
+
 
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({
     open: false,
@@ -84,15 +87,7 @@ export function FavoritesListPage() {
 
   const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }))
 
-  // Validate form: only Generic Name & Category are mandatory
-  const validateForm = () => {
-    const errors = {
-      genericName: !genericName.trim(),
-      category: !category.trim()
-    }
-    setFormErrors(errors)
-    return !errors.genericName && !errors.category
-  }
+
 
   const resetForm = () => {
     setEditId(null)
@@ -102,41 +97,31 @@ export function FavoritesListPage() {
     setDose('')
     setFrequency('')
     setDuration('')
-    setFormErrors({ genericName: false, category: false })
+
+    setShowSuggestions(false)
   }
 
   // Smart suggestion selection handler - auto populates all remaining fields
-  const handleSelectSuggestion = (suggestion: FavoriteSuggestion | string | null) => {
-    if (!suggestion) return
-
-    if (typeof suggestion === 'string') {
-      setGenericName(suggestion)
-      if (formErrors.genericName) setFormErrors(prev => ({ ...prev, genericName: false }))
-      return
-    }
-
-    setGenericName(suggestion.genericName)
-    if (formErrors.genericName) setFormErrors(prev => ({ ...prev, genericName: false }))
-
+  const handleSelectSuggestion = (suggestion: FavoriteSuggestion) => {
+    if (suggestion.genericName) setGenericName(suggestion.genericName)
     if (suggestion.brandName) setBrandName(suggestion.brandName)
-    if (suggestion.category) {
-      setCategory(suggestion.category)
-      if (formErrors.category) setFormErrors(prev => ({ ...prev, category: false }))
-    }
+    if (suggestion.category) setCategory(suggestion.category)
     if (suggestion.dose) setDose(suggestion.dose)
     if (suggestion.frequency) setFrequency(suggestion.frequency)
     if (suggestion.duration) setDuration(suggestion.duration)
+
+    setShowSuggestions(false)
   }
 
   // Save (Add or Update)
   const handleSave = async () => {
-    if (!validateForm()) return
+
 
     setSaving(true)
     const payload = {
-      genericName: genericName.trim(),
+      genericName: genericName.trim() || undefined,
       brandName: brandName.trim() || undefined,
-      category: category.trim(),
+      category: category.trim() || undefined,
       dose: dose.trim() || undefined,
       frequency: frequency.trim() || undefined,
       duration: duration.trim() || undefined
@@ -173,7 +158,7 @@ export function FavoritesListPage() {
     setDose(medicine.dose || '')
     setFrequency(medicine.frequency || '')
     setDuration(medicine.duration || '')
-    setFormErrors({ genericName: false, category: false })
+
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -238,24 +223,16 @@ export function FavoritesListPage() {
     }
   ]
 
-  // Unique categories for autocomplete
-  const categoryOptions = Array.from(new Set([
-    ...favorites.map(f => f.category),
-    ...suggestions.map(s => s.category)
-  ])).sort()
+  // Filtered suggestions based on user input
+  const filteredSuggestions = suggestions.filter(s => 
+    !genericName.trim() || 
+    (s.genericName && s.genericName.toLowerCase().includes(genericName.toLowerCase())) || 
+    (s.brandName && s.brandName.toLowerCase().includes(genericName.toLowerCase()))
+  )
 
   return (
     <Box sx={{ pb: 4 }}>
-      {/* Header Banner */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" fontWeight={800} color="primary.main" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AutoAwesomeIcon sx={{ color: '#6366f1' }} />
-          Favorites List & Smart Suggestions
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Manage your favorite prescription templates and reuse smart suggestions ranked by specialty peer usage.
-        </Typography>
-      </Box>
+
 
       {/* Next Generation Form Card */}
       <Card 
@@ -284,78 +261,33 @@ export function FavoritesListPage() {
           </Box>
           
           <Grid container spacing={2.5}>
-            {/* Generic Name - Smart Autocomplete Suggestions */}
-            <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-              <Autocomplete
-                freeSolo
-                options={suggestions}
-                getOptionLabel={(option) => typeof option === 'string' ? option : option.genericName}
-                inputValue={genericName}
-                onInputChange={(_, newValue) => {
-                  setGenericName(newValue)
-                  if (formErrors.genericName && newValue.trim()) {
-                    setFormErrors(prev => ({ ...prev, genericName: false }))
-                  }
-                  if (newValue.length >= 2) {
-                    loadSuggestions(newValue)
-                  }
-                }}
-                onChange={(_, newValue) => {
-                  if (newValue) {
-                    handleSelectSuggestion(newValue)
-                  }
-                }}
-                renderOption={(props, option) => {
-                  if (typeof option === 'string') return <li {...props}>{option}</li>
-                  const { key, ...otherProps } = props
-                  return (
-                    <Paper 
-                      key={key} 
-                      component="li" 
-                      {...otherProps} 
-                      sx={{ 
-                        p: 1.5, 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        alignItems: 'flex-start',
-                        gap: 0.5,
-                        borderBottom: '1px solid rgba(0,0,0,0.04)' 
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                        <Typography fontWeight={700} color="primary.main" variant="subtitle2">
-                          {option.genericName} {option.brandName ? `(${option.brandName})` : ''}
-                        </Typography>
-                        <Chip 
-                          label={`⭐ ${option.usageCount} ${option.usageCount === 1 ? 'doctor' : 'doctors'}`}
-                          size="small"
-                          color="success"
-                          variant="outlined"
-                          sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }}
-                        />
-                      </Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Category: <b>{option.category}</b> {option.dose ? `| Dose: ${option.dose}` : ''} {option.frequency ? `| Freq: ${option.frequency}` : ''} {option.duration ? `| Duration: ${option.duration}` : ''}
-                      </Typography>
-                    </Paper>
-                  )
-                }}
-                renderInput={(params) => (
+            {/* Generic Name - Standard Input with Smart Suggestions Popover */}
+            <Grid size={{ xs: 12, md: 6, lg: 4 }} ref={genericInputRef} sx={{ position: 'relative' }}>
+              <ClickAwayListener onClickAway={() => setShowSuggestions(false)}>
+                <Box>
                   <TextField
-                    {...params}
                     fullWidth
-                    label="Generic Name *"
+                    label="Generic Name"
                     placeholder="e.g. Paracetamol, Amoxicillin"
-                    error={formErrors.genericName}
-                    helperText={formErrors.genericName ? 'Generic Name is required' : ''}
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {fetchingSuggestions ? <CircularProgress color="inherit" size={18} /> : null}
-                          {params.InputProps.endAdornment}
-                        </>
-                      ),
+                    value={genericName}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setGenericName(val)
+                      if (val.trim().length >= 1) {
+                        setShowSuggestions(true)
+                        loadSuggestions(val)
+                      } else {
+                        setShowSuggestions(false)
+                      }
+                    }}
+                    onFocus={() => {
+                      if (suggestions.length > 0) setShowSuggestions(true)
+                    }}
+
+                    slotProps={{
+                      input: {
+                        endAdornment: fetchingSuggestions ? <CircularProgress color="inherit" size={18} /> : null
+                      }
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -364,8 +296,61 @@ export function FavoritesListPage() {
                       }
                     }}
                   />
-                )}
-              />
+
+                  {/* Smart Suggestions Popover */}
+                  {showSuggestions && filteredSuggestions.length > 0 && (
+                    <Paper
+                      elevation={8}
+                      sx={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        zIndex: 1400,
+                        mt: 0.5,
+                        maxHeight: 280,
+                        overflowY: 'auto',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        backgroundColor: '#ffffff'
+                      }}
+                    >
+                      <List disablePadding>
+                        {filteredSuggestions.map((item, idx) => (
+                          <ListItemButton
+                            key={`${item.genericName || item.brandName || idx}-${idx}`}
+                            onClick={() => handleSelectSuggestion(item)}
+                            sx={{
+                              flexDirection: 'column',
+                              alignItems: 'flex-start',
+                              py: 1.2,
+                              px: 2,
+                              borderBottom: idx < filteredSuggestions.length - 1 ? '1px solid rgba(0,0,0,0.04)' : 'none',
+                              '&:hover': { backgroundColor: 'rgba(99, 102, 241, 0.06)' }
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                              <Typography fontWeight={700} color="primary.main" variant="subtitle2">
+                                {item.genericName || item.brandName || 'Unnamed Medicine'} {item.genericName && item.brandName ? `(${item.brandName})` : ''}
+                              </Typography>
+                              <Chip 
+                                label={`⭐ ${item.usageCount} ${item.usageCount === 1 ? 'doctor' : 'doctors'}`}
+                                size="small"
+                                color="success"
+                                variant="outlined"
+                                sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700 }}
+                              />
+                            </Box>
+                            <Typography variant="caption" color="text.secondary">
+                              {item.category ? <>Category: <b>{item.category}</b> </> : null}{item.dose ? `| Dose: ${item.dose}` : ''} {item.frequency ? `| Freq: ${item.frequency}` : ''} {item.duration ? `| Duration: ${item.duration}` : ''}
+                            </Typography>
+                          </ListItemButton>
+                        ))}
+                      </List>
+                    </Paper>
+                  )}
+                </Box>
+              </ClickAwayListener>
             </Grid>
 
             {/* Brand Name */}
@@ -385,41 +370,21 @@ export function FavoritesListPage() {
               />
             </Grid>
 
-            {/* Category */}
+            {/* Category - Standard Input */}
             <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-              <Autocomplete
-                freeSolo
-                options={categoryOptions}
-                inputValue={category}
-                onInputChange={(_, newValue) => {
-                  setCategory(newValue)
-                  if (formErrors.category && newValue.trim()) {
-                    setFormErrors(prev => ({ ...prev, category: false }))
+              <TextField
+                fullWidth
+                label="Category"
+                placeholder="e.g. Analgesic, Antibiotic"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    borderRadius: '12px'
                   }
                 }}
-                onChange={(_, newValue) => {
-                  const val = typeof newValue === 'string' ? newValue : (newValue || '')
-                  setCategory(val)
-                  if (formErrors.category && val.trim()) {
-                    setFormErrors(prev => ({ ...prev, category: false }))
-                  }
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    fullWidth
-                    label="Category *"
-                    placeholder="e.g. Analgesic, Antibiotic"
-                    error={formErrors.category}
-                    helperText={formErrors.category ? 'Category is required' : ''}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                        borderRadius: '12px'
-                      }
-                    }}
-                  />
-                )}
               />
             </Grid>
 

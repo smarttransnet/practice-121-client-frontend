@@ -13,18 +13,18 @@ export interface FavoriteMedicine {
 }
 
 export interface FavoriteMedicinePayload {
-  genericName: string
+  genericName?: string
   brandName?: string
-  category: string
+  category?: string
   dose?: string
   frequency?: string
   duration?: string
 }
 
 export interface FavoriteSuggestion {
-  genericName: string
+  genericName?: string
   brandName?: string
-  category: string
+  category?: string
   dose?: string
   frequency?: string
   duration?: string
