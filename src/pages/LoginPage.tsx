@@ -72,7 +72,7 @@ export function LoginPage() {
         clearError()
         try {
           await googleLogin(idToken!)
-          navigate('/verify-otp')
+          navigate('/dashboard')
         } catch (err) {
           // Error is handled by authStore/useAuth
         }
@@ -130,7 +130,7 @@ export function LoginPage() {
 
     try {
       await googleLogin(idToken)
-      navigate('/verify-otp')
+      navigate('/dashboard')
     } catch (err) {
       // Error handled by store
     }
