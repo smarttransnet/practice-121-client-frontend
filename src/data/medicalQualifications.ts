@@ -4,7 +4,7 @@ export interface MedicalQualification {
 }
 
 export const MEDICAL_QUALIFICATIONS: MedicalQualification[] = [
-  { title: 'DCH (Eng)', fullName: 'Diploma in Child Health' },
+  { title: 'DCH', fullName: 'Diploma in Child Health' },
   { title: 'DFSRH', fullName: 'Diploma of the Faculty of Sexual and Reproductive Healthcare' },
   { title: 'Diplomate of the ABMS', fullName: 'American Board of Medical Specialties (e.g., American Board of Internal Medicine)' },
   { title: 'DM', fullName: 'Doctor of Medicine (by Research)' },
