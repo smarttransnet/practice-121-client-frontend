@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { 
   Box, Typography, Card, CardContent, Button, TextField,
-  Tooltip, CircularProgress, Snackbar, Alert, Grid, Chip, Paper, ClickAwayListener, List, ListItemButton, ListItemText
+  Tooltip, CircularProgress, Snackbar, Alert, Grid, Chip, Paper, ClickAwayListener, List, ListItemButton
 } from '@mui/material'
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
 import type { GridColDef } from '@mui/x-data-grid'
@@ -103,13 +103,12 @@ export function FavoritesListPage() {
 
   // Smart suggestion selection handler - auto populates all remaining fields
   const handleSelectSuggestion = (suggestion: FavoriteSuggestion) => {
-    setGenericName(suggestion.genericName)
+    if (suggestion.genericName) setGenericName(suggestion.genericName)
     if (suggestion.brandName) setBrandName(suggestion.brandName)
     if (suggestion.category) setCategory(suggestion.category)
     if (suggestion.dose) setDose(suggestion.dose)
     if (suggestion.frequency) setFrequency(suggestion.frequency)
     if (suggestion.duration) setDuration(suggestion.duration)
-
 
     setShowSuggestions(false)
   }
@@ -159,7 +158,7 @@ export function FavoritesListPage() {
     setDose(medicine.dose || '')
     setFrequency(medicine.frequency || '')
     setDuration(medicine.duration || '')
-    setFormErrors({ genericName: false, category: false })
+
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -227,7 +226,7 @@ export function FavoritesListPage() {
   // Filtered suggestions based on user input
   const filteredSuggestions = suggestions.filter(s => 
     !genericName.trim() || 
-    s.genericName.toLowerCase().includes(genericName.toLowerCase()) || 
+    (s.genericName && s.genericName.toLowerCase().includes(genericName.toLowerCase())) || 
     (s.brandName && s.brandName.toLowerCase().includes(genericName.toLowerCase()))
   )
 
@@ -319,7 +318,7 @@ export function FavoritesListPage() {
                       <List disablePadding>
                         {filteredSuggestions.map((item, idx) => (
                           <ListItemButton
-                            key={`${item.genericName}-${idx}`}
+                            key={`${item.genericName || item.brandName || idx}-${idx}`}
                             onClick={() => handleSelectSuggestion(item)}
                             sx={{
                               flexDirection: 'column',
@@ -332,7 +331,7 @@ export function FavoritesListPage() {
                           >
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                               <Typography fontWeight={700} color="primary.main" variant="subtitle2">
-                                {item.genericName} {item.brandName ? `(${item.brandName})` : ''}
+                                {item.genericName || item.brandName || 'Unnamed Medicine'} {item.genericName && item.brandName ? `(${item.brandName})` : ''}
                               </Typography>
                               <Chip 
                                 label={`⭐ ${item.usageCount} ${item.usageCount === 1 ? 'doctor' : 'doctors'}`}
@@ -343,7 +342,7 @@ export function FavoritesListPage() {
                               />
                             </Box>
                             <Typography variant="caption" color="text.secondary">
-                              Category: <b>{item.category}</b> {item.dose ? `| Dose: ${item.dose}` : ''} {item.frequency ? `| Freq: ${item.frequency}` : ''} {item.duration ? `| Duration: ${item.duration}` : ''}
+                              {item.category ? <>Category: <b>{item.category}</b> </> : null}{item.dose ? `| Dose: ${item.dose}` : ''} {item.frequency ? `| Freq: ${item.frequency}` : ''} {item.duration ? `| Duration: ${item.duration}` : ''}
                             </Typography>
                           </ListItemButton>
                         ))}
