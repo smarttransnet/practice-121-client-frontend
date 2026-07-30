@@ -75,6 +75,26 @@ export const reorderPatientQueue = async (ticketIds: string[]): Promise<void> =>
   await httpClient.put('/api/patient-queue/reorder', { ticketIds });
 };
 
+export interface NextPatientResponse {
+  completedPatient?: PatientQueueTicket;
+  activePatient?: PatientQueueTicket;
+  remainingQueueCount: number;
+  hasNextPatient: boolean;
+}
+
+export const advanceNextPatient = async (
+  doctorId: string,
+  practiceCentreId?: string,
+  visitDate?: string
+): Promise<NextPatientResponse> => {
+  const response = await httpClient.post<NextPatientResponse>('/api/v1/queue/next-patient', {
+    doctorId,
+    practiceCentreId,
+    visitDate,
+  });
+  return response.data;
+};
+
 export const getPatientByMobile = async (mobileNumber: string): Promise<PatientLookupResponse | null> => {
   try {
     const response = await httpClient.get<PatientLookupResponse>(`/api/patients/by-mobile?mobileNumber=${encodeURIComponent(mobileNumber)}`);
