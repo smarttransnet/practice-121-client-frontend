@@ -45,6 +45,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { httpClient } from '../api/httpClient';
 import {
   getPatientQueue,
@@ -387,14 +388,48 @@ export const PatientQueue = () => {
     }
   }, [selectedCentre]);
 
-  // Fetch queue when selected practice centre or selected date changes
+  // Fetch queue & subscribe to real-time SignalR push notifications + 5s polling fallback
   useEffect(() => {
-    if (selectedCentre && selectedDate) {
-      const dateStr = formatDateLocal(selectedDate);
-      fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
-    } else {
+    if (!selectedCentre || !selectedDate) {
       setQueue([]);
+      return;
     }
+
+    const dateStr = formatDateLocal(selectedDate);
+    fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+
+    // 1. Setup 5-second polling interval fallback
+    const intervalId = setInterval(() => {
+      fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+    }, 5000);
+
+    // 2. Setup SignalR WebSocket connection for instant zero-latency push updates
+    const apiBase = httpClient.defaults.baseURL || 'https://practice121-api-687271578749.asia-southeast1.run.app';
+    const hubUrl = `${apiBase.replace(/\/$/, '')}/api/hubs/patient-queue`;
+
+    const connection = new HubConnectionBuilder()
+      .withUrl(hubUrl)
+      .withAutomaticReconnect()
+      .build();
+
+    connection.start()
+      .then(() => {
+        connection.invoke('JoinQueueGroup', selectedCentre.id).catch(() => {});
+        connection.on('QueueUpdated', (data: any) => {
+          if (!data || !data.practiceCentreId || String(data.practiceCentreId).toLowerCase() === String(selectedCentre.id).toLowerCase()) {
+            fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+          }
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      clearInterval(intervalId);
+      if (connection.state === HubConnectionState.Connected) {
+        connection.invoke('LeaveQueueGroup', selectedCentre.id).catch(() => {});
+        connection.stop().catch(() => {});
+      }
+    };
   }, [selectedCentre, selectedDate]);
 
   // Handle registeredMobile redirect callback from patient registration
