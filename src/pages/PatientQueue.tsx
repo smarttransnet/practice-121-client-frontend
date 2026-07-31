@@ -979,14 +979,27 @@ export const PatientQueue = () => {
         </Box>
 
         {selectedCentre && (
-          <Button
-            onClick={refreshQueue}
-            variant="text"
-            startIcon={<RefreshIcon />}
-            sx={{ fontWeight: 700 }}
-          >
-            Refresh Queue
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<RecordVoiceOverIcon />}
+              href={`https://storage.googleapis.com/note366-stt-frontend-dev/index.html?doctorId=${selectedCentre.doctorId}&practiceCentreId=${selectedCentre.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ fontWeight: 700, borderRadius: 3, px: 2.5, py: 1, textTransform: 'none', boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}
+            >
+              Start AI Consultation
+            </Button>
+            <Button
+              onClick={refreshQueue}
+              variant="outlined"
+              startIcon={<RefreshIcon />}
+              sx={{ fontWeight: 700, borderRadius: 3, px: 2 }}
+            >
+              Refresh Queue
+            </Button>
+          </Box>
         )}
       </Box>
 
