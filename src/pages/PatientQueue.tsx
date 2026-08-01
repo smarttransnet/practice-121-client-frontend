@@ -55,6 +55,9 @@ import {
   getPatientByMobile,
   searchPatients,
   updatePatientMobile,
+  sendPatientOtp,
+  verifyPatientOtp,
+  resendPatientOtp,
   type PatientQueueTicket,
   type Patient
 } from '../features/patient-queue/patientQueueApi';
@@ -62,6 +65,7 @@ import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation';
 import { formatDisplayDate, formatDisplayDateLong } from '../utils/dateUtils';
 import { FamilyPatientSelector } from '../features/patients/FamilyPatientSelector';
 import { AddChildModal } from '../features/patients/AddChildModal';
+import { OtpVerificationDialog } from '../components/OtpVerificationDialog';
 
 interface DaySessionInfo {
   id: string;
@@ -261,6 +265,30 @@ export const PatientQueue = () => {
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [openAddChildModal, setOpenAddChildModal] = useState(false);
+
+  const [openOtpDialogQueue, setOpenOtpDialogQueue] = useState(false);
+  const [otpSessionIdQueue, setOtpSessionIdQueue] = useState<string>('');
+  const [maskedMobileQueue, setMaskedMobileQueue] = useState<string>('');
+  const [pendingMobileQueue, setPendingMobileQueue] = useState<string>('');
+
+  const handleOtpVerifiedQueue = async (verificationToken: string) => {
+    try {
+      setVerificationLoading(true);
+      const lookupResult = await getPatientByMobile(pendingMobileQueue, verificationToken);
+      if (lookupResult) {
+        setPrimaryPatientRecord(lookupResult.primaryPatient);
+        setVerifiedChildren(lookupResult.children || []);
+        setVerifiedPatient(lookupResult.primaryPatient);
+        setDialogMode('verify');
+      } else {
+        setDialogMode('notFound');
+      }
+    } catch (err: any) {
+      setAddError(err.response?.data?.detail || err.message || 'Failed to load patient after OTP verification.');
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
 
   // Drag and drop state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -505,12 +533,16 @@ export const PatientQueue = () => {
           return;
         }
         const normalizedMobile = normalizeLkMobile(trimmedMobile) ?? trimmedMobile;
-        const lookupResult = await getPatientByMobile(normalizedMobile);
-        if (lookupResult) {
-          setPrimaryPatientRecord(lookupResult.primaryPatient);
-          setVerifiedChildren(lookupResult.children || []);
-          setVerifiedPatient(lookupResult.primaryPatient);
-          setDialogMode('verify');
+        const otpSendRes = await sendPatientOtp(normalizedMobile);
+        if (otpSendRes.patientExists && otpSendRes.sessionId) {
+          setOtpSessionIdQueue(otpSendRes.sessionId);
+          setMaskedMobileQueue(otpSendRes.maskedMobile || normalizedMobile);
+          setPendingMobileQueue(normalizedMobile);
+          setOpenOtpDialogQueue(true);
+          return;
+        }
+        if (!hasAdvancedSearchTerms) {
+          setDialogMode('notFound');
           return;
         }
       }
@@ -1468,6 +1500,16 @@ export const PatientQueue = () => {
           </Box>
         )}
       </Dialog>
+
+      <OtpVerificationDialog
+        open={openOtpDialogQueue}
+        onClose={() => setOpenOtpDialogQueue(false)}
+        maskedMobile={maskedMobileQueue}
+        sessionId={otpSessionIdQueue}
+        onVerified={handleOtpVerifiedQueue}
+        onVerifyOtp={(sid, code) => verifyPatientOtp(sid, code)}
+        onResendOtp={(sid) => resendPatientOtp(sid)}
+      />
     </Box>
   );
 };

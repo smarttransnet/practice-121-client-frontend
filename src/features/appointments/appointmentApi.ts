@@ -67,15 +67,74 @@ export const bookAppointment = async (data: {
   return res.json();
 };
 
+export interface SendOtpResponse {
+  patientExists: boolean;
+  sessionId?: string;
+  maskedMobile?: string;
+  expiresInSeconds?: number;
+  cooldownSeconds?: number;
+}
+
+export interface VerifyOtpResponse {
+  verified: boolean;
+  verificationToken?: string;
+  errorMessage?: string;
+}
+
+export interface ResendOtpResponse {
+  success: boolean;
+  errorMessage?: string;
+  cooldownSeconds?: number;
+}
+
+export const sendPatientOtpPublic = async (mobileNumber: string): Promise<SendOtpResponse> => {
+  const res = await fetch(`${API_BASE}/api/patients/otp/send`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mobileNumber }),
+  });
+  if (!res.ok) {
+    throw new Error('Failed to send verification code');
+  }
+  return res.json();
+};
+
+export const verifyPatientOtpPublic = async (sessionId: string, otpCode: string): Promise<VerifyOtpResponse> => {
+  const res = await fetch(`${API_BASE}/api/patients/otp/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId, otpCode }),
+  });
+  if (!res.ok) {
+    throw new Error('Failed to verify OTP code');
+  }
+  return res.json();
+};
+
+export const resendPatientOtpPublic = async (sessionId: string): Promise<ResendOtpResponse> => {
+  const res = await fetch(`${API_BASE}/api/patients/otp/resend`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId }),
+  });
+  if (!res.ok) {
+    throw new Error('Failed to resend OTP code');
+  }
+  return res.json();
+};
+
 export const getPatientByMobilePublic = async (
   mobileNumber: string,
+  verificationToken?: string,
 ): Promise<{
   primaryPatient: { id: string; firstName: string; lastName?: string; nicNumber?: string; dateOfBirth?: string; gender?: string; mobileNumber: string; parentId?: string };
   children: { id: string; firstName: string; lastName?: string; nicNumber?: string; dateOfBirth?: string; gender?: string; mobileNumber: string; parentId?: string }[];
 } | null> => {
-  const res = await fetch(
-    `${API_BASE}/api/patients/by-mobile?mobileNumber=${encodeURIComponent(mobileNumber)}`,
-  );
+  let url = `${API_BASE}/api/patients/by-mobile?mobileNumber=${encodeURIComponent(mobileNumber)}`;
+  if (verificationToken) {
+    url += `&verificationToken=${encodeURIComponent(verificationToken)}`;
+  }
+  const res = await fetch(url);
   if (res.status === 404) {
     return null;
   }

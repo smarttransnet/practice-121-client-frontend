@@ -18,10 +18,17 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
-import { getPatientByMobilePublic, searchPatientsPublic } from './appointmentApi';
+import {
+  getPatientByMobilePublic,
+  searchPatientsPublic,
+  sendPatientOtpPublic,
+  verifyPatientOtpPublic,
+  resendPatientOtpPublic,
+} from './appointmentApi';
 import { isValidLkMobile, normalizeLkMobile } from '../../utils/lkPhoneValidation';
 import { FamilyPatientSelector } from '../patients/FamilyPatientSelector';
 import { AddChildModal } from '../patients/AddChildModal';
+import { OtpVerificationDialog } from '../../components/OtpVerificationDialog';
 
 export interface PatientRecord {
   id: string;
@@ -58,6 +65,30 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
 
   const [openAddChildModal, setOpenAddChildModal] = useState(false);
 
+  const [openOtpDialog, setOpenOtpDialog] = useState(false);
+  const [otpSessionId, setOtpSessionId] = useState<string>('');
+  const [maskedMobile, setMaskedMobile] = useState<string>('');
+  const [pendingMobile, setPendingMobile] = useState<string>('');
+
+  const handleOtpVerified = async (verificationToken: string) => {
+    setLoading(true);
+    try {
+      const lookupResult = await getPatientByMobilePublic(pendingMobile, verificationToken);
+      if (lookupResult) {
+        setPrimaryPatient(lookupResult.primaryPatient);
+        setChildrenPatients(lookupResult.children || []);
+        setSelectedPatient(lookupResult.primaryPatient);
+        setMode('confirm');
+      } else {
+        setMode('notFound');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load patient record after verification.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const reset = () => {
     setPrimaryPatient(null);
     setChildrenPatients([]);
@@ -88,12 +119,12 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
           return;
         }
         const normalizedMobile = normalizeLkMobile(searchMobile) ?? searchMobile.trim();
-        const lookupResult = await getPatientByMobilePublic(normalizedMobile);
-        if (lookupResult) {
-          setPrimaryPatient(lookupResult.primaryPatient);
-          setChildrenPatients(lookupResult.children || []);
-          setSelectedPatient(lookupResult.primaryPatient);
-          setMode('confirm');
+        const otpSendRes = await sendPatientOtpPublic(normalizedMobile);
+        if (otpSendRes.patientExists && otpSendRes.sessionId) {
+          setOtpSessionId(otpSendRes.sessionId);
+          setMaskedMobile(otpSendRes.maskedMobile || normalizedMobile);
+          setPendingMobile(normalizedMobile);
+          setOpenOtpDialog(true);
           return;
         }
         if (!hasAdvanced) {
@@ -355,6 +386,16 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
           Register here
         </MuiLink>
       </Typography>
+
+      <OtpVerificationDialog
+        open={openOtpDialog}
+        onClose={() => setOpenOtpDialog(false)}
+        maskedMobile={maskedMobile}
+        sessionId={otpSessionId}
+        onVerified={handleOtpVerified}
+        onVerifyOtp={(sid, code) => verifyPatientOtpPublic(sid, code)}
+        onResendOtp={(sid) => resendPatientOtpPublic(sid)}
+      />
     </Box>
   );
 }
