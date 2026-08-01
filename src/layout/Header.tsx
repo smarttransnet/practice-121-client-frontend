@@ -10,6 +10,7 @@ import {
 } from '@mui/material'
 import { NavLink } from 'react-router-dom'
 import { ProfileDropdown } from './ProfileDropdown'
+import logoImg from '../assets/logo.png'
 
 type HeaderProps = {
   onOpenMobileMenu: () => void
@@ -41,20 +42,34 @@ export function Header({ onOpenMobileMenu, onToggleSidebar, isMobile = false }: 
             <MenuIcon />
           </IconButton>
           
-          <Typography 
-            variant="subtitle2" 
-            component={NavLink} 
-            to="/dashboard" 
-            sx={{ 
-              fontWeight: 900, 
-              color: 'text.primary', 
+          <Box
+            component={NavLink}
+            to="/dashboard"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
               textDecoration: 'none',
               cursor: 'pointer',
-              '&:hover': { opacity: 0.8 } 
+              '&:hover': { opacity: 0.8 },
             }}
           >
-            Practice121
-          </Typography>
+            <Box
+              component="img"
+              src={logoImg}
+              alt="Practice121 Logo"
+              sx={{ width: 28, height: 28, borderRadius: '6px', objectFit: 'cover' }}
+            />
+            <Typography
+              variant="subtitle2"
+              sx={{
+                fontWeight: 900,
+                color: 'text.primary',
+              }}
+            >
+              Practice121
+            </Typography>
+          </Box>
 
           <ProfileDropdown isMobile />
         </Toolbar>

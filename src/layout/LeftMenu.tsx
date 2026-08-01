@@ -14,9 +14,9 @@ import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
 import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
 import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
-import LightbulbIcon from '@mui/icons-material/Lightbulb'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { ThemeSelectorBox } from '../features/theme/ThemeSelectorBox'
+import logoImg from '../assets/logo.png'
 
 type LeftMenuProps = {
   onNavigate?: () => void
@@ -131,21 +131,19 @@ export function LeftMenu({ onNavigate }: LeftMenuProps) {
               },
             }}
           >
-            {/* Signature violet circular logo */}
+            {/* Practice121 Logo */}
             <Box 
+              component="img"
+              src={logoImg}
+              alt="Practice121 Logo"
               sx={{ 
                 width: 38, 
                 height: 38, 
-                borderRadius: '50%', 
-                background: 'linear-gradient(135deg, #8F00FF 0%, #5F00FF 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 14px rgba(143, 0, 255, 0.35)',
+                borderRadius: '8px', 
+                objectFit: 'cover',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
               }}
-            >
-              <LightbulbIcon sx={{ color: '#FFFFFF', fontSize: 20 }} />
-            </Box>
+            />
             <Typography variant="h6" sx={{ fontWeight: 900, color: 'text.primary', fontSize: '1.1rem' }}>
               Practice121
             </Typography>
