@@ -20,9 +20,9 @@ import {
 } from '@mui/material'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
-import MedicalServicesOutlinedIcon from '@mui/icons-material/MedicalServicesOutlined'
 import GoogleIcon from '@mui/icons-material/Google'
 import { GoogleGIcon } from '../components/GoogleGIcon'
+import logoImg from '../assets/logo.png'
 
 export function LoginPage() {
   const { login, googleLogin, error, clearError, isLoading } = useAuth()
@@ -166,22 +166,21 @@ export function LoginPage() {
           <Stack spacing={3} alignItems="center">
             {/* Logo */}
             <Box
+              component="img"
+              src={logoImg}
+              alt="Practice121 Logo"
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 1.5,
-                borderRadius: '50%',
-                bgcolor: 'primary.main',
-                color: 'white',
+                width: 72,
+                height: 72,
+                borderRadius: 3,
+                objectFit: 'cover',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
               }}
-            >
-              <MedicalServicesOutlinedIcon fontSize="large" />
-            </Box>
+            />
 
             <Box textAlign="center">
               <Typography variant="h4" fontWeight="bold" color="primary.main" gutterBottom>
-                Doctor Portal
+                Practice121
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Sri Lankan Medical Professional Sign-In
@@ -305,9 +304,6 @@ export function LoginPage() {
             >
               Sign In with Google
             </Button>
-            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', fontSize: '0.7rem', opacity: 0.8 }}>
-              Redirect URI: <code>{window.location.origin + window.location.pathname}</code>
-            </Typography>
 
             <Typography variant="body2" align="center" color="text.secondary">
               Don't have an account?{' '}

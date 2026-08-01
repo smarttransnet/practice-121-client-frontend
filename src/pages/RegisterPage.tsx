@@ -15,7 +15,7 @@ import {
 } from '@mui/material'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
-import MedicalServicesOutlinedIcon from '@mui/icons-material/MedicalServicesOutlined'
+import logoImg from '../assets/logo.png'
 
 export function RegisterPage() {
   const { register, error, clearError, isLoading } = useAuth()
@@ -83,22 +83,21 @@ export function RegisterPage() {
           <Stack spacing={3} alignItems="center">
             {/* Logo */}
             <Box
+              component="img"
+              src={logoImg}
+              alt="Practice121 Logo"
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 1.5,
-                borderRadius: '50%',
-                bgcolor: 'primary.main',
-                color: 'white',
+                width: 72,
+                height: 72,
+                borderRadius: 3,
+                objectFit: 'cover',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
               }}
-            >
-              <MedicalServicesOutlinedIcon fontSize="large" />
-            </Box>
+            />
 
             <Box textAlign="center">
               <Typography variant="h4" fontWeight="bold" color="primary.main" gutterBottom>
-                Doctor Portal
+                Practice121
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Register with your credentials. Remaining details can be completed progressively.
