@@ -69,6 +69,7 @@ import { OtpVerificationDialog } from '../components/OtpVerificationDialog';
 
 interface DaySessionInfo {
   id: string;
+  groupId?: string;
   label: string;
   timeRange: string;
   startTime: string;
@@ -311,7 +312,8 @@ export const PatientQueue = () => {
         if (group.timeBlocks && group.timeBlocks.length > 0) {
           group.timeBlocks.forEach((tb) => {
             sessions.push({
-              id: tb.id,
+              id: tb.id || group.id || '',
+              groupId: group.id || '',
               label: tb.label || 'Session',
               timeRange: `${tb.startTime} - ${tb.endTime}`,
               startTime: tb.startTime,
@@ -320,7 +322,8 @@ export const PatientQueue = () => {
           });
         } else {
           sessions.push({
-            id: group.id,
+            id: group.id || '',
+            groupId: group.id || '',
             label: 'Scheduled Session',
             timeRange: group.daysOfWeek.join(', '),
             startTime: '',
@@ -338,10 +341,31 @@ export const PatientQueue = () => {
     if (!sessionId || sessionId === 'ALL') return queue;
     const sessionIndex = daySessions.findIndex(s => s.id === sessionId);
     if (sessionIndex === -1) return queue;
+
+    const targetSession = daySessions[sessionIndex];
+
     return queue.filter((t, idx) => {
+      // 1. Direct match with TimeBlock ID or SessionGroup ID
       if (t.sessionId) {
-        return t.sessionId === sessionId;
+        if (t.sessionId === targetSession.id) {
+          return true;
+        }
+
+        if (targetSession.groupId && t.sessionId === targetSession.groupId) {
+          const groupSessions = daySessions.filter(s => s.groupId === targetSession.groupId);
+          const subIndex = groupSessions.findIndex(s => s.id === targetSession.id);
+          if (subIndex !== -1 && idx % groupSessions.length === subIndex) {
+            return true;
+          }
+        }
+
+        const matchesOtherSession = daySessions.some(s => s.id === t.sessionId);
+        if (matchesOtherSession) {
+          return false;
+        }
       }
+
+      // 2. Fallback for tickets with null/unmatched sessionId: round-robin across daySessions
       return idx % daySessions.length === sessionIndex;
     });
   };
