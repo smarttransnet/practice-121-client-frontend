@@ -11,12 +11,15 @@ import {
   Alert,
   Link,
   CircularProgress,
+  useTheme,
 } from '@mui/material'
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
 
 export function OTPVerifyPage() {
   const { verifyOtp, resendOtp, otpSessionId, error, clearError, isLoading } = useAuth()
   const navigate = useNavigate()
+  const theme = useTheme()
+  const isDark = theme.palette.mode === 'dark'
 
   const [otpCode, setOtpCode] = useState<string[]>(Array(6).fill(''))
   const [countdown, setCountdown] = useState(60)
@@ -30,6 +33,12 @@ export function OTPVerifyPage() {
     // If no session is active, go back to login
     if (!otpSessionId) {
       navigate('/login')
+    } else {
+      // Auto-focus the first cell on load
+      const focusTimer = setTimeout(() => {
+        inputRefs.current[0]?.focus()
+      }, 100)
+      return () => clearTimeout(focusTimer)
     }
   }, [otpSessionId, navigate])
 
@@ -134,9 +143,11 @@ export function OTPVerifyPage() {
           maxWidth: 450,
           borderRadius: 4,
           backdropFilter: 'blur(10px)',
-          bgcolor: 'rgba(255, 255, 255, 0.95)',
+          bgcolor: 'background.paper',
+          color: 'text.primary',
           boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          border: '1px solid',
+          borderColor: 'divider',
           p: 2,
         }}
       >
@@ -163,9 +174,6 @@ export function OTPVerifyPage() {
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 For security, we sent a 6-digit one-time passcode (MFA) to your registered email.
-              </Typography>
-              <Typography variant="caption" color="text.disabled" display="block" sx={{ mt: 1 }}>
-                (Check the backend API console/logger to copy the simulated OTP code)
               </Typography>
             </Box>
 
@@ -196,10 +204,11 @@ export function OTPVerifyPage() {
                       fontWeight: 'bold',
                       borderRadius: '12px',
                       border: '2px solid',
-                      borderColor: digit ? '#1976d2' : '#ccc',
+                      borderColor: digit ? '#3b82f6' : (isDark ? '#334155' : '#cbd5e1'),
                       outline: 'none',
-                      backgroundColor: 'white',
-                      boxShadow: digit ? '0 0 8px 0 rgba(25, 118, 210, 0.25)' : 'none',
+                      backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                      color: isDark ? '#f8fafc' : '#0f172a',
+                      boxShadow: digit ? '0 0 8px 0 rgba(59, 130, 246, 0.35)' : 'none',
                       transition: 'all 0.2s',
                     }}
                   />

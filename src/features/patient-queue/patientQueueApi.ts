@@ -6,6 +6,7 @@ export interface PatientQueueTicket {
   queueOrder: number;
   patientMobile: string;
   patientName: string;
+  patientId?: string;
   doctorId: string;
   practiceCentreId: string;
   visitDate: string;
@@ -19,12 +20,18 @@ export interface PatientQueueTicket {
 
 export interface Patient {
   id: string;
-  nicNumber: string;
+  nicNumber?: string;
   firstName: string;
   lastName?: string;
   dateOfBirth?: string;
   gender?: string;
   mobileNumber: string;
+  parentId?: string;
+}
+
+export interface PatientLookupResponse {
+  primaryPatient: Patient;
+  children: Patient[];
 }
 
 export const getPatientQueue = async (
@@ -50,6 +57,7 @@ export const addPatientQueueTicket = async (data: {
   practiceCentreId: string;
   priority: number;
   visitDate?: string;
+  patientId?: string;
   sessionId?: string;
 }): Promise<string> => {
   const response = await httpClient.post<string>('/api/patient-queue', data);
@@ -67,9 +75,71 @@ export const reorderPatientQueue = async (ticketIds: string[]): Promise<void> =>
   await httpClient.put('/api/patient-queue/reorder', { ticketIds });
 };
 
-export const getPatientByMobile = async (mobileNumber: string): Promise<Patient | null> => {
+export interface NextPatientResponse {
+  completedPatient?: PatientQueueTicket;
+  activePatient?: PatientQueueTicket;
+  remainingQueueCount: number;
+  hasNextPatient: boolean;
+}
+
+export const advanceNextPatient = async (
+  doctorId: string,
+  practiceCentreId?: string,
+  visitDate?: string
+): Promise<NextPatientResponse> => {
+  const response = await httpClient.post<NextPatientResponse>('/api/v1/queue/next-patient', {
+    doctorId,
+    practiceCentreId,
+    visitDate,
+  });
+  return response.data;
+};
+
+export interface SendOtpResponse {
+  patientExists: boolean;
+  sessionId?: string;
+  maskedMobile?: string;
+  expiresInSeconds?: number;
+  cooldownSeconds?: number;
+}
+
+export interface VerifyOtpResponse {
+  verified: boolean;
+  verificationToken?: string;
+  errorMessage?: string;
+}
+
+export interface ResendOtpResponse {
+  success: boolean;
+  errorMessage?: string;
+  cooldownSeconds?: number;
+}
+
+export const sendPatientOtp = async (mobileNumber: string): Promise<SendOtpResponse> => {
+  const response = await httpClient.post<SendOtpResponse>('/api/patients/otp/send', { mobileNumber });
+  return response.data;
+};
+
+export const verifyPatientOtp = async (sessionId: string, otpCode: string): Promise<VerifyOtpResponse> => {
+  const response = await httpClient.post<VerifyOtpResponse>('/api/patients/otp/verify', { sessionId, otpCode });
+  return response.data;
+};
+
+export const resendPatientOtp = async (sessionId: string): Promise<ResendOtpResponse> => {
+  const response = await httpClient.post<ResendOtpResponse>('/api/patients/otp/resend', { sessionId });
+  return response.data;
+};
+
+export const getPatientByMobile = async (
+  mobileNumber: string,
+  verificationToken?: string,
+): Promise<PatientLookupResponse | null> => {
   try {
-    const response = await httpClient.get<Patient>(`/api/patients/by-mobile?mobileNumber=${encodeURIComponent(mobileNumber)}`);
+    let url = `/api/patients/by-mobile?mobileNumber=${encodeURIComponent(mobileNumber)}`;
+    if (verificationToken) {
+      url += `&verificationToken=${encodeURIComponent(verificationToken)}`;
+    }
+    const response = await httpClient.get<PatientLookupResponse>(url);
     return response.data;
   } catch (err: any) {
     if (err.response?.status === 404) {

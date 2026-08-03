@@ -20,8 +20,9 @@ import {
 } from '@mui/material'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
-import MedicalServicesOutlinedIcon from '@mui/icons-material/MedicalServicesOutlined'
 import GoogleIcon from '@mui/icons-material/Google'
+import { GoogleGIcon } from '../components/GoogleGIcon'
+import logoImg from '../assets/logo.png'
 
 export function LoginPage() {
   const { login, googleLogin, error, clearError, isLoading } = useAuth()
@@ -42,28 +43,41 @@ export function LoginPage() {
   const [simName, setSimName] = useState('Dr. Sunil Perera')
   const [simEmail, setSimEmail] = useState('sunil.perera@example.com')
 
-  // Handle parsing returned Google ID Token from URL hash
+  // Handle parsing returned Google ID Token from URL hash or sessionStorage
   useEffect(() => {
+    let idToken: string | null = null
+
+    // 1. Direct hash check
     const hash = window.location.hash
-    if (hash) {
-      const params = new URLSearchParams(hash.substring(1))
-      const idToken = params.get('id_token')
-      if (idToken) {
-        // Clear hash from URL immediately to keep URL bar clean
-        window.history.replaceState(null, '', window.location.pathname)
-        
-        const loginWithToken = async () => {
-          setValidationError(null)
-          clearError()
-          try {
-            await googleLogin(idToken)
-            navigate('/verify-otp')
-          } catch (err) {
-            // Error is handled by authStore/useAuth
-          }
-        }
-        loginWithToken()
+    if (hash && hash.includes('id_token=')) {
+      const match = hash.match(/id_token=([^&]+)/)
+      if (match && match[1]) {
+        idToken = match[1]
       }
+    }
+
+    // 2. Pending sessionStorage token check
+    if (!idToken) {
+      idToken = sessionStorage.getItem('pending_google_id_token')
+      if (idToken) {
+        sessionStorage.removeItem('pending_google_id_token')
+      }
+    }
+
+    if (idToken) {
+      window.history.replaceState(null, '', window.location.pathname + '#/login')
+      
+      const loginWithToken = async () => {
+        setValidationError(null)
+        clearError()
+        try {
+          await googleLogin(idToken!)
+          navigate('/dashboard')
+        } catch (err) {
+          // Error is handled by authStore/useAuth
+        }
+      }
+      loginWithToken()
     }
   }, [googleLogin, navigate, clearError])
 
@@ -83,7 +97,7 @@ export function LoginPage() {
 
     try {
       await login(email, password)
-      navigate('/verify-otp')
+      navigate('/dashboard')
     } catch (err) {
       // Error handled by store
     }
@@ -93,7 +107,7 @@ export function LoginPage() {
     if (isGoogleConfigured) {
       setValidationError(null)
       clearError()
-      const redirectUri = `${window.location.origin}/login`
+      const redirectUri = window.location.origin + window.location.pathname
       const nonce = Math.random().toString(36).substring(2, 15)
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=id_token&scope=openid%20profile%20email&nonce=${nonce}`
       window.location.href = authUrl
@@ -116,7 +130,7 @@ export function LoginPage() {
 
     try {
       await googleLogin(idToken)
-      navigate('/verify-otp')
+      navigate('/dashboard')
     } catch (err) {
       // Error handled by store
     }
@@ -140,9 +154,11 @@ export function LoginPage() {
           maxWidth: 450,
           borderRadius: 4,
           backdropFilter: 'blur(10px)',
-          bgcolor: 'rgba(255, 255, 255, 0.95)',
+          bgcolor: 'background.paper',
+          color: 'text.primary',
           boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          border: '1px solid',
+          borderColor: 'divider',
           p: 2,
         }}
       >
@@ -150,22 +166,21 @@ export function LoginPage() {
           <Stack spacing={3} alignItems="center">
             {/* Logo */}
             <Box
+              component="img"
+              src={logoImg}
+              alt="Practice121 Logo"
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 1.5,
-                borderRadius: '50%',
-                bgcolor: 'primary.main',
-                color: 'white',
+                width: 72,
+                height: 72,
+                borderRadius: 3,
+                objectFit: 'cover',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
               }}
-            >
-              <MedicalServicesOutlinedIcon fontSize="large" />
-            </Box>
+            />
 
             <Box textAlign="center">
               <Typography variant="h4" fontWeight="bold" color="primary.main" gutterBottom>
-                Doctor Portal
+                Practice121
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Sri Lankan Medical Professional Sign-In
@@ -173,7 +188,7 @@ export function LoginPage() {
             </Box>
 
             {/* Email/Password Form */}
-            <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+            <Box component="form" onSubmit={handleSubmit} autoComplete="off" sx={{ width: '100%' }}>
               <Stack spacing={2.5}>
                 {(validationError || error) && (
                   <Alert severity="error" sx={{ borderRadius: 2 }}>
@@ -215,6 +230,20 @@ export function LoginPage() {
                   }}
                 />
 
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button
+                    component={Link}
+                    to="/forgot-password"
+                    variant="text"
+                    color="primary"
+                    size="small"
+                    sx={{ fontWeight: 500, p: 0, minWidth: 'auto', fontSize: '0.8rem' }}
+                    id="forgot-password-link"
+                  >
+                    Forgot Password?
+                  </Button>
+                </Box>
+
                 <Button
                   type="submit"
                   variant="contained"
@@ -234,7 +263,7 @@ export function LoginPage() {
               </Stack>
             </Box>
 
-            <Divider sx={{ width: '100%', my: 1 }}>OR</Divider>
+            <Divider sx={{ width: '100%', my: 1, color: 'text.secondary' }}>OR</Divider>
 
             {!isGoogleConfigured && (
               <Alert 
@@ -258,17 +287,18 @@ export function LoginPage() {
               color="inherit"
               size="large"
               fullWidth
-              startIcon={<GoogleIcon sx={{ color: '#db4437' }} />}
+              startIcon={<GoogleGIcon size={20} />}
               onClick={handleGoogleSignIn}
               sx={{
                 borderRadius: 2.5,
                 py: 1.5,
-                borderColor: 'grey.300',
                 fontWeight: 'bold',
-                bgcolor: 'white',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'white',
+                color: 'text.primary',
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'grey.300',
                 '&:hover': {
-                  bgcolor: 'grey.50',
-                  borderColor: 'grey.400',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'grey.50',
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.4)' : 'grey.400',
                 },
               }}
             >

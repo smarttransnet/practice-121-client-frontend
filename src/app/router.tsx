@@ -18,6 +18,8 @@ import { RegisterPatientPage } from '../pages/RegisterPatientPage';
 import { CreatePatientPage } from '../pages/CreatePatientPage';
 import { PatientQueue } from '../pages/PatientQueue';
 import { BookAppointmentPage } from '../pages/BookAppointmentPage';
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
+import { ResetPasswordPage } from '../pages/ResetPasswordPage';
 
 const router = createHashRouter([
   { path: '/patient-queue', element: <PatientQueue /> },
@@ -26,6 +28,8 @@ const router = createHashRouter([
   { path: '/register', element: <RegisterPage /> },
   { path: '/register/patient', element: <RegisterPatientPage /> },
   { path: '/verify-otp', element: <OTPVerifyPage /> },
+  { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   { path: '/doctor/:id', element: <PublicProfilePage /> },
   {
     path: '/',

@@ -15,7 +15,7 @@ import {
 } from '@mui/material'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
-import MedicalServicesOutlinedIcon from '@mui/icons-material/MedicalServicesOutlined'
+import logoImg from '../assets/logo.png'
 
 export function RegisterPage() {
   const { register, error, clearError, isLoading } = useAuth()
@@ -71,9 +71,11 @@ export function RegisterPage() {
           maxWidth: 450,
           borderRadius: 4,
           backdropFilter: 'blur(10px)',
-          bgcolor: 'rgba(255, 255, 255, 0.95)',
+          bgcolor: 'background.paper',
+          color: 'text.primary',
           boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          border: '1px solid',
+          borderColor: 'divider',
           p: 2,
         }}
       >
@@ -81,29 +83,28 @@ export function RegisterPage() {
           <Stack spacing={3} alignItems="center">
             {/* Logo */}
             <Box
+              component="img"
+              src={logoImg}
+              alt="Practice121 Logo"
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 1.5,
-                borderRadius: '50%',
-                bgcolor: 'primary.main',
-                color: 'white',
+                width: 72,
+                height: 72,
+                borderRadius: 3,
+                objectFit: 'cover',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
               }}
-            >
-              <MedicalServicesOutlinedIcon fontSize="large" />
-            </Box>
+            />
 
             <Box textAlign="center">
               <Typography variant="h4" fontWeight="bold" color="primary.main" gutterBottom>
-                Doctor Portal
+                Practice121
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Register with your credentials. Remaining details can be completed progressively.
               </Typography>
             </Box>
 
-            <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+            <Box component="form" onSubmit={handleSubmit} autoComplete="off" sx={{ width: '100%' }}>
               <Stack spacing={2.5}>
                 {(validationError || error) && (
                   <Alert severity="error" sx={{ borderRadius: 2 }}>

@@ -14,7 +14,7 @@ import {
   Divider,
 } from '@mui/material'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
+
 import LogoutIcon from '@mui/icons-material/Logout'
 import PublicIcon from '@mui/icons-material/Public'
 
@@ -73,11 +73,7 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
     navigate('/settings/profile-edit', { state: { mode: 'edit' } })
   }
 
-  const handleSignInAs = async () => {
-    handleCloseMenu()
-    await logout()
-    navigate('/login')
-  }
+  
 
   const handleSignOut = async () => {
     handleCloseMenu()
@@ -118,9 +114,17 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
           p: isMobile ? 0.25 : 0.75,
           px: isMobile ? 0.25 : 1.25,
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-          bgcolor: open ? '#E8F0FE' : 'transparent',
+          bgcolor: (theme) =>
+            open
+              ? theme.palette.mode === 'dark'
+                ? 'rgba(255, 255, 255, 0.12)'
+                : 'rgba(143, 0, 255, 0.1)'
+              : 'transparent',
           '&:hover': {
-            bgcolor: open ? '#C2E7FF' : 'rgba(0, 0, 0, 0.04)',
+            bgcolor: (theme) =>
+              theme.palette.mode === 'dark'
+                ? 'rgba(255, 255, 255, 0.08)'
+                : 'rgba(0, 0, 0, 0.04)',
           },
           textAlign: 'left',
         }}
@@ -159,7 +163,7 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
                 title={user.fullName}
                 sx={{
                   fontWeight: 800,
-                  color: open ? '#001D35' : 'text.primary',
+                  color: 'text.primary',
                   lineHeight: 1.2,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -201,8 +205,13 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
             borderRadius: '24px', // Rounded Google style paper
             minWidth: 240,
             overflow: 'hidden',
-            bgcolor: '#FFFFFF',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.12)',
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            border: (theme) =>
+              theme.palette.mode === 'dark'
+                ? '1px solid rgba(255, 255, 255, 0.12)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
             zIndex: 1400,
             p: 1,
             '& .MuiMenuItem-root': {
@@ -215,7 +224,10 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
               color: 'text.primary',
               transition: 'all 0.2s ease',
               '&:hover': {
-                bgcolor: 'rgba(0, 0, 0, 0.04)',
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.08)'
+                    : 'rgba(0, 0, 0, 0.04)',
                 '& .profile-menu-circle': {
                   transform: 'scale(1.08)',
                 },
@@ -225,7 +237,16 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
         }}
       >
         {/* Top Header Card inside Dropdown */}
-        <Box sx={{ px: 2, py: 1.5, mb: 1, borderRadius: '16px', bgcolor: '#F8F9FA' }}>
+        <Box
+          sx={{
+            px: 2,
+            py: 1.5,
+            mb: 1,
+            borderRadius: '16px',
+            bgcolor: (theme) =>
+              theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : '#F8F9FA',
+          }}
+        >
           <Typography variant="body2" sx={{ fontWeight: 800, color: 'text.primary' }}>
             {user.fullName}
           </Typography>
@@ -234,7 +255,7 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
           </Typography>
         </Box>
 
-        <Divider sx={{ mb: 1, borderColor: 'rgba(0, 0, 0, 0.06)' }} />
+        <Divider sx={{ mb: 1, borderColor: 'divider' }} />
 
         {/* Edit Profile */}
         <MenuItem onClick={handleEditProfile}>
@@ -245,8 +266,8 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
                 width: 32,
                 height: 32,
                 borderRadius: '50%',
-                bgcolor: '#CEEAD6',
-                color: '#137333',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(16, 185, 129, 0.2)' : '#CEEAD6',
+                color: (theme) => theme.palette.mode === 'dark' ? '#34D399' : '#137333',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -273,8 +294,8 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
                 width: 32,
                 height: 32,
                 borderRadius: '50%',
-                bgcolor: '#E8F0FE',
-                color: '#1A73E8',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(37, 99, 235, 0.2)' : '#E8F0FE',
+                color: (theme) => theme.palette.mode === 'dark' ? '#60A5FA' : '#1A73E8',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -287,29 +308,6 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
           Public Profile
         </MenuItem>
 
-        {/* Sign in as */}
-        <MenuItem onClick={handleSignInAs}>
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <Box
-              className="profile-menu-circle"
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                bgcolor: '#E8DEF8',
-                color: '#65558F',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'transform 0.2s ease',
-              }}
-            >
-              <SwapHorizIcon sx={{ fontSize: 18 }} />
-            </Box>
-          </ListItemIcon>
-          Sign in as
-        </MenuItem>
-
         {/* Sign Out */}
         <MenuItem onClick={handleSignOut}>
           <ListItemIcon sx={{ minWidth: 40 }}>
@@ -319,8 +317,8 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
                 width: 32,
                 height: 32,
                 borderRadius: '50%',
-                bgcolor: '#FCE8E6',
-                color: '#D93025',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.2)' : '#FCE8E6',
+                color: (theme) => theme.palette.mode === 'dark' ? '#F87171' : '#D93025',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -330,7 +328,7 @@ export function ProfileDropdown({ isMobile = false }: ProfileDropdownProps) {
               <LogoutIcon sx={{ fontSize: 18 }} />
             </Box>
           </ListItemIcon>
-          <Typography variant="body2" sx={{ fontWeight: 600, color: '#D93025' }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: (theme) => theme.palette.mode === 'dark' ? '#F87171' : '#D93025' }}>
             Sign Out
           </Typography>
         </MenuItem>

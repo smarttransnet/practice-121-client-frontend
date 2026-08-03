@@ -8,6 +8,7 @@ import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation'
 import { isValidNic, normalizeNic } from '../utils/nicDecoder'
 import {
   Avatar,
+  Autocomplete,
   Box,
   Button,
   Card,
@@ -36,6 +37,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
+import { MEDICAL_QUALIFICATIONS } from '../data/medicalQualifications'
 
 interface QualificationItem {
   id?: string;
@@ -488,7 +490,7 @@ export function ProfileEditPage() {
               Edit Profile
             </Button>
           )}
-          <Stack component="form" onSubmit={handleSaveSubmit} spacing={4}>
+          <Stack component="form" onSubmit={handleSaveSubmit} autoComplete="off" spacing={4}>
 
             {saveError && (
               <Alert severity="error" sx={{ borderRadius: '12px' }}>
@@ -632,7 +634,36 @@ export function ProfileEditPage() {
                           {isEdit ? (
                             <Grid container spacing={2} alignItems="center">
                               <Grid size={{ xs: 12, sm: 5 }}>
-                                <TextField label="Qualification Name" fullWidth size="small" value={q.name} onChange={e => handleQualificationChange(idx, e.target.value)} />
+                                <Autocomplete
+                                  freeSolo
+                                  options={MEDICAL_QUALIFICATIONS}
+                                  getOptionLabel={(option) => typeof option === 'string' ? option : `${option.title} - ${option.fullName}`}
+                                  value={q.name}
+                                  onInputChange={(_, newValue) => handleQualificationChange(idx, newValue)}
+                                  onChange={(_, newValue) => {
+                                    if (typeof newValue === 'string') {
+                                      handleQualificationChange(idx, newValue)
+                                    } else if (newValue) {
+                                      handleQualificationChange(idx, newValue.title)
+                                    }
+                                  }}
+                                  renderInput={(params) => (
+                                    <TextField
+                                      {...params}
+                                      label="Qualification Name"
+                                      fullWidth
+                                      size="small"
+                                      placeholder="Type to search e.g. MBBS, MD, FRCP..."
+                                      slotProps={{
+                                        htmlInput: {
+                                          ...params.inputProps,
+                                          autoComplete: 'off',
+                                          spellCheck: true,
+                                        },
+                                      }}
+                                    />
+                                  )}
+                                />
                               </Grid>
                               <Grid size={{ xs: 12, sm: 5 }}>
                                 <Button component="label" variant="outlined" size="small" startIcon={<CloudUploadIcon />} fullWidth>
@@ -674,24 +705,40 @@ export function ProfileEditPage() {
                   '.ql-container': {
                     borderBottomLeftRadius: '8px',
                     borderBottomRightRadius: '8px',
-                    borderColor: 'rgba(0, 0, 0, 0.23)'
+                    borderColor: 'divider'
                   },
                   '.ql-toolbar': {
                     borderTopLeftRadius: '8px',
                     borderTopRightRadius: '8px',
-                    borderColor: 'rgba(0, 0, 0, 0.23)'
+                    borderColor: 'divider'
                   }
                 }}>
                   <ReactQuill theme="snow" value={bio} onChange={setBio} placeholder="Write something about yourself..." />
                 </Box>
               ) : (
-                <Box sx={{ p: 3, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 2 }}>
+                <Box sx={{ p: 3, bgcolor: 'action.hover', borderRadius: 2 }}>
                   {bio ? (
-                    <Box className="ql-snow" sx={{ '& .ql-editor': { p: 0, minHeight: 'auto', fontSize: '1rem', fontFamily: 'inherit' } }}>
+                    <Box className="ql-snow" sx={{
+                      '& .ql-editor': {
+                        p: 0,
+                        minHeight: 'auto',
+                        color: 'text.primary',
+                        lineHeight: 1.6,
+                        fontSize: '1rem',
+                        fontFamily: 'inherit',
+                        wordBreak: 'break-word',
+                        border: 'none',
+                      },
+                      '& .ql-editor *, & .ql-editor [style], & .ql-editor span, & .ql-editor p, & .ql-editor div, & .ql-editor li, & .ql-editor ul, & .ql-editor ol, & .ql-editor strong, & .ql-editor em, & .ql-editor u, & .ql-editor a, & .ql-editor h1, & .ql-editor h2, & .ql-editor h3, & .ql-editor h4, & .ql-editor h5, & .ql-editor h6': {
+                        backgroundColor: 'transparent !important',
+                        background: 'transparent !important',
+                        color: 'inherit !important',
+                      },
+                    }}>
                       <Box className="ql-editor" dangerouslySetInnerHTML={{ __html: bio }} />
                     </Box>
                   ) : (
-                    <Typography variant="body1" sx={{ lineHeight: 1.8 }}>No bio provided.</Typography>
+                    <Typography variant="body1" sx={{ lineHeight: 1.8, color: 'text.secondary' }}>No bio provided.</Typography>
                   )}
                 </Box>
               )}

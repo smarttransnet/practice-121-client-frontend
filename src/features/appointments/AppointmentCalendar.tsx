@@ -14,6 +14,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import BlockIcon from '@mui/icons-material/Block';
 import type { DayAvailability } from './appointmentApi';
+import { formatDisplayDateLong } from '../../utils/dateUtils';
 
 interface Props {
   availabilityMap: Record<string, DayAvailability>; // keyed by YYYY-MM-DD
@@ -44,7 +45,7 @@ export function AppointmentCalendar({ availabilityMap, selectedDate, onSelectDat
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const maxDate = new Date(today);
-  maxDate.setDate(today.getDate() + 27);
+  maxDate.setMonth(today.getMonth() + 3);
 
   const [currentMonth, setCurrentMonth] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1),
@@ -85,13 +86,13 @@ export function AppointmentCalendar({ availabilityMap, selectedDate, onSelectDat
   };
 
   return (
-    <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: 2.5, border: '1px solid #e5e7eb' }}>
+    <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, p: 2.5, border: '1px solid', borderColor: 'divider' }}>
       {/* Month navigation */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <IconButton size="small" onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))} disabled={!showPrev}>
           <ChevronLeftIcon />
         </IconButton>
-        <Typography variant="subtitle1" fontWeight={700}>
+        <Typography variant="subtitle1" fontWeight={700} color="text.primary">
           {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
         </Typography>
         <IconButton size="small" onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))} disabled={!showNext}>
@@ -158,20 +159,20 @@ export function AppointmentCalendar({ availabilityMap, selectedDate, onSelectDat
                       bgcolor: isSelected
                         ? 'primary.main'
                         : isAvailable
-                          ? 'rgba(143, 0, 255, 0.06)'
+                          ? 'rgba(143, 0, 255, 0.12)'
                           : 'transparent',
                       color: isSelected
                         ? '#fff'
                         : isAvailable
-                          ? '#8F00FF'
-                          : '#c4c4c4',
+                          ? 'primary.main'
+                          : 'text.disabled',
                       opacity: isPast || isInactive ? 0.3 : 1,
                       cursor: isAvailable ? 'pointer' : 'default',
                       '&:hover': {
                         bgcolor: isSelected
                           ? 'primary.dark'
                           : isAvailable
-                            ? 'rgba(143, 0, 255, 0.16)'
+                            ? 'rgba(143, 0, 255, 0.22)'
                             : 'transparent',
                       },
                       transition: 'all 0.2s',
@@ -219,7 +220,7 @@ export function AppointmentCalendar({ availabilityMap, selectedDate, onSelectDat
       {selectedDate && (
         <Box sx={{ mt: 2 }}>
           <Chip
-            label={`Selected: ${selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`}
+            label={`Selected: ${formatDisplayDateLong(selectedDate)}`}
             color="primary"
             variant="outlined"
             size="small"

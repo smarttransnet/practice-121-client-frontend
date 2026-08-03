@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Footer } from './Footer'
 import { Header } from './Header'
 import { LeftMenu } from './LeftMenu'
+import { AppBreadcrumbs } from '../components/AppBreadcrumbs'
 import { ProfileCompletionBanner } from '../features/auth/ProfileCompletionBanner'
 import { useAuth } from '../features/auth/useAuth'
 
@@ -106,6 +107,7 @@ export function AppLayout() {
             mx: 'auto',
           }}
         >
+          <AppBreadcrumbs />
           <ProfileCompletionBanner />
           <Outlet />
         </Box>

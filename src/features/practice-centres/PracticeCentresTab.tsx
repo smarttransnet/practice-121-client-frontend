@@ -17,8 +17,10 @@ export function PracticeCentresTab() {
     setLoading(true)
     setError('')
     try {
-      const res = await httpClient.get<Record<string, unknown>[]>('/api/practice-centres')
-      const mapped: PracticeCentre[] = res.data.map(item => ({
+      const res = await httpClient.get<any>('/api/practice-centres')
+      const raw = res.data?.value || res.data?.$values || res.data || []
+      const list = Array.isArray(raw) ? raw : []
+      const mapped: PracticeCentre[] = list.map((item: any) => ({
         id: item.id as string,
         placeId: item.placeId as string,
         placeName: (item.placeName as string) || '',

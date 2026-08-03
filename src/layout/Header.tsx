@@ -1,19 +1,16 @@
 import MenuIcon from '@mui/icons-material/Menu'
-import SearchIcon from '@mui/icons-material/Search'
-import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined'
-import MailOutlineOutlinedIcon from '@mui/icons-material/MailOutlineOutlined'
-import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined'
+
 import { 
   AppBar, 
   Box, 
   IconButton, 
   Toolbar, 
   Typography, 
-  InputBase, 
-  Stack, 
-  Badge 
+  Stack 
 } from '@mui/material'
+import { NavLink } from 'react-router-dom'
 import { ProfileDropdown } from './ProfileDropdown'
+import logoImg from '../assets/logo.png'
 
 type HeaderProps = {
   onOpenMobileMenu: () => void
@@ -45,9 +42,34 @@ export function Header({ onOpenMobileMenu, onToggleSidebar, isMobile = false }: 
             <MenuIcon />
           </IconButton>
           
-          <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>
-            Practice121
-          </Typography>
+          <Box
+            component={NavLink}
+            to="/dashboard"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              textDecoration: 'none',
+              cursor: 'pointer',
+              '&:hover': { opacity: 0.8 },
+            }}
+          >
+            <Box
+              component="img"
+              src={logoImg}
+              alt="Practice121 Logo"
+              sx={{ width: 28, height: 28, borderRadius: '6px', objectFit: 'cover' }}
+            />
+            <Typography
+              variant="subtitle2"
+              sx={{
+                fontWeight: 900,
+                color: 'text.primary',
+              }}
+            >
+              Practice121
+            </Typography>
+          </Box>
 
           <ProfileDropdown isMobile />
         </Toolbar>
@@ -78,84 +100,15 @@ export function Header({ onOpenMobileMenu, onToggleSidebar, isMobile = false }: 
         >
           <MenuIcon />
         </IconButton>
-        
-        {/* Search Input Bar (mockup style) */}
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            bgcolor: 'rgba(255, 255, 255, 0.5)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.6)',
-            borderRadius: '50px',
-            px: 2,
-            py: 0.75,
-            width: 320,
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
-            transition: 'all 0.25s ease',
-            '&:focus-within': {
-              bgcolor: 'rgba(255, 255, 255, 0.8)',
-              boxShadow: '0 4px 24px rgba(143, 0, 255, 0.06)',
-              width: 360,
-            }
-          }}
-        >
-        <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-        <InputBase 
-          placeholder="Search..." 
-          fullWidth
-          sx={{ 
-            fontSize: '0.875rem', 
-            fontWeight: 500,
-            '& input::placeholder': {
-              color: 'text.secondary',
-              opacity: 0.8
-            }
-          }} 
-        />
-        <IconButton size="small" sx={{ color: 'text.secondary' }}>
-          <TuneOutlinedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-      </Box>
       </Box>
 
       {/* Right Side: Icons and Profile */}
       <Stack direction="row" spacing={2.5} alignItems="center">
         {/* Rounded Action Icons */}
         <Stack direction="row" spacing={1.5}>
-          <IconButton 
-            sx={{ 
-              bgcolor: 'rgba(255, 255, 255, 0.6)', 
-              border: '1px solid rgba(255, 255, 255, 0.7)',
-              width: 40,
-              height: 40,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)',
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                transform: 'scale(1.05)',
-              }
-            }}
-          >
-            <MailOutlineOutlinedIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
-          </IconButton>
+
           
-          <IconButton 
-            sx={{ 
-              bgcolor: 'rgba(255, 255, 255, 0.6)', 
-              border: '1px solid rgba(255, 255, 255, 0.7)',
-              width: 40,
-              height: 40,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)',
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                transform: 'scale(1.05)',
-              }
-            }}
-          >
-            <Badge color="error" variant="dot" overlap="circular">
-              <NotificationsNoneOutlinedIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
-            </Badge>
-          </IconButton>
+
         </Stack>
 
         <ProfileDropdown />

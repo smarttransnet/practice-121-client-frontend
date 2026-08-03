@@ -17,12 +17,14 @@ import {
   Chip,
   Paper,
   CircularProgress,
+  Grid,
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { AppointmentCalendar } from '../features/appointments/AppointmentCalendar';
 import { PatientLookupStep, type PatientRecord } from '../features/appointments/PatientLookupStep';
 import { getCentreAvailability, bookAppointment, type DayAvailability } from '../features/appointments/appointmentApi';
@@ -50,24 +52,9 @@ interface DoctorInfo {
   profilePictureUrl?: string;
 }
 
+import { formatDisplayDate, formatDisplayDateLong, formatIsoDate } from '../utils/dateUtils';
+
 const STEPS = ['Select Date', 'Your Details', 'Confirm'];
-
-function formatDateLocal(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-function formatDisplayDate(dateStr: string): string {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
 
 export function BookAppointmentPage() {
   const { doctorId, centreId } = useParams<{ doctorId: string; centreId: string }>();
@@ -87,6 +74,7 @@ export function BookAppointmentPage() {
   const [availability, setAvailability] = useState<DayAvailability[]>([]);
   const [availLoading, setAvailLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
   const [confirmedPatient, setConfirmedPatient] = useState<PatientRecord | null>(null);
   const [initialMobile, setInitialMobile] = useState<string | null>(null);
@@ -103,6 +91,52 @@ export function BookAppointmentPage() {
     });
     return map;
   }, [availability]);
+
+  // Compute active sessions for selected date
+  const availableSessions = useMemo(() => {
+    if (!selectedDate || !centre?.sessionGroups) return [];
+    const dayAbbr = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][selectedDate.getDay()];
+    const sessions: { id: string; name: string; timeRange: string }[] = [];
+
+    centre.sessionGroups.forEach((group) => {
+      const isDayActive = group.daysOfWeek?.some(d => d.toUpperCase() === dayAbbr);
+      if (isDayActive) {
+        if (group.timeBlocks && group.timeBlocks.length > 0) {
+          group.timeBlocks.forEach((tb) => {
+            sessions.push({
+              id: tb.id,
+              name: tb.label || 'Session',
+              timeRange: `${tb.startTime} - ${tb.endTime}`,
+            });
+          });
+        } else {
+          sessions.push({
+            id: group.id,
+            name: 'Scheduled Session',
+            timeRange: 'Regular Practice Hours',
+          });
+        }
+      }
+    });
+    return sessions;
+  }, [selectedDate, centre]);
+
+  // Auto-select session if only 1 exists, or when date changes
+  useEffect(() => {
+    if (availableSessions.length === 1) {
+      setSelectedSessionId(availableSessions[0].id);
+    } else if (availableSessions.length > 1) {
+      if (!selectedSessionId || !availableSessions.some(s => s.id === selectedSessionId)) {
+        setSelectedSessionId(null);
+      }
+    } else {
+      setSelectedSessionId(null);
+    }
+  }, [availableSessions]);
+
+  const selectedSession = useMemo(() => {
+    return availableSessions.find(s => s.id === selectedSessionId) ?? null;
+  }, [availableSessions, selectedSessionId]);
 
   // Load doctor + centre info
   useEffect(() => {
@@ -192,7 +226,9 @@ export function BookAppointmentPage() {
         patientMobile: confirmedPatient.mobileNumber,
         doctorAccountId: doctorId,
         practiceCentreId: centreId,
-        visitDate: formatDateLocal(selectedDate),
+        visitDate: formatIsoDate(selectedDate),
+        patientId: confirmedPatient.id,
+        sessionId: selectedSessionId ?? undefined,
       });
       setBookingResult(result);
     } catch (err: any) {
@@ -205,7 +241,7 @@ export function BookAppointmentPage() {
   const doctorName = doctor?.fullName ?? locationState?.doctorName ?? 'Doctor';
   const clinicName = centre?.clinicName ?? locationState?.clinicName ?? 'Clinic';
   const pageTitle = `Book Appointment – ${doctorName} at ${clinicName}`;
-  const returnUrl = `/book/${doctorId}/centre/${centreId}${selectedDate ? `?returnDate=${formatDateLocal(selectedDate)}` : ''}`;
+  const returnUrl = `/book/${doctorId}/centre/${centreId}${selectedDate ? `?returnDate=${formatIsoDate(selectedDate)}` : ''}`;
 
   // --- Success screen ---
   if (bookingResult) {
@@ -305,7 +341,7 @@ export function BookAppointmentPage() {
       <title>{pageTitle}</title>
       <meta name="description" content={`Book an appointment with ${doctorName} at ${clinicName}. Choose an available date and confirm your slot online.`} />
 
-      <Box sx={{ minHeight: '100vh', bgcolor: '#F8F9FA' }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         {/* Header Banner */}
         <Box sx={{ height: 140, background: 'linear-gradient(135deg, #8F00FF 0%, #B854FF 100%)', position: 'relative' }}>
           <Container maxWidth="md" sx={{ height: '100%', display: 'flex', alignItems: 'flex-end', pb: 2 }}>
@@ -373,10 +409,54 @@ export function BookAppointmentPage() {
                     />
                   )}
 
+                  {selectedDate && availableSessions.length > 0 && (
+                    <Box sx={{ mt: 3, p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                      <Typography variant="subtitle2" fontWeight={700} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <AccessTimeIcon color="primary" fontSize="small" /> 
+                        {availableSessions.length > 1 ? 'Multiple Sessions Available – Select a Session' : 'Available Session'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" mb={2}>
+                        {availableSessions.length > 1 
+                          ? 'Please choose your preferred session time before continuing.' 
+                          : 'Your appointment will be assigned to the scheduled session below.'}
+                      </Typography>
+                      <Grid container spacing={1.5}>
+                        {availableSessions.map((session) => {
+                          const isSelected = selectedSessionId === session.id;
+                          return (
+                            <Grid key={session.id} size={{ xs: 12, sm: 6 }}>
+                              <Paper
+                                variant="outlined"
+                                onClick={() => setSelectedSessionId(session.id)}
+                                sx={{
+                                  p: 2,
+                                  borderRadius: 3,
+                                  cursor: 'pointer',
+                                  border: '2px solid',
+                                  borderColor: isSelected ? 'primary.main' : 'divider',
+                                  bgcolor: isSelected ? 'rgba(143, 0, 255, 0.05)' : 'transparent',
+                                  transition: 'all 0.2s',
+                                  '&:hover': { borderColor: 'primary.main' },
+                                }}
+                              >
+                                <Typography variant="subtitle2" fontWeight={700} color={isSelected ? 'primary.main' : 'text.primary'}>
+                                  {session.name}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {session.timeRange}
+                                </Typography>
+                              </Paper>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
+                    </Box>
+                  )}
+
                   <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
                     <Button
                       variant="contained"
-                      disabled={!selectedDate}
+                      disabled={!selectedDate || (availableSessions.length > 1 && !selectedSessionId)}
                       onClick={() => setActiveStep(1)}
                       sx={{ borderRadius: 6, px: 4, textTransform: 'none', fontWeight: 700 }}
                     >
@@ -440,9 +520,20 @@ export function BookAppointmentPage() {
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">Visit Date</Typography>
                         <Typography variant="body2" fontWeight={600}>
-                          {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                          {formatDisplayDateLong(selectedDate)}
                         </Typography>
                       </Box>
+                      {selectedSession && (
+                        <>
+                          <Divider />
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="body2" color="text.secondary">Session</Typography>
+                            <Typography variant="body2" fontWeight={600}>
+                              {selectedSession.name} ({selectedSession.timeRange})
+                            </Typography>
+                          </Box>
+                        </>
+                      )}
                       <Divider />
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">Patient</Typography>

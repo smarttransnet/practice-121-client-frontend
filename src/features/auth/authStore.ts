@@ -40,14 +40,16 @@ type AuthState = {
   isLoading: boolean
   error: string | null
 
-  login: (email: string, password: string) => Promise<string>
+  login: (email: string, password: string) => Promise<UserProfile>
   register: (name: string, email: string, password: string) => Promise<string>
-  googleLogin: (idToken: string) => Promise<string>
+  googleLogin: (idToken: string) => Promise<UserProfile>
   verifyOtp: (code: string) => Promise<UserProfile>
   resendOtp: () => Promise<void>
   logout: () => Promise<void>
   fetchProfile: () => Promise<UserProfile>
   updateProfile: (data: any) => Promise<void>
+  forgotPassword: (email: string) => Promise<string>
+  resetPassword: (accountId: string, token: string, newPassword: string, confirmPassword: string) => Promise<string>
   clearError: () => void
 }
 
@@ -84,9 +86,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await httpClient.post('/api/auth/login', { email, password })
       const resData = response.data
       if (resData.success) {
-        const { accountId, otpSessionId } = resData.data
-        set({ otpSessionId, otpAccountId: accountId, isLoading: false })
-        return otpSessionId
+        const { accessToken, profileCompletionStatus, accountId, email: userEmail, fullName } = resData.data
+        
+        localStorage.setItem('token', accessToken)
+        const userObj: UserProfile = {
+          accountId,
+          email: userEmail,
+          fullName,
+          completionStatus: profileCompletionStatus,
+        }
+        localStorage.setItem('user', JSON.stringify(userObj))
+        
+        httpClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`
+
+        set({
+          token: accessToken,
+          user: userObj,
+          isAuthenticated: true,
+          otpSessionId: null,
+          otpAccountId: null,
+          isLoading: false,
+        })
+        return userObj
       } else {
         throw new Error(resData.error?.message ?? 'Login failed')
       }
@@ -122,9 +143,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await httpClient.post('/api/auth/google', { idToken })
       const resData = response.data
       if (resData.success) {
-        const { accountId, otpSessionId } = resData.data
-        set({ otpSessionId, otpAccountId: accountId, isLoading: false })
-        return otpSessionId
+        const { accessToken, profileCompletionStatus, accountId, email, fullName } = resData.data
+        
+        localStorage.setItem('token', accessToken)
+        const userObj: UserProfile = {
+          accountId,
+          email,
+          fullName,
+          completionStatus: profileCompletionStatus,
+        }
+        localStorage.setItem('user', JSON.stringify(userObj))
+        
+        httpClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`
+
+        set({
+          token: accessToken,
+          user: userObj,
+          isAuthenticated: true,
+          otpSessionId: null,
+          otpAccountId: null,
+          isLoading: false,
+        })
+        return userObj
       } else {
         throw new Error(resData.error?.message ?? 'Google Login failed')
       }
@@ -281,6 +321,46 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } catch (err: any) {
       const message = err.response?.data?.error?.message ?? err.message ?? 'Update profile failed'
+      set({ error: message, isLoading: false })
+      throw new Error(message)
+    }
+  },
+  forgotPassword: async (email) => {
+    set({ isLoading: true, error: null })
+    try {
+      const response = await httpClient.post('/api/auth/forgot-password', { email })
+      const resData = response.data
+      if (resData.success) {
+        set({ isLoading: false })
+        return resData.data as string
+      } else {
+        throw new Error(resData.error?.message ?? 'Request failed')
+      }
+    } catch (err: any) {
+      const message = err.response?.data?.error?.message ?? err.message ?? 'Request failed'
+      set({ error: message, isLoading: false })
+      throw new Error(message)
+    }
+  },
+
+  resetPassword: async (accountId, token, newPassword, confirmPassword) => {
+    set({ isLoading: true, error: null })
+    try {
+      const response = await httpClient.post('/api/auth/reset-password', {
+        accountId,
+        token,
+        newPassword,
+        confirmPassword,
+      })
+      const resData = response.data
+      if (resData.success) {
+        set({ isLoading: false })
+        return resData.data as string
+      } else {
+        throw new Error(resData.error?.message ?? 'Reset failed')
+      }
+    } catch (err: any) {
+      const message = err.response?.data?.error?.message ?? err.message ?? 'Reset failed'
       set({ error: message, isLoading: false })
       throw new Error(message)
     }

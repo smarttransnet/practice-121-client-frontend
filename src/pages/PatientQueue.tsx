@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -27,10 +27,11 @@ import {
   CircularProgress,
   Alert,
   Tooltip,
-  ButtonBase
+  ButtonBase,
+  Stack,
 } from '@mui/material';
-import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AppBreadcrumbs } from '../components/AppBreadcrumbs';
 import AddIcon from '@mui/icons-material/Add';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CheckIcon from '@mui/icons-material/Check';
@@ -39,9 +40,12 @@ import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import SettingsPhoneIcon from '@mui/icons-material/SettingsPhone';
 import StarRateIcon from '@mui/icons-material/StarRate';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { httpClient } from '../api/httpClient';
 import {
   getPatientQueue,
@@ -51,10 +55,25 @@ import {
   getPatientByMobile,
   searchPatients,
   updatePatientMobile,
+  sendPatientOtp,
+  verifyPatientOtp,
+  resendPatientOtp,
   type PatientQueueTicket,
   type Patient
 } from '../features/patient-queue/patientQueueApi';
 import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation';
+import { formatDisplayDate, formatDisplayDateLong } from '../utils/dateUtils';
+import { FamilyPatientSelector } from '../features/patients/FamilyPatientSelector';
+import { AddChildModal } from '../features/patients/AddChildModal';
+import { OtpVerificationDialog } from '../components/OtpVerificationDialog';
+
+interface DaySessionInfo {
+  id: string;
+  label: string;
+  timeRange: string;
+  startTime: string;
+  endTime: string;
+}
 
 interface TimeBlock {
   id: string;
@@ -137,12 +156,12 @@ const CalendarPicker = ({
   const showNext = currentMonth.getFullYear() < maxDate.getFullYear() || currentMonth.getMonth() < maxDate.getMonth();
 
   return (
-    <Box sx={{ width: '100%', bgcolor: '#ffffff', borderRadius: 3, p: 2, border: '1px solid #e0e0e0' }}>
+    <Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 3, p: 2, border: '1px solid', borderColor: 'divider' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <IconButton size="small" onClick={handlePrevMonth} disabled={!showPrev}>
           <ChevronLeftIcon />
         </IconButton>
-        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
           {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
         </Typography>
         <IconButton size="small" onClick={handleNextMonth} disabled={!showNext}>
@@ -186,19 +205,19 @@ const CalendarPicker = ({
                   bgcolor: isSelected 
                     ? 'primary.main' 
                     : isSelectable 
-                      ? 'rgba(143, 0, 255, 0.06)' 
+                      ? 'rgba(143, 0, 255, 0.12)' 
                       : 'transparent',
                   color: isSelected 
                     ? '#ffffff' 
                     : isSelectable 
-                      ? '#8F00FF' 
-                      : '#b0b0b0',
+                      ? 'primary.main' 
+                      : 'text.disabled',
                   opacity: isSelectable ? 1 : 0.4,
                   '&:hover': {
                     bgcolor: isSelected 
                       ? 'primary.dark' 
                       : isSelectable 
-                        ? 'rgba(143, 0, 255, 0.15)' 
+                        ? 'rgba(143, 0, 255, 0.22)' 
                         : 'transparent',
                   },
                   transition: 'all 0.2s'
@@ -240,9 +259,36 @@ export const PatientQueue = () => {
   const [searchFirstName, setSearchFirstName] = useState('');
   const [searchLastName, setSearchLastName] = useState('');
   const [searchNic, setSearchNic] = useState('');
+  const [primaryPatientRecord, setPrimaryPatientRecord] = useState<Patient | null>(null);
+  const [verifiedChildren, setVerifiedChildren] = useState<Patient[]>([]);
   const [verifiedPatient, setVerifiedPatient] = useState<Patient | null>(null);
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [verificationLoading, setVerificationLoading] = useState(false);
+  const [openAddChildModal, setOpenAddChildModal] = useState(false);
+
+  const [openOtpDialogQueue, setOpenOtpDialogQueue] = useState(false);
+  const [otpSessionIdQueue, setOtpSessionIdQueue] = useState<string>('');
+  const [maskedMobileQueue, setMaskedMobileQueue] = useState<string>('');
+  const [pendingMobileQueue, setPendingMobileQueue] = useState<string>('');
+
+  const handleOtpVerifiedQueue = async (verificationToken: string) => {
+    try {
+      setVerificationLoading(true);
+      const lookupResult = await getPatientByMobile(pendingMobileQueue, verificationToken);
+      if (lookupResult) {
+        setPrimaryPatientRecord(lookupResult.primaryPatient);
+        setVerifiedChildren(lookupResult.children || []);
+        setVerifiedPatient(lookupResult.primaryPatient);
+        setDialogMode('verify');
+      } else {
+        setDialogMode('notFound');
+      }
+    } catch (err: any) {
+      setAddError(err.response?.data?.detail || err.message || 'Failed to load patient after OTP verification.');
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
 
   // Drag and drop state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -250,7 +296,66 @@ export const PatientQueue = () => {
   // Future Booking Date states
   const [availableDates, setAvailableDates] = useState<Date[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+<<<<<<< HEAD
   const [selectedSessionId, setSelectedSessionId] = useState<string>('');
+=======
+  const [selectedSessionId, setSelectedSessionId] = useState<string>('ALL');
+  const [targetSessionId, setTargetSessionId] = useState<string>('');
+
+  // Compute active sessions for the selected date
+  const daySessions = useMemo<DaySessionInfo[]>(() => {
+    if (!selectedDate || !selectedCentre?.sessionGroups) return [];
+    const dayAbbr = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][selectedDate.getDay()];
+    const sessions: DaySessionInfo[] = [];
+
+    selectedCentre.sessionGroups.forEach((group) => {
+      const isDayActive = group.daysOfWeek?.some(d => d.toUpperCase() === dayAbbr);
+      if (isDayActive) {
+        if (group.timeBlocks && group.timeBlocks.length > 0) {
+          group.timeBlocks.forEach((tb) => {
+            sessions.push({
+              id: tb.id,
+              label: tb.label || 'Session',
+              timeRange: `${tb.startTime} - ${tb.endTime}`,
+              startTime: tb.startTime,
+              endTime: tb.endTime,
+            });
+          });
+        } else {
+          sessions.push({
+            id: group.id,
+            label: 'Scheduled Session',
+            timeRange: 'Regular Practice Hours',
+            startTime: '09:00',
+            endTime: '17:00',
+          });
+        }
+      }
+    });
+    return sessions;
+  }, [selectedDate, selectedCentre]);
+
+  useEffect(() => {
+    setSelectedSessionId('ALL');
+    if (daySessions.length > 0) {
+      setTargetSessionId(daySessions[0].id);
+    } else {
+      setTargetSessionId('');
+    }
+  }, [selectedCentre, selectedDate, daySessions]);
+
+  const getSessionTickets = (sessionId: string) => {
+    if (sessionId === 'ALL' || daySessions.length <= 1) return queue;
+    const sessionIndex = daySessions.findIndex((s: DaySessionInfo) => s.id === sessionId);
+    if (sessionIndex === -1) return queue;
+    return queue.filter((t, idx) => {
+      if (t.sessionId) {
+        return t.sessionId === sessionId;
+      }
+      return idx % daySessions.length === sessionIndex;
+    });
+  };
+>>>>>>> origin/main
 
   const getDayString = (date: Date) => {
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -315,8 +420,9 @@ export const PatientQueue = () => {
     }
   }, [selectedCentre]);
 
-  // Fetch queue when selected practice centre or selected date changes
+  // Fetch queue & subscribe to real-time SignalR push notifications + 5s polling fallback
   useEffect(() => {
+<<<<<<< HEAD
     if (selectedCentre && selectedDate) {
       const dateStr = formatDateLocal(selectedDate);
       fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
@@ -335,7 +441,48 @@ export const PatientQueue = () => {
     } else {
       setQueue([]);
       setSelectedSessionId('');
+=======
+    if (!selectedCentre || !selectedDate) {
+      setQueue([]);
+      return;
+>>>>>>> origin/main
     }
+
+    const dateStr = formatDateLocal(selectedDate);
+    fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+
+    // 1. Setup 5-second polling interval fallback
+    const intervalId = setInterval(() => {
+      fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+    }, 5000);
+
+    // 2. Setup SignalR WebSocket connection for instant zero-latency push updates
+    const apiBase = httpClient.defaults.baseURL || 'https://practice121-api-687271578749.asia-southeast1.run.app';
+    const hubUrl = `${apiBase.replace(/\/$/, '')}/api/hubs/patient-queue`;
+
+    const connection = new HubConnectionBuilder()
+      .withUrl(hubUrl)
+      .withAutomaticReconnect()
+      .build();
+
+    connection.start()
+      .then(() => {
+        connection.invoke('JoinQueueGroup', selectedCentre.id).catch(() => {});
+        connection.on('QueueUpdated', (data: any) => {
+          if (!data || !data.practiceCentreId || String(data.practiceCentreId).toLowerCase() === String(selectedCentre.id).toLowerCase()) {
+            fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+          }
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      clearInterval(intervalId);
+      if (connection.state === HubConnectionState.Connected) {
+        connection.invoke('LeaveQueueGroup', selectedCentre.id).catch(() => {});
+        connection.stop().catch(() => {});
+      }
+    };
   }, [selectedCentre, selectedDate]);
 
   // Handle registeredMobile redirect callback from patient registration
@@ -411,10 +558,16 @@ export const PatientQueue = () => {
           return;
         }
         const normalizedMobile = normalizeLkMobile(trimmedMobile) ?? trimmedMobile;
-        const patient = await getPatientByMobile(normalizedMobile);
-        if (patient) {
-          setVerifiedPatient(patient);
-          setDialogMode('verify');
+        const otpSendRes = await sendPatientOtp(normalizedMobile);
+        if (otpSendRes.patientExists && otpSendRes.sessionId) {
+          setOtpSessionIdQueue(otpSendRes.sessionId);
+          setMaskedMobileQueue(otpSendRes.maskedMobile || normalizedMobile);
+          setPendingMobileQueue(normalizedMobile);
+          setOpenOtpDialogQueue(true);
+          return;
+        }
+        if (!hasAdvancedSearchTerms) {
+          setDialogMode('notFound');
           return;
         }
       }
@@ -451,15 +604,15 @@ export const PatientQueue = () => {
       setAddError(null);
       
       const newMobile = normalizeLkMobile(patientMobile) ?? patientMobile.trim();
+      let updatedPatient = patient;
       if (newMobile && newMobile !== patient.mobileNumber) {
         // Update mobile in database to link
         await updatePatientMobile(patient.id, newMobile);
-        const updatedPatient = { ...patient, mobileNumber: newMobile };
-        setVerifiedPatient(updatedPatient);
-      } else {
-        // Keep their current mobile number if newMobile is empty
-        setVerifiedPatient(patient);
+        updatedPatient = { ...patient, mobileNumber: newMobile };
       }
+      setPrimaryPatientRecord(updatedPatient);
+      setVerifiedChildren([]);
+      setVerifiedPatient(updatedPatient);
       setDialogMode('verify');
     } catch (err: any) {
       console.error(err);
@@ -478,9 +631,12 @@ export const PatientQueue = () => {
     setSearchFirstName('');
     setSearchLastName('');
     setSearchNic('');
+    setPrimaryPatientRecord(null);
+    setVerifiedChildren([]);
     setVerifiedPatient(null);
     setSearchResults([]);
     setAddError(null);
+    setOpenAddChildModal(false);
   };
 
   const handleAddTicket = async (e: React.FormEvent) => {
@@ -490,19 +646,37 @@ export const PatientQueue = () => {
     try {
       setSubmitting(true);
       setAddError(null);
+
+      // Client-side duplicate check for the same session
+      const targetSessionTickets = targetSessionId ? getSessionTickets(targetSessionId) : queue;
+      const isAlreadyInSession = targetSessionTickets.some(t => {
+        if (t.status >= 4) return false; // Completed, Cancelled, No Show allowed
+        if (verifiedPatient.id && t.patientId) {
+          return t.patientId === verifiedPatient.id;
+        }
+        return false;
+      });
+
+      if (isAlreadyInSession) {
+        const patientDisplayName = `${verifiedPatient.firstName} ${verifiedPatient.lastName || ''}`.trim();
+        setAddError(`Patient (${patientDisplayName}) is already in the queue for this session.`);
+        setSubmitting(false);
+        return;
+      }
+
       await addPatientQueueTicket({
-        patientMobile: verifiedPatient.mobileNumber,
+        patientMobile: primaryPatientRecord?.mobileNumber || verifiedPatient.mobileNumber,
+        patientId: verifiedPatient.id,
         doctorId: selectedCentre.doctorId,
         practiceCentreId: selectedCentre.id,
         priority: priority,
-        visitDate: selectedDate ? formatDateLocal(selectedDate) : undefined,
-        sessionId: selectedSessionId || undefined
+        sessionId: targetSessionId || selectedSessionId || undefined
       });
       handleCloseAddModal();
       refreshQueue();
     } catch (err: any) {
       console.error(err);
-      setAddError(err.message || 'Failed to add patient to queue');
+      setAddError(err.userFriendlyMessage || err.response?.data?.detail || err.message || 'Failed to add patient to queue');
     } finally {
       setSubmitting(false);
     }
@@ -550,6 +724,50 @@ export const PatientQueue = () => {
     }
   };
 
+  const handleMoveUp = async (ticketIndex: number, currentList: PatientQueueTicket[]) => {
+    if (ticketIndex <= 0) return;
+    const itemToMove = currentList[ticketIndex];
+    const prevItem = currentList[ticketIndex - 1];
+
+    const mainIndex = queue.findIndex(t => t.id === itemToMove.id);
+    const mainPrevIndex = queue.findIndex(t => t.id === prevItem.id);
+    if (mainIndex === -1 || mainPrevIndex === -1) return;
+
+    const newQueue = [...queue];
+    const [moved] = newQueue.splice(mainIndex, 1);
+    newQueue.splice(mainPrevIndex, 0, moved);
+
+    setQueue(newQueue);
+    try {
+      await reorderPatientQueue(newQueue.map(t => t.id));
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Failed to reorder queue');
+    }
+  };
+
+  const handleMoveDown = async (ticketIndex: number, currentList: PatientQueueTicket[]) => {
+    if (ticketIndex >= currentList.length - 1) return;
+    const itemToMove = currentList[ticketIndex];
+    const nextItem = currentList[ticketIndex + 1];
+
+    const mainIndex = queue.findIndex(t => t.id === itemToMove.id);
+    const mainNextIndex = queue.findIndex(t => t.id === nextItem.id);
+    if (mainIndex === -1 || mainNextIndex === -1) return;
+
+    const newQueue = [...queue];
+    const [moved] = newQueue.splice(mainIndex, 1);
+    newQueue.splice(mainNextIndex, 0, moved);
+
+    setQueue(newQueue);
+    try {
+      await reorderPatientQueue(newQueue.map(t => t.id));
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Failed to reorder queue');
+    }
+  };
+
   const getPriorityChip = (prio: number) => {
     switch (prio) {
       case 2: // Emergency
@@ -582,39 +800,262 @@ export const PatientQueue = () => {
     }
   };
 
+  const renderQueueList = (ticketsList: PatientQueueTicket[]) => (
+    <Box sx={{ width: '100%' }}>
+      {/* Mobile Touch-Friendly Card View (< 900px / md) */}
+      <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2 }}>
+        {ticketsList.map((ticket, index) => (
+          <Card
+            key={ticket.id}
+            variant="outlined"
+            sx={{
+              p: 2,
+              borderRadius: 3,
+              borderColor: 'divider',
+              backgroundColor: draggedIndex === index ? 'action.hover' : 'background.paper',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                {/* Touch-Friendly Move Up/Down Buttons */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', bgcolor: 'action.hover', borderRadius: 2, p: 0.25 }}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleMoveUp(index, ticketsList)}
+                    disabled={index === 0}
+                    sx={{ p: 0.25 }}
+                    title="Move Up"
+                  >
+                    <KeyboardArrowUpIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleMoveDown(index, ticketsList)}
+                    disabled={index === ticketsList.length - 1}
+                    sx={{ p: 0.25 }}
+                    title="Move Down"
+                  >
+                    <KeyboardArrowDownIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+                <Chip
+                  label={`#${index + 1}`}
+                  color="primary"
+                  sx={{ fontWeight: 800, fontSize: '1rem', height: 32, px: 0.5 }}
+                />
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                    {ticket.patientName}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {ticket.patientMobile}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box>{getPriorityChip(ticket.priority)}</Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+              <Box>{getStatusChip(ticket.status)}</Box>
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                {ticket.status === 0 && (
+                  <IconButton color="secondary" size="small" onClick={() => handleUpdateStatus(ticket.id, 1)}>
+                    <CheckIcon fontSize="small" />
+                  </IconButton>
+                )}
+                {(ticket.status === 0 || ticket.status === 1) && (
+                  <IconButton color="warning" size="small" onClick={() => handleUpdateStatus(ticket.id, 2)}>
+                    <RecordVoiceOverIcon fontSize="small" />
+                  </IconButton>
+                )}
+                {ticket.status === 2 && (
+                  <IconButton color="info" size="small" onClick={() => handleUpdateStatus(ticket.id, 3)}>
+                    <PlayArrowIcon fontSize="small" />
+                  </IconButton>
+                )}
+                {ticket.status === 3 && (
+                  <IconButton color="success" size="small" onClick={() => handleUpdateStatus(ticket.id, 4)}>
+                    <CheckIcon fontSize="small" />
+                  </IconButton>
+                )}
+                {ticket.status < 4 && (
+                  <>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      sx={{ textTransform: 'none', px: 1, py: 0.25, fontSize: '0.75rem', borderRadius: 2 }}
+                      onClick={() => handleUpdateStatus(ticket.id, 6)}
+                    >
+                      No Show
+                    </Button>
+                    <IconButton color="error" size="small" onClick={() => handleUpdateStatus(ticket.id, 5)}>
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </>
+                )}
+              </Box>
+            </Box>
+          </Card>
+        ))}
+      </Box>
+
+      {/* Desktop Table View (>= 900px / md) */}
+      <TableContainer component={Paper} sx={{ display: { xs: 'none', md: 'block' }, boxShadow: 'none', background: 'transparent' }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ width: 80, fontWeight: 700 }}>Arrange</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>No.</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Patient Name</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Mobile</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Priority</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 700, textAlign: 'right' }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {ticketsList.map((ticket, index) => (
+              <TableRow
+                key={ticket.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                sx={{
+                  '&:last-child td, &:last-child th': { border: 0 },
+                  opacity: draggedIndex === index ? 0.5 : 1,
+                  backgroundColor: draggedIndex === index ? 'rgba(0,0,0,0.05)' : 'inherit',
+                  transition: 'opacity 0.2s, background-color 0.2s',
+                }}
+              >
+                <TableCell sx={{ width: 80 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleMoveUp(index, ticketsList)}
+                      disabled={index === 0}
+                      title="Move Up"
+                    >
+                      <KeyboardArrowUpIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleMoveDown(index, ticketsList)}
+                      disabled={index === ticketsList.length - 1}
+                      title="Move Down"
+                    >
+                      <KeyboardArrowDownIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+                  #{index + 1}
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{ticket.patientName}</TableCell>
+                <TableCell>{ticket.patientMobile}</TableCell>
+                <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
+                <TableCell>{getStatusChip(ticket.status)}</TableCell>
+                <TableCell sx={{ textAlign: 'right' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                    {ticket.status === 0 && (
+                      <Tooltip title="Mark Ready">
+                        <IconButton color="secondary" onClick={() => handleUpdateStatus(ticket.id, 1)}>
+                          <CheckIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {(ticket.status === 0 || ticket.status === 1) && (
+                      <Tooltip title="Call Patient">
+                        <IconButton color="warning" onClick={() => handleUpdateStatus(ticket.id, 2)}>
+                          <RecordVoiceOverIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {ticket.status === 2 && (
+                      <Tooltip title="Start Consultation">
+                        <IconButton color="info" onClick={() => handleUpdateStatus(ticket.id, 3)}>
+                          <PlayArrowIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {ticket.status === 3 && (
+                      <Tooltip title="Complete Consultation">
+                        <IconButton color="success" onClick={() => handleUpdateStatus(ticket.id, 4)}>
+                          <CheckIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {ticket.status < 4 && (
+                      <>
+                        <Tooltip title="No Show">
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            sx={{ textTransform: 'none', px: 1, py: 0.5, borderRadius: 2 }}
+                            onClick={() => handleUpdateStatus(ticket.id, 6)}
+                          >
+                            No Show
+                          </Button>
+                        </Tooltip>
+                        <Tooltip title="Cancel">
+                          <IconButton color="error" onClick={() => handleUpdateStatus(ticket.id, 5)}>
+                            <CloseIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    )}
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
+  );
+
   // Calculate statistics
   const waitingCount = queue.filter(q => q.status === 0 || q.status === 1).length;
   const activeCount = queue.filter(q => q.status === 2 || q.status === 3).length;
   const completedCount = queue.filter(q => q.status === 4).length;
 
   return (
-    <Box sx={{ minHeight: '100vh', p: 4, bgcolor: '#f4f6f9' }}>
+    <Box sx={{ minHeight: '100vh', p: 4, bgcolor: 'background.default' }}>
+      <AppBreadcrumbs />
       {/* Top Header Card */}
       <Box className="glass-card" sx={{ p: 3, mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button
-            component={NavLink}
-            to="/dashboard"
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 700 }}
-          >
-            Back to Portal
-          </Button>
           <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
             Patient Queue
           </Typography>
         </Box>
 
         {selectedCentre && (
-          <Button
-            onClick={refreshQueue}
-            variant="text"
-            startIcon={<RefreshIcon />}
-            sx={{ fontWeight: 700 }}
-          >
-            Refresh Queue
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<RecordVoiceOverIcon />}
+              href={`https://storage.googleapis.com/note366-stt-frontend-dev/index.html?doctorId=${selectedCentre.doctorId}&practiceCentreId=${selectedCentre.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ fontWeight: 700, borderRadius: 3, px: 2.5, py: 1, textTransform: 'none', boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}
+            >
+              Start AI Consultation
+            </Button>
+            <Button
+              onClick={refreshQueue}
+              variant="outlined"
+              startIcon={<RefreshIcon />}
+              sx={{ fontWeight: 700, borderRadius: 3, px: 2 }}
+            >
+              Refresh Queue
+            </Button>
+          </Box>
         )}
       </Box>
 
@@ -684,7 +1125,7 @@ export const PatientQueue = () => {
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
                     {selectedDate && selectedDate.toDateString() === new Date().toDateString() 
                       ? "Today's Statistics" 
-                      : `Statistics for ${selectedDate?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                      : `Statistics for ${formatDisplayDate(selectedDate)}`}
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 4 }}>
@@ -733,9 +1174,41 @@ export const PatientQueue = () => {
           <Grid size={{ xs: 12, md: 8 }}>
             <Card className="glass-card" sx={{ p: 1 }}>
               <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                  Patient Queue - {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : ''}
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  Patient Queue - {selectedDate ? formatDisplayDateLong(selectedDate) : ''}
                 </Typography>
+
+                {daySessions.length > 0 && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="caption" fontWeight={700} color="text.secondary" display="block" mb={1} sx={{ letterSpacing: 0.5 }}>
+                      SCHEDULED SESSIONS
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
+                      <Chip
+                        label={`All Sessions (${queue.length})`}
+                        color={selectedSessionId === 'ALL' ? 'primary' : 'default'}
+                        variant={selectedSessionId === 'ALL' ? 'filled' : 'outlined'}
+                        onClick={() => setSelectedSessionId('ALL')}
+                        sx={{ fontWeight: 700, borderRadius: 3, cursor: 'pointer' }}
+                      />
+                      {daySessions.map((session: DaySessionInfo) => {
+                        const sessTickets = getSessionTickets(session.id);
+                        const isSelected = selectedSessionId === session.id;
+                        return (
+                          <Chip
+                            key={session.id}
+                            icon={<AccessTimeIcon fontSize="small" />}
+                            label={`${session.label} (${session.timeRange}) • ${sessTickets.length} Patients`}
+                            color={isSelected ? 'primary' : 'default'}
+                            variant={isSelected ? 'filled' : 'outlined'}
+                            onClick={() => setSelectedSessionId(session.id)}
+                            sx={{ fontWeight: 700, borderRadius: 3, cursor: 'pointer' }}
+                          />
+                        );
+                      })}
+                    </Stack>
+                  </Box>
+                )}
 
                 {loadingQueue ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -747,117 +1220,35 @@ export const PatientQueue = () => {
                       No patients in the queue for this date.
                     </Typography>
                   </Box>
+                ) : selectedSessionId === 'ALL' && daySessions.length > 1 ? (
+                  <Stack spacing={3}>
+                    {daySessions.map((session: DaySessionInfo) => {
+                      const sessTickets = getSessionTickets(session.id);
+                      return (
+                        <Paper key={session.id} variant="outlined" sx={{ p: 2, borderRadius: 3, bgcolor: 'background.paper' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <AccessTimeIcon color="primary" fontSize="small" />
+                              <Typography variant="subtitle1" fontWeight={800} color="primary.main">
+                                {session.label} ({session.timeRange})
+                              </Typography>
+                            </Box>
+                            <Chip label={`${sessTickets.length} Patients`} color="primary" size="small" sx={{ fontWeight: 700 }} />
+                          </Box>
+
+                          {sessTickets.length === 0 ? (
+                            <Typography variant="body2" color="text.secondary" align="center" py={2}>
+                              No patients in queue for this session.
+                            </Typography>
+                          ) : (
+                            renderQueueList(sessTickets)
+                          )}
+                        </Paper>
+                      );
+                    })}
+                  </Stack>
                 ) : (
-                  <TableContainer component={Paper} sx={{ boxShadow: 'none', background: 'transparent' }}>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ width: 50 }}></TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>No.</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Patient Name</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Mobile</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Priority</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-                          <TableCell sx={{ fontWeight: 700, textAlign: 'right' }}>Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {queue.map((ticket, index) => (
-                          <TableRow
-                            key={ticket.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, index)}
-                            onDragOver={(e) => handleDragOver(e, index)}
-                            onDragEnd={handleDragEnd}
-                            sx={{
-                              '&:last-child td, &:last-child th': { border: 0 },
-                              opacity: draggedIndex === index ? 0.5 : 1,
-                              backgroundColor: draggedIndex === index ? 'rgba(0,0,0,0.05)' : 'inherit',
-                              transition: 'opacity 0.2s, background-color 0.2s',
-                            }}
-                          >
-                            <TableCell sx={{ width: 50 }}>
-                              <DragIndicatorIcon sx={{ color: 'text.secondary', cursor: 'grab', display: 'block', margin: 'auto' }} />
-                            </TableCell>
-                            <TableCell sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                              #{ticket.queueNumber}
-                            </TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>{ticket.patientName}</TableCell>
-                            <TableCell>{ticket.patientMobile}</TableCell>
-                            <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
-                            <TableCell>{getStatusChip(ticket.status)}</TableCell>
-                            <TableCell sx={{ textAlign: 'right' }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                                {ticket.status === 0 && (
-                                  <Tooltip title="Mark Ready">
-                                    <IconButton
-                                      color="secondary"
-                                      onClick={() => handleUpdateStatus(ticket.id, 1)}
-                                    >
-                                      <CheckIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                {(ticket.status === 0 || ticket.status === 1) && (
-                                  <Tooltip title="Call Patient">
-                                    <IconButton
-                                      color="warning"
-                                      onClick={() => handleUpdateStatus(ticket.id, 2)}
-                                    >
-                                      <RecordVoiceOverIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                {ticket.status === 2 && (
-                                  <Tooltip title="Start Consultation">
-                                    <IconButton
-                                      color="info"
-                                      onClick={() => handleUpdateStatus(ticket.id, 3)}
-                                    >
-                                      <PlayArrowIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                {ticket.status === 3 && (
-                                  <Tooltip title="Complete Consultation">
-                                    <IconButton
-                                      color="success"
-                                      onClick={() => handleUpdateStatus(ticket.id, 4)}
-                                    >
-                                      <CheckIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                {ticket.status < 4 && (
-                                  <>
-                                    <Tooltip title="No Show">
-                                      <Button
-                                        size="small"
-                                        variant="outlined"
-                                        color="error"
-                                        sx={{ textTransform: 'none', px: 1, py: 0.5, borderRadius: 2 }}
-                                        onClick={() => handleUpdateStatus(ticket.id, 6)}
-                                      >
-                                        No Show
-                                      </Button>
-                                    </Tooltip>
-                                    <Tooltip title="Cancel">
-                                      <IconButton
-                                        color="error"
-                                        onClick={() => handleUpdateStatus(ticket.id, 5)}
-                                      >
-                                        <CloseIcon />
-                                      </IconButton>
-                                    </Tooltip>
-                                  </>
-                                )}
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                  renderQueueList(selectedSessionId === 'ALL' ? queue : getSessionTickets(selectedSessionId))
                 )}
               </CardContent>
             </Card>
@@ -956,41 +1347,62 @@ export const PatientQueue = () => {
               {addError && <Alert severity="error">{addError}</Alert>}
               
               <Alert severity="info" sx={{ borderRadius: 3 }}>
-                Patient found. Please verify the details before adding to the queue.
+                Patient record found. Select who this appointment/queue ticket is for:
               </Alert>
 
-              <Card sx={{ bgcolor: '#f8f9fa', borderRadius: 3, boxShadow: 'none', border: '1px solid #e9ecef', p: 2 }}>
-                <CardContent sx={{ p: '8px !important', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  <Typography variant="body1">
-                    <strong>Name:</strong> {verifiedPatient?.firstName} {verifiedPatient?.lastName}
-                  </Typography>
-                  <Typography variant="body1">
-                    <strong>NIC Number:</strong> {verifiedPatient?.nicNumber}
-                  </Typography>
-                  <Typography variant="body1">
-                    <strong>Mobile Number:</strong> {verifiedPatient?.mobileNumber}
-                  </Typography>
-                  {verifiedPatient?.gender && (
+              {primaryPatientRecord ? (
+                <FamilyPatientSelector
+                  primaryPatient={primaryPatientRecord}
+                  children={verifiedChildren}
+                  selectedPatientId={verifiedPatient?.id || primaryPatientRecord.id}
+                  onSelectPatient={(p) => setVerifiedPatient(p)}
+                  onOpenAddChild={() => setOpenAddChildModal(true)}
+                />
+              ) : (
+                <Card sx={{ bgcolor: '#f8f9fa', borderRadius: 3, boxShadow: 'none', border: '1px solid #e9ecef', p: 2 }}>
+                  <CardContent sx={{ p: '8px !important', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                     <Typography variant="body1">
-                      <strong>Gender:</strong> {verifiedPatient?.gender}
+                      <strong>Name:</strong> {verifiedPatient?.firstName} {verifiedPatient?.lastName}
                     </Typography>
-                  )}
-                </CardContent>
-              </Card>
+                    <Typography variant="body1">
+                      <strong>NIC Number:</strong> {verifiedPatient?.nicNumber}
+                    </Typography>
+                    <Typography variant="body1">
+                      <strong>Mobile Number:</strong> {verifiedPatient?.mobileNumber}
+                    </Typography>
+                    {verifiedPatient?.gender && (
+                      <Typography variant="body1">
+                        <strong>Gender:</strong> {verifiedPatient?.gender}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
-              {selectedCentre?.sessionGroups && selectedCentre.sessionGroups.length > 0 && (
+              {primaryPatientRecord && (
+                <AddChildModal
+                  open={openAddChildModal}
+                  parentId={primaryPatientRecord.id}
+                  onClose={() => setOpenAddChildModal(false)}
+                  onChildAdded={(newChild) => {
+                    setVerifiedChildren(prev => [...prev, newChild]);
+                    setVerifiedPatient(newChild);
+                  }}
+                />
+              )}
+
+              {daySessions.length > 1 && (
                 <FormControl fullWidth>
-                  <InputLabel>Session / Time Slot</InputLabel>
+                  <InputLabel>Session</InputLabel>
                   <Select
-                    value={selectedSessionId}
-                    label="Session / Time Slot"
-                    onChange={(e) => setSelectedSessionId(e.target.value)}
+                    value={targetSessionId}
+                    label="Session"
+                    onChange={(e) => setTargetSessionId(e.target.value)}
+                    startAdornment={<AccessTimeIcon sx={{ mr: 1, color: 'text.secondary' }} />}
                   >
-                    {selectedCentre.sessionGroups.map((sg) => (
-                      <MenuItem key={sg.id} value={sg.id}>
-                        {sg.timeBlocks && sg.timeBlocks.length > 0 
-                          ? sg.timeBlocks.map(tb => `${tb.label} (${tb.startTime} - ${tb.endTime})`).join(', ')
-                          : `Session (${sg.daysOfWeek.join(', ')})`}
+                    {daySessions.map((session: DaySessionInfo) => (
+                      <MenuItem key={session.id} value={session.id}>
+                        {session.label} ({session.timeRange})
                       </MenuItem>
                     ))}
                   </Select>
@@ -1112,6 +1524,16 @@ export const PatientQueue = () => {
           </Box>
         )}
       </Dialog>
+
+      <OtpVerificationDialog
+        open={openOtpDialogQueue}
+        onClose={() => setOpenOtpDialogQueue(false)}
+        maskedMobile={maskedMobileQueue}
+        sessionId={otpSessionIdQueue}
+        onVerified={handleOtpVerifiedQueue}
+        onVerifyOtp={(sid, code) => verifyPatientOtp(sid, code)}
+        onResendOtp={(sid) => resendPatientOtp(sid)}
+      />
     </Box>
   );
 };
