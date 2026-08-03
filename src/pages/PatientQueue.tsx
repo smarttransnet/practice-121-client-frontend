@@ -250,6 +250,7 @@ export const PatientQueue = () => {
   // Future Booking Date states
   const [availableDates, setAvailableDates] = useState<Date[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string>('');
 
   const getDayString = (date: Date) => {
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -319,8 +320,21 @@ export const PatientQueue = () => {
     if (selectedCentre && selectedDate) {
       const dateStr = formatDateLocal(selectedDate);
       fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+
+      const dayStr = getDayString(selectedDate);
+      const matchingSg = selectedCentre.sessionGroups?.find(sg =>
+        sg.daysOfWeek?.some(d => d.toUpperCase() === dayStr)
+      );
+      if (matchingSg) {
+        setSelectedSessionId(matchingSg.id);
+      } else if (selectedCentre.sessionGroups?.length > 0) {
+        setSelectedSessionId(selectedCentre.sessionGroups[0].id);
+      } else {
+        setSelectedSessionId('');
+      }
     } else {
       setQueue([]);
+      setSelectedSessionId('');
     }
   }, [selectedCentre, selectedDate]);
 
@@ -481,7 +495,8 @@ export const PatientQueue = () => {
         doctorId: selectedCentre.doctorId,
         practiceCentreId: selectedCentre.id,
         priority: priority,
-        visitDate: selectedDate ? formatDateLocal(selectedDate) : undefined
+        visitDate: selectedDate ? formatDateLocal(selectedDate) : undefined,
+        sessionId: selectedSessionId || undefined
       });
       handleCloseAddModal();
       refreshQueue();
@@ -962,6 +977,25 @@ export const PatientQueue = () => {
                   )}
                 </CardContent>
               </Card>
+
+              {selectedCentre?.sessionGroups && selectedCentre.sessionGroups.length > 0 && (
+                <FormControl fullWidth>
+                  <InputLabel>Session / Time Slot</InputLabel>
+                  <Select
+                    value={selectedSessionId}
+                    label="Session / Time Slot"
+                    onChange={(e) => setSelectedSessionId(e.target.value)}
+                  >
+                    {selectedCentre.sessionGroups.map((sg) => (
+                      <MenuItem key={sg.id} value={sg.id}>
+                        {sg.timeBlocks && sg.timeBlocks.length > 0 
+                          ? sg.timeBlocks.map(tb => `${tb.label} (${tb.startTime} - ${tb.endTime})`).join(', ')
+                          : `Session (${sg.daysOfWeek.join(', ')})`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
 
               <FormControl fullWidth>
                 <InputLabel>Priority</InputLabel>

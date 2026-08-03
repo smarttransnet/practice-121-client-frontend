@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { Autocomplete, TextField, Grid, createFilterOptions } from '@mui/material'
 import { httpClient } from '../../api/httpClient'
 
@@ -22,6 +22,9 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
   const [districtsList, setDistrictsList] = useState<ApiLocation[]>([])
   const [mohAreasList, setMohAreasList] = useState<ApiLocation[]>([])
   const [placesList, setPlacesList] = useState<ApiLocation[]>([])
+
+  const mohInputRef = useRef<HTMLInputElement>(null)
+  const placeInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch districts on mount
   useEffect(() => {
@@ -77,6 +80,11 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
             onChange('placeId', '')
             onChange('mohAreaId', '')
             onChange('isNewPlace', false)
+            if (val) {
+              setTimeout(() => {
+                mohInputRef.current?.focus()
+              }, 50)
+            }
           }}
           renderInput={(params) => <TextField {...params} label="District" required error={error && !district} />}
         />
@@ -91,9 +99,14 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
             onChange('placeId', '')
             onChange('mohAreaId', '')
             onChange('isNewPlace', false)
+            if (val) {
+              setTimeout(() => {
+                placeInputRef.current?.focus()
+              }, 50)
+            }
           }}
           disabled={!district}
-          renderInput={(params) => <TextField {...params} label="MOH Area" required error={error && !mohArea} />}
+          renderInput={(params) => <TextField {...params} inputRef={mohInputRef} label="MOH Area" required error={error && !mohArea} />}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
@@ -164,6 +177,7 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
           renderInput={(params) => (
             <TextField 
               {...params} 
+              inputRef={placeInputRef}
               label="Hospital / Place" 
               required 
               error={error && !placeName}

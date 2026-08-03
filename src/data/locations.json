@@ -3,6 +3,91 @@
     "name": "Colombo",
     "moh_areas": [
       {
+        "name": "Colombo Municipal Council",
+        "places": []
+      },
+      {
+        "name": "Dehiwala",
+        "places": []
+      },
+      {
+        "name": "Homagama",
+        "places": []
+      },
+      {
+        "name": "Kaduwela / Battaramulla",
+        "places": [
+          "Capital Hospital (Pvt) Ltd",
+          "Dora Hospital 173, Pannipitiya Road, Battaramulla",
+          "Eye Care Hospital",
+          "Nawaloka Medical Centre Pvt Ltd",
+          "Skin Clinique - Look Amazing Pvt Ltd",
+          ". Konara Mudiyanselage P. S. D."
+        ]
+      },
+      {
+        "name": "Kolonnawa",
+        "places": [
+          "Eye Hospital",
+          "Siri Suwasetha (Pvt) Ltd",
+          ". M. I. QurshiethNo.18, Gajabapura Housing Scheme, Kolonnawa"
+        ]
+      },
+      {
+        "name": "Maharagama",
+        "places": [
+          "Medicare Hospitals (Pvt) Ltd",
+          "Hospital HL (Pvt) Ltd",
+          "Fertility Hospital (Pvt) Ltd",
+          "City Medical Service",
+          "Research Medical Centre 92, Wattegedera road, Maharagama",
+          ".S.A. Udathenna"
+        ]
+      },
+      {
+        "name": "Moratuwa",
+        "places": []
+      },
+      {
+        "name": "Hanwella (Seethawaka)",
+        "places": []
+      },
+      {
+        "name": "Padukka",
+        "places": [
+          "JEEWAKA PRIVATE HOSPITAL PADUKKA"
+        ]
+      },
+      {
+        "name": "Ratmalana",
+        "places": []
+      },
+      {
+        "name": "Sri Jayawardenepura Kotte",
+        "places": [
+          "Key Hospitals Limited",
+          "Hospital (Pvt) Ltd",
+          "Cross Hospital – Blue Cross Medical Centre 682, Kotte Road, Rajagiriya 10107",
+          "Blue Cross Medical Centre (Pvt) Ltd 682, Kotte Road, Rajagiriya",
+          "Medical Center Suseka",
+          "Eye (Pvt) Ltd 198, Sri Jayawardenapura Mawatha, Welikada, Rajagiriya",
+          ". S. L. J. De Silva",
+          ". S. M. F. Sikkander",
+          ". Weliwitage Nalinda Rodrigo",
+          ". A.A.A.D.P. Goonewardane"
+        ]
+      },
+      {
+        "name": "Nugegoda / Kohuwala",
+        "places": [
+          "Winlanka Hospital (Pvt) Ltd",
+          "Healthcare Services (Pvt) Ltd",
+          "Dental Hospital",
+          "MEDICAL DIAGNOSTICS PVT LTD",
+          ". Ravindra Lakshman Gurusinghe"
+        ]
+      },
+      {
         "name": "Colombo MC (01–15)",
         "places": [
           "Nawaloka Hospitals PLC.",
@@ -64,42 +149,6 @@
         ]
       },
       {
-        "name": "Sri Jayawardenepura Kotte",
-        "places": [
-          "Key Hospitals Limited",
-          "Hospital (Pvt) Ltd",
-          "Cross Hospital – Blue Cross Medical Centre 682, Kotte Road, Rajagiriya 10107",
-          "Blue Cross Medical Centre (Pvt) Ltd 682, Kotte Road, Rajagiriya",
-          "Medical Center Suseka",
-          "Eye (Pvt) Ltd 198, Sri Jayawardenapura Mawatha, Welikada, Rajagiriya",
-          ". S. L. J. De Silva",
-          ". S. M. F. Sikkander",
-          ". Weliwitage Nalinda Rodrigo",
-          ". A.A.A.D.P. Goonewardane"
-        ]
-      },
-      {
-        "name": "Nugegoda / Kohuwala",
-        "places": [
-          "Winlanka Hospital (Pvt) Ltd",
-          "Healthcare Services (Pvt) Ltd",
-          "Dental Hospital",
-          "MEDICAL DIAGNOSTICS PVT LTD",
-          ". Ravindra Lakshman Gurusinghe"
-        ]
-      },
-      {
-        "name": "Maharagama",
-        "places": [
-          "Medicare Hospitals (Pvt) Ltd",
-          "Hospital HL (Pvt) Ltd",
-          "Fertility Hospital (Pvt) Ltd",
-          "City Medical Service",
-          "Research Medical Centre 92, Wattegedera road, Maharagama",
-          ".S.A. Udathenna"
-        ]
-      },
-      {
         "name": "Piliyandala / Rukmale",
         "places": [
           "Lanka Medical Centre 43, Wata Mawatha, Piliyandala",
@@ -123,17 +172,6 @@
         ]
       },
       {
-        "name": "Kaduwela / Battaramulla",
-        "places": [
-          "Capital Hospital (Pvt) Ltd",
-          "Dora Hospital 173, Pannipitiya Road, Battaramulla",
-          "Eye Care Hospital",
-          "Nawaloka Medical Centre Pvt Ltd",
-          "Skin Clinique - Look Amazing Pvt Ltd",
-          ". Konara Mudiyanselage P. S. D."
-        ]
-      },
-      {
         "name": "Moratuwa / Ratmalana",
         "places": [
           "Moratuwa Medical Centre (Pvt) Ltd",
@@ -143,26 +181,37 @@
           "Center",
           ". (Mrs.) D. Niranjala Jayasuriya"
         ]
-      },
-      {
-        "name": "Kolonnawa",
-        "places": [
-          "Eye Hospital",
-          "Siri Suwasetha (Pvt) Ltd",
-          ". M. I. QurshiethNo.18, Gajabapura Housing Scheme, Kolonnawa"
-        ]
-      },
-      {
-        "name": "Padukka",
-        "places": [
-          "JEEWAKA PRIVATE HOSPITAL PADUKKA"
-        ]
       }
     ]
   },
   {
     "name": "Gampaha",
     "moh_areas": [
+      {
+        "name": "Attanagalla",
+        "places": [
+          "Sirisanda Samupa Suwa Sewana Hospital Negombo Road, Nittambuwa",
+          "Bandaranayake Hospitals (Pvt) Ltd",
+          "Hospital pvt ltd",
+          "Lanka Diabetic Hospital (Pvt) Ltd",
+          ". (Mrs.) A. A. L. K. Adikari"
+        ]
+      },
+      {
+        "name": "Biyagama",
+        "places": []
+      },
+      {
+        "name": "Divulapitiya",
+        "places": [
+          "Hospitals (Pvt) Ltd",
+          "Clinipath Medical Services New Hospital, Horagasmulla, Divulapitiya"
+        ]
+      },
+      {
+        "name": "Dompe",
+        "places": []
+      },
       {
         "name": "Gampaha",
         "places": [
@@ -176,19 +225,35 @@
         ]
       },
       {
-        "name": "Ragama",
+        "name": "Ja-Ela",
+        "places": []
+      },
+      {
+        "name": "Katana",
+        "places": []
+      },
+      {
+        "name": "Kelaniya",
         "places": [
-          "Leesons Hospital (Pvt) Ltd.",
-          "Hospitals Ragama (Pvt) Ltd"
+          "Care Medical Service",
+          "Nawaloka Medical Centre Pvt. Ltd",
+          ". S. A. K. D. Vasantha Tissakumara Walikanda Junction, Dalupitiya Road, Hunupitiya"
         ]
       },
       {
-        "name": "Wattala",
+        "name": "Mahara",
+        "places": []
+      },
+      {
+        "name": "Minuwangoda",
         "places": [
-          "Sight First Hospital",
-          "Hospitals (Pvt) Ltd.",
-          "Hospitals (Private) Limited",
-          ". T. M. Bahardeen Girsy"
+          "Clinipath Medical Services"
+        ]
+      },
+      {
+        "name": "Mirigama",
+        "places": [
+          "Private Hospital No4, 2nd Osmiyar lane, Pasyala Road, Mirigama"
         ]
       },
       {
@@ -204,30 +269,19 @@
         ]
       },
       {
-        "name": "Kelaniya",
+        "name": "Wattala",
         "places": [
-          "Care Medical Service",
-          "Nawaloka Medical Centre Pvt. Ltd",
-          ". S. A. K. D. Vasantha Tissakumara Walikanda Junction, Dalupitiya Road, Hunupitiya"
+          "Sight First Hospital",
+          "Hospitals (Pvt) Ltd.",
+          "Hospitals (Private) Limited",
+          ". T. M. Bahardeen Girsy"
         ]
       },
       {
-        "name": "Minuwangoda",
+        "name": "Ragama",
         "places": [
-          "Clinipath Medical Services"
-        ]
-      },
-      {
-        "name": "Divulapitiya",
-        "places": [
-          "Hospitals (Pvt) Ltd",
-          "Clinipath Medical Services New Hospital, Horagasmulla, Divulapitiya"
-        ]
-      },
-      {
-        "name": "Mirigama",
-        "places": [
-          "Private Hospital No4, 2nd Osmiyar lane, Pasyala Road, Mirigama"
+          "Leesons Hospital (Pvt) Ltd.",
+          "Hospitals Ragama (Pvt) Ltd"
         ]
       },
       {
@@ -238,16 +292,6 @@
           "Hospitals (Pvt) Ltd",
           "Medical Centre Pvt. Ltd",
           ". (Mrs) Mohottige Don A. K. Nonis 416, Negombo Road, Kapuwatte, Ja-ela"
-        ]
-      },
-      {
-        "name": "Attanagalla",
-        "places": [
-          "Sirisanda Samupa Suwa Sewana Hospital Negombo Road, Nittambuwa",
-          "Bandaranayake Hospitals (Pvt) Ltd",
-          "Hospital pvt ltd",
-          "Lanka Diabetic Hospital (Pvt) Ltd",
-          ". (Mrs.) A. A. L. K. Adikari"
         ]
       },
       {
@@ -266,21 +310,23 @@
     "name": "Kalutara",
     "moh_areas": [
       {
-        "name": "Kalutara / Nagoda",
+        "name": "Agalawatta",
+        "places": []
+      },
+      {
+        "name": "Bandaragama",
+        "places": []
+      },
+      {
+        "name": "Beruwala",
         "places": [
-          "New Philip Hospitals (Pvt) Ltd",
-          "Care Hospital (Pvt) Ltd Nagoda, Kalutara",
-          "Healthcare Solutions (Pvt) Ltd"
+          "Healthcare Solutions (Pvt) Ltd",
+          "& SURGERY"
         ]
       },
       {
-        "name": "Panadura",
-        "places": [
-          "Gift Of Sight Hospital Sri Maha Viharaya Road, Galgoda, Panadura",
-          "Hospitals (Pvt) Ltd",
-          "Solutions Eye Care Hospital Pvt Ltd 403A, Galle road, Nalluruwa, Panadura",
-          "Hospital"
-        ]
+        "name": "Bulathsinhala",
+        "places": []
       },
       {
         "name": "Horana",
@@ -296,16 +342,42 @@
         ]
       },
       {
-        "name": "Beruwala",
-        "places": [
-          "Healthcare Solutions (Pvt) Ltd",
-          "& SURGERY"
-        ]
+        "name": "Kalutara",
+        "places": []
       },
       {
         "name": "Mathugama",
         "places": [
           ". Amitha Namalie Wikramarachchi Lewwanduwa, Welipanna"
+        ]
+      },
+      {
+        "name": "Millaniya",
+        "places": []
+      },
+      {
+        "name": "Palindanuwara",
+        "places": []
+      },
+      {
+        "name": "Panadura",
+        "places": [
+          "Gift Of Sight Hospital Sri Maha Viharaya Road, Galgoda, Panadura",
+          "Hospitals (Pvt) Ltd",
+          "Solutions Eye Care Hospital Pvt Ltd 403A, Galle road, Nalluruwa, Panadura",
+          "Hospital"
+        ]
+      },
+      {
+        "name": "Walallawita",
+        "places": []
+      },
+      {
+        "name": "Kalutara / Nagoda",
+        "places": [
+          "New Philip Hospitals (Pvt) Ltd",
+          "Care Hospital (Pvt) Ltd Nagoda, Kalutara",
+          "Healthcare Solutions (Pvt) Ltd"
         ]
       },
       {
@@ -394,14 +466,135 @@
     ]
   },
   {
+    "name": "Kandy",
+    "moh_areas": [
+      {
+        "name": "Akurana",
+        "places": []
+      },
+      {
+        "name": "Bambaradeniya",
+        "places": []
+      },
+      {
+        "name": "Doluwa",
+        "places": []
+      },
+      {
+        "name": "Galagedara",
+        "places": []
+      },
+      {
+        "name": "Gampola",
+        "places": []
+      },
+      {
+        "name": "Ganga Ihala Korale",
+        "places": []
+      },
+      {
+        "name": "Harispattuwa",
+        "places": []
+      },
+      {
+        "name": "Kandy Municipal Council",
+        "places": []
+      },
+      {
+        "name": "Kundasale",
+        "places": []
+      },
+      {
+        "name": "Medadumbara",
+        "places": []
+      },
+      {
+        "name": "Menikhinna",
+        "places": []
+      },
+      {
+        "name": "Nawalapitiya (Pasbage Korale)",
+        "places": []
+      },
+      {
+        "name": "Panwila",
+        "places": []
+      },
+      {
+        "name": "Pathadumbara",
+        "places": []
+      },
+      {
+        "name": "Pathahewaheta",
+        "places": []
+      },
+      {
+        "name": "Pujapitiya",
+        "places": []
+      },
+      {
+        "name": "Yatinuwara",
+        "places": []
+      },
+      {
+        "name": "Udunuwara",
+        "places": []
+      },
+      {
+        "name": "Udadumbara",
+        "places": []
+      }
+    ]
+  },
+  {
     "name": "Matale",
     "moh_areas": [
+      {
+        "name": "Ambanganga Korale",
+        "places": []
+      },
+      {
+        "name": "Dambulla",
+        "places": []
+      },
+      {
+        "name": "Galewela",
+        "places": []
+      },
+      {
+        "name": "Laggala-Pallegama",
+        "places": []
+      },
       {
         "name": "Matale",
         "places": [
           "Kumudu Hospital (pvt) ltd",
           ". N. K. A. Pathmasiri Madawala-Ulpatha, Matale"
         ]
+      },
+      {
+        "name": "Naula",
+        "places": []
+      },
+      {
+        "name": "Pallepola",
+        "places": []
+      },
+      {
+        "name": "Rattota",
+        "places": []
+      },
+      {
+        "name": "Ukuwela",
+        "places": []
+      },
+      {
+        "name": "Wilgamuwa",
+        "places": []
+      },
+      {
+        "name": "Yatawatta",
+        "places": []
       }
     ]
   },
@@ -409,11 +602,35 @@
     "name": "Nuwara Eliya",
     "moh_areas": [
       {
+        "name": "Ambagamuwa",
+        "places": []
+      },
+      {
+        "name": "Hanguranketha",
+        "places": []
+      },
+      {
+        "name": "Kotmale",
+        "places": []
+      },
+      {
+        "name": "Lindula / Maskeliya",
+        "places": []
+      },
+      {
+        "name": "Maturata",
+        "places": []
+      },
+      {
         "name": "Nuwara Eliya",
         "places": [
           "Pharmacy & Dispensary (Pvt) Ltd",
           "DISPENSARY"
         ]
+      },
+      {
+        "name": "Walapane",
+        "places": []
       },
       {
         "name": "Hatton / Ambagamuwa",
@@ -439,6 +656,66 @@
     "name": "Galle",
     "moh_areas": [
       {
+        "name": "Akmeemana",
+        "places": []
+      },
+      {
+        "name": "Ambalangoda",
+        "places": []
+      },
+      {
+        "name": "Baddegama",
+        "places": []
+      },
+      {
+        "name": "Balapitiya / Ahungama",
+        "places": []
+      },
+      {
+        "name": "Bope-Poddala",
+        "places": []
+      },
+      {
+        "name": "Elpitiya",
+        "places": []
+      },
+      {
+        "name": "Galle Municipal Council",
+        "places": []
+      },
+      {
+        "name": "Habaraduwa",
+        "places": []
+      },
+      {
+        "name": "Hikkaduwa",
+        "places": []
+      },
+      {
+        "name": "Imaduwa",
+        "places": []
+      },
+      {
+        "name": "Karandeniya",
+        "places": []
+      },
+      {
+        "name": "Nagoda",
+        "places": []
+      },
+      {
+        "name": "Niyagama",
+        "places": []
+      },
+      {
+        "name": "Thawalama",
+        "places": []
+      },
+      {
+        "name": "Welivitiya-Divithura",
+        "places": []
+      },
+      {
         "name": "Galle MC",
         "places": [
           "Asiri Hospital Galle (Private) Limited",
@@ -459,6 +736,64 @@
     "name": "Matara",
     "moh_areas": [
       {
+        "name": "Akuressa",
+        "places": [
+          "Private Hospital."
+        ]
+      },
+      {
+        "name": "Athuraliya",
+        "places": []
+      },
+      {
+        "name": "Devinuwara",
+        "places": []
+      },
+      {
+        "name": "Dickwella",
+        "places": []
+      },
+      {
+        "name": "Hakmana",
+        "places": []
+      },
+      {
+        "name": "Kamburupitiya",
+        "places": []
+      },
+      {
+        "name": "Kotapola",
+        "places": []
+      },
+      {
+        "name": "Malimbada",
+        "places": []
+      },
+      {
+        "name": "Matara Municipal Council",
+        "places": []
+      },
+      {
+        "name": "Mulatiyana",
+        "places": []
+      },
+      {
+        "name": "Pasgoda",
+        "places": []
+      },
+      {
+        "name": "Pitabeddara",
+        "places": []
+      },
+      {
+        "name": "Thihagoda",
+        "places": []
+      },
+      {
+        "name": "Weligama",
+        "places": []
+      },
+      {
         "name": "Matara",
         "places": [
           "Asiri Hospital Matara ( Pvt) Ltd",
@@ -472,12 +807,6 @@
         "places": [
           "Med Hospital Galle Road, Mirissa Junction, Mirissa",
           "Medi Health Services (Pvt) Ltd"
-        ]
-      },
-      {
-        "name": "Akuressa",
-        "places": [
-          "Private Hospital."
         ]
       },
       {
@@ -498,6 +827,38 @@
     "name": "Hambantota",
     "moh_areas": [
       {
+        "name": "Ambalantota",
+        "places": []
+      },
+      {
+        "name": "Angunakolapelessa",
+        "places": []
+      },
+      {
+        "name": "Beliatta",
+        "places": []
+      },
+      {
+        "name": "Hambantota",
+        "places": []
+      },
+      {
+        "name": "Katuwana",
+        "places": []
+      },
+      {
+        "name": "Lunugamvehera",
+        "places": []
+      },
+      {
+        "name": "Okewela",
+        "places": []
+      },
+      {
+        "name": "Sooriyawewa",
+        "places": []
+      },
+      {
         "name": "Tangalle",
         "places": [
           "HEALTHCARE SERVICES (PVT) LTD",
@@ -507,16 +868,20 @@
         ]
       },
       {
+        "name": "Tissamaharama",
+        "places": [
+          "Hospital (Pvt) Ltd"
+        ]
+      },
+      {
+        "name": "Weeraketiya",
+        "places": []
+      },
+      {
         "name": "Beliatta / Walasmulla",
         "places": [
           "HEALTHCARE HOSPITAL(PVT)LTD",
           "MedicareNo. 29, Gatamanna Road, Beliatta"
-        ]
-      },
-      {
-        "name": "Tissamaharama",
-        "places": [
-          "Hospital (Pvt) Ltd"
         ]
       }
     ]
@@ -524,6 +889,54 @@
   {
     "name": "Jaffna",
     "moh_areas": [
+      {
+        "name": "Chankanai (Valikamam West)",
+        "places": []
+      },
+      {
+        "name": "Chavakachcheri (Thenmarachchi)",
+        "places": []
+      },
+      {
+        "name": "Jaffna",
+        "places": []
+      },
+      {
+        "name": "Karainagar",
+        "places": []
+      },
+      {
+        "name": "Kayts (Islands Velanai)",
+        "places": []
+      },
+      {
+        "name": "Kopay (Valikamam East)",
+        "places": []
+      },
+      {
+        "name": "Maruthankerney (Vaddakachchi)",
+        "places": []
+      },
+      {
+        "name": "Nallur",
+        "places": []
+      },
+      {
+        "name": "Point Pedro (Vaddamarachchi North)",
+        "places": []
+      },
+      {
+        "name": "Sandilipay (Valikamam Southwest)",
+        "places": []
+      },
+      {
+        "name": "Tellippalai (Valikamam North)",
+        "places": []
+      },
+      {
+        "name": "Uduvil (Valikamam South)",
+        "places": []
+      },
       {
         "name": "Jaffna MC / Nallur",
         "places": [
@@ -565,6 +978,22 @@
     "name": "Kilinochchi",
     "moh_areas": [
       {
+        "name": "Karachchi",
+        "places": []
+      },
+      {
+        "name": "Kandavalai",
+        "places": []
+      },
+      {
+        "name": "Poonakary",
+        "places": []
+      },
+      {
+        "name": "Pallai (Pachchilaipalli)",
+        "places": []
+      },
+      {
         "name": "Kilinochchi",
         "places": [
           "Medical Hospital Ponnambalam road, Paravippanchchan, Kilinochchi"
@@ -576,10 +1005,26 @@
     "name": "Mannar",
     "moh_areas": [
       {
+        "name": "Adampan (Manthai West)",
+        "places": []
+      },
+      {
+        "name": "Madhu",
+        "places": []
+      },
+      {
         "name": "Mannar",
         "places": [
           ". Murugesu Kathirgamanathan Grand Bazaar, Mannar"
         ]
+      },
+      {
+        "name": "Musali",
+        "places": []
+      },
+      {
+        "name": "Nanaddan",
+        "places": []
       }
     ]
   },
@@ -592,12 +1037,81 @@
           "Hospital (Pvt) Ltd.",
           "Health Care (Pvt)Ltd 253, Station Road, Kurumankadu, Vavuniya"
         ]
+      },
+      {
+        "name": "Vavuniya North (Nedunkeni)",
+        "places": []
+      },
+      {
+        "name": "Vavuniya South",
+        "places": []
+      },
+      {
+        "name": "Venkalacheddikulam",
+        "places": []
+      }
+    ]
+  },
+  {
+    "name": "Mullaitivu",
+    "moh_areas": [
+      {
+        "name": "Maritimepattu",
+        "places": []
+      },
+      {
+        "name": "Oddusuddan",
+        "places": []
+      },
+      {
+        "name": "Puthukkudiyiruppu",
+        "places": []
+      },
+      {
+        "name": "Thunukkai",
+        "places": []
+      },
+      {
+        "name": "Welioya",
+        "places": []
       }
     ]
   },
   {
     "name": "Trincomalee",
     "moh_areas": [
+      {
+        "name": "Gomarankadawala",
+        "places": []
+      },
+      {
+        "name": "Kantale",
+        "places": []
+      },
+      {
+        "name": "Kinniya",
+        "places": []
+      },
+      {
+        "name": "Kuchchaveli",
+        "places": []
+      },
+      {
+        "name": "Muttur",
+        "places": []
+      },
+      {
+        "name": "Padavi Sri Pura",
+        "places": []
+      },
+      {
+        "name": "Seruvila",
+        "places": []
+      },
+      {
+        "name": "Thampalakamam",
+        "places": []
+      },
       {
         "name": "Trincomalee",
         "places": [
@@ -626,6 +1140,10 @@
     "name": "Batticaloa",
     "moh_areas": [
       {
+        "name": "Arayampathy (Manmunai Aru)",
+        "places": []
+      },
+      {
         "name": "Batticaloa",
         "places": [
           "GV Hospital.",
@@ -633,6 +1151,38 @@
           "Pioneer Hospital.",
           "Hospital 121, New Kalmunai Road, Batticaloa"
         ]
+      },
+      {
+        "name": "Chenkalady (Eravur Pattu)",
+        "places": []
+      },
+      {
+        "name": "Eravur Town",
+        "places": []
+      },
+      {
+        "name": "Kaluwanchikudy (Manmunai South)",
+        "places": []
+      },
+      {
+        "name": "Kattankudy",
+        "places": []
+      },
+      {
+        "name": "Kiran (Koralai Pattu West)",
+        "places": []
+      },
+      {
+        "name": "Oddamavadi (Koralai Pattu West)",
+        "places": []
+      },
+      {
+        "name": "Valachchenai (Koralai Pattu)",
+        "places": []
+      },
+      {
+        "name": "Vellavely (Manmunai Southwest)",
+        "places": []
       },
       {
         "name": "Eravur",
@@ -652,12 +1202,8 @@
     "name": "Ampara",
     "moh_areas": [
       {
-        "name": "Kalmunai",
-        "places": [
-          "Dr. Jameel Memorial Hospital 37, Cassim Road, Kalmunai",
-          "Land Hospital.",
-          "Ali Hospital (Pvt) Limited."
-        ]
+        "name": "Addalaichenai",
+        "places": []
       },
       {
         "name": "Akkaraipattu",
@@ -665,12 +1211,172 @@
           "Hospital (Pvt) Ltd.",
           "Hospitals (Pvt) Ltd."
         ]
+      },
+      {
+        "name": "Alayadivembu",
+        "places": []
+      },
+      {
+        "name": "Ampara",
+        "places": []
+      },
+      {
+        "name": "Damana",
+        "places": []
+      },
+      {
+        "name": "Dehiattakandiya",
+        "places": []
+      },
+      {
+        "name": "Kalmunai North",
+        "places": []
+      },
+      {
+        "name": "Kalmunai South",
+        "places": []
+      },
+      {
+        "name": "Karaitivu",
+        "places": []
+      },
+      {
+        "name": "Lahugala",
+        "places": []
+      },
+      {
+        "name": "Maha Oya",
+        "places": []
+      },
+      {
+        "name": "Navithanveli",
+        "places": []
+      },
+      {
+        "name": "Padiyathalawa",
+        "places": []
+      },
+      {
+        "name": "Pottuvil",
+        "places": []
+      },
+      {
+        "name": "Sammanthurai",
+        "places": []
+      },
+      {
+        "name": "Thirukkovil",
+        "places": []
+      },
+      {
+        "name": "Uhana",
+        "places": []
+      },
+      {
+        "name": "Kalmunai",
+        "places": [
+          "Dr. Jameel Memorial Hospital 37, Cassim Road, Kalmunai",
+          "Land Hospital.",
+          "Ali Hospital (Pvt) Limited."
+        ]
       }
     ]
   },
   {
     "name": "Kurunegala",
     "moh_areas": [
+      {
+        "name": "Alawwa",
+        "places": []
+      },
+      {
+        "name": "Ambanpola",
+        "places": []
+      },
+      {
+        "name": "Bamunakotuwa",
+        "places": []
+      },
+      {
+        "name": "Bingiriya",
+        "places": [
+          "Center Vilaththawa Bingiriya"
+        ]
+      },
+      {
+        "name": "Galgamuwa",
+        "places": []
+      },
+      {
+        "name": "Giribawa",
+        "places": []
+      },
+      {
+        "name": "Ibbagamuwa",
+        "places": []
+      },
+      {
+        "name": "Kotavehera",
+        "places": []
+      },
+      {
+        "name": "Kuliyapitiya East",
+        "places": []
+      },
+      {
+        "name": "Kuliyapitiya West",
+        "places": []
+      },
+      {
+        "name": "Kurunegala",
+        "places": []
+      },
+      {
+        "name": "Maho",
+        "places": []
+      },
+      {
+        "name": "Mawathagama",
+        "places": []
+      },
+      {
+        "name": "Narammala",
+        "places": []
+      },
+      {
+        "name": "Nikaweratiya",
+        "places": []
+      },
+      {
+        "name": "Panduwasnuwara",
+        "places": []
+      },
+      {
+        "name": "Pannala",
+        "places": [
+          "Medical Centre"
+        ]
+      },
+      {
+        "name": "Polgahawela",
+        "places": []
+      },
+      {
+        "name": "Polpithigama",
+        "places": []
+      },
+      {
+        "name": "Rasnayakapura",
+        "places": []
+      },
+      {
+        "name": "Rideegama",
+        "places": []
+      },
+      {
+        "name": "Wariyapola",
+        "places": []
+      },
       {
         "name": "Kurunegala MC",
         "places": [
@@ -706,18 +1412,6 @@
         ]
       },
       {
-        "name": "Bingiriya",
-        "places": [
-          "Center Vilaththawa Bingiriya"
-        ]
-      },
-      {
-        "name": "Pannala",
-        "places": [
-          "Medical Centre"
-        ]
-      },
-      {
         "name": "Maho / Galgamuwa",
         "places": [
           "Well Medical Centre Ehatuwawa Road, Galgamuwa",
@@ -743,12 +1437,60 @@
     "name": "Puttalam",
     "moh_areas": [
       {
+        "name": "Anamaduwa",
+        "places": []
+      },
+      {
+        "name": "Arachchikattuwa",
+        "places": []
+      },
+      {
+        "name": "Chilaw",
+        "places": []
+      },
+      {
+        "name": "Dankotuwa",
+        "places": []
+      },
+      {
+        "name": "Kalpitiya",
+        "places": []
+      },
+      {
+        "name": "Karuwalagaswewa",
+        "places": []
+      },
+      {
+        "name": "Mahawewa",
+        "places": []
+      },
+      {
+        "name": "Mundel",
+        "places": []
+      },
+      {
+        "name": "Nattandiya",
+        "places": []
+      },
+      {
+        "name": "Nawagattegama",
+        "places": []
+      },
+      {
         "name": "Puttalam",
         "places": [
           "Kuwait Hospital138, Nedumkulam Vaun, Puttalam",
           "Hospital (Pvt)Ltd",
           "PUTTALAM DIGASIRI HOSPITAL (PVT)LTD NO116/1, KURUNEGALA ROAD, PUTTALAM"
         ]
+      },
+      {
+        "name": "Vanathavilluwa",
+        "places": []
+      },
+      {
+        "name": "Wennappuwa",
+        "places": []
       },
       {
         "name": "Chilaw / Wennappuwa",
@@ -776,6 +1518,90 @@
     "name": "Anuradhapura",
     "moh_areas": [
       {
+        "name": "Anuradhapura Municipal Council / Nuwaragam Palatha",
+        "places": []
+      },
+      {
+        "name": "Galenbindunuwewa",
+        "places": []
+      },
+      {
+        "name": "Galnewa",
+        "places": []
+      },
+      {
+        "name": "Horowpothana",
+        "places": []
+      },
+      {
+        "name": "Ipalogama",
+        "places": []
+      },
+      {
+        "name": "Kahatagasdigiliya",
+        "places": []
+      },
+      {
+        "name": "Kebithigollewa",
+        "places": []
+      },
+      {
+        "name": "Kekirawa",
+        "places": []
+      },
+      {
+        "name": "Mahavilachchiya",
+        "places": []
+      },
+      {
+        "name": "Medawachchiya",
+        "places": []
+      },
+      {
+        "name": "Mihintale",
+        "places": []
+      },
+      {
+        "name": "Nachchadoowa",
+        "places": []
+      },
+      {
+        "name": "Nochchiyagama",
+        "places": []
+      },
+      {
+        "name": "Padaviya",
+        "places": []
+      },
+      {
+        "name": "Palagala",
+        "places": []
+      },
+      {
+        "name": "Rajanganaya",
+        "places": []
+      },
+      {
+        "name": "Rambewa",
+        "places": []
+      },
+      {
+        "name": "Thalawa",
+        "places": []
+      },
+      {
+        "name": "Thambuttegama",
+        "places": [
+          "Vision Eye Hospital (Pvt) Ltd",
+          "CHANNEL CENTER",
+          "Medicare Center"
+        ]
+      },
+      {
+        "name": "Thirappane",
+        "places": []
+      },
+      {
         "name": "Anuradhapura MC",
         "places": [
           "SUWA SHANTHI HOSPITAL PRIVATE LIMITED",
@@ -785,14 +1611,6 @@
           "Hospital (Pvt) Ltd",
           "Health Care Services (Pvt) Ltd",
           ". E. M. U. Ekanayake Kud Nelabewa, Hindogama, Anuradhapura"
-        ]
-      },
-      {
-        "name": "Thambuttegama",
-        "places": [
-          "Vision Eye Hospital (Pvt) Ltd",
-          "CHANNEL CENTER",
-          "Medicare Center"
         ]
       },
       {
@@ -814,10 +1632,34 @@
     "name": "Polonnaruwa",
     "moh_areas": [
       {
-        "name": "Polonnaruwa / Kaduruwela",
+        "name": "Aralaganwila (Dimbulagala)",
+        "places": []
+      },
+      {
+        "name": "Elahera",
+        "places": []
+      },
+      {
+        "name": "Hingurakgoda",
+        "places": []
+      },
+      {
+        "name": "Lankapura",
+        "places": []
+      },
+      {
+        "name": "Medirigiriya",
+        "places": []
+      },
+      {
+        "name": "Polonnaruwa / Thamankaduwa",
         "places": [
           "Lanka Hospital (Pvt) Ltd 28th Mile Post, Kaduruwela, Polonnaruwa"
         ]
+      },
+      {
+        "name": "Welikanda",
+        "places": []
       }
     ]
   },
@@ -831,16 +1673,64 @@
         ]
       },
       {
-        "name": "Diyatalawa",
-        "places": [
-          "Medical Centre Fair Road, Diyathalawa"
-        ]
+        "name": "Bandarawela",
+        "places": []
+      },
+      {
+        "name": "Ella",
+        "places": []
+      },
+      {
+        "name": "Haldummulla",
+        "places": []
+      },
+      {
+        "name": "Hali-Ela",
+        "places": []
+      },
+      {
+        "name": "Haputale",
+        "places": []
+      },
+      {
+        "name": "Kandaketiya",
+        "places": []
+      },
+      {
+        "name": "Lunugala",
+        "places": []
+      },
+      {
+        "name": "Mahiyanganaya",
+        "places": []
+      },
+      {
+        "name": "Meegahakiula",
+        "places": []
+      },
+      {
+        "name": "Passara",
+        "places": []
+      },
+      {
+        "name": "Rideemaliyadda",
+        "places": []
+      },
+      {
+        "name": "Uva Paranagama",
+        "places": []
       },
       {
         "name": "Welimada",
         "places": [
           "CHANNEL SERVICE",
           "Channel Centre"
+        ]
+      },
+      {
+        "name": "Diyatalawa",
+        "places": [
+          "Medical Centre Fair Road, Diyathalawa"
         ]
       }
     ]
@@ -849,10 +1739,44 @@
     "name": "Monaragala",
     "moh_areas": [
       {
+        "name": "Badalkumbura",
+        "places": []
+      },
+      {
+        "name": "Bibile",
+        "places": [
+          "Medical Centre"
+        ]
+      },
+      {
+        "name": "Buttala",
+        "places": []
+      },
+      {
+        "name": "Kataragama",
+        "places": []
+      },
+      {
+        "name": "Madulla",
+        "places": []
+      },
+      {
+        "name": "Medagama",
+        "places": []
+      },
+      {
         "name": "Monaragala",
         "places": [
           "Nursing Home (Pvt) Ltd."
         ]
+      },
+      {
+        "name": "Sevanagala",
+        "places": []
+      },
+      {
+        "name": "Siyambalanduwa",
+        "places": []
       },
       {
         "name": "Wellawaya",
@@ -861,10 +1785,8 @@
         ]
       },
       {
-        "name": "Bibile",
-        "places": [
-          "Medical Centre"
-        ]
+        "name": "Thanamalwila",
+        "places": []
       },
       {
         "name": "Dambagalla",
@@ -878,21 +1800,8 @@
     "name": "Ratnapura",
     "moh_areas": [
       {
-        "name": "Ratnapura",
-        "places": [
-          "Aloka Private Hospital",
-          "Hospitals PLC",
-          "Setha Lions Vision For Sight Hospital",
-          "HOSPITALS AND LABORATORIES 189, Hospital Junction, Colombo Road, Ratnapura",
-          "Suwa Sewana Medical Centre"
-        ]
-      },
-      {
-        "name": "Pelmadulla",
-        "places": [
-          ". S. Sagara Godakumbura Main Street, Pelmadulla",
-          ". M. M. A. R. Abayaratna Main Street, Pelmadulla"
-        ]
+        "name": "Ayagama",
+        "places": []
       },
       {
         "name": "Balangoda",
@@ -917,6 +1826,59 @@
         ]
       },
       {
+        "name": "Godakawela",
+        "places": []
+      },
+      {
+        "name": "Imbulpe",
+        "places": []
+      },
+      {
+        "name": "Kahawatta",
+        "places": []
+      },
+      {
+        "name": "Kalawana",
+        "places": []
+      },
+      {
+        "name": "Kuruwita",
+        "places": []
+      },
+      {
+        "name": "Kolonna",
+        "places": []
+      },
+      {
+        "name": "Nivithigala",
+        "places": []
+      },
+      {
+        "name": "Opanayaka",
+        "places": []
+      },
+      {
+        "name": "Pelmadulla",
+        "places": [
+          ". S. Sagara Godakumbura Main Street, Pelmadulla",
+          ". M. M. A. R. Abayaratna Main Street, Pelmadulla"
+        ]
+      },
+      {
+        "name": "Ratnapura",
+        "places": [
+          "Aloka Private Hospital",
+          "Hospitals PLC",
+          "Setha Lions Vision For Sight Hospital",
+          "HOSPITALS AND LABORATORIES 189, Hospital Junction, Colombo Road, Ratnapura",
+          "Suwa Sewana Medical Centre"
+        ]
+      },
+      {
+        "name": "Weligepola",
+        "places": []
+      },
+      {
         "name": "Kuruwita / Kiriella",
         "places": [
           ". P. N. W. Wijayawardana Paragasorvita, Devipahala, Kuruwita",
@@ -937,6 +1899,28 @@
     "name": "Kegalle",
     "moh_areas": [
       {
+        "name": "Aranayaka",
+        "places": []
+      },
+      {
+        "name": "Bulathkohupitiya",
+        "places": []
+      },
+      {
+        "name": "Dehiovita",
+        "places": []
+      },
+      {
+        "name": "Deraniyagala",
+        "places": []
+      },
+      {
+        "name": "Galigamuwa",
+        "places": [
+          "Medical Centre Kandy Road, Galigamuwa Town"
+        ]
+      },
+      {
         "name": "Kegalle",
         "places": [
           "HOSPITALS (PVT) LTD",
@@ -955,6 +1939,21 @@
         ]
       },
       {
+        "name": "Rambukkana",
+        "places": [
+          "Weligalle Medical centre",
+          "CENTER POLATHTHAPITIYA UDAGALADENIYA, RAMBUKKANA"
+        ]
+      },
+      {
+        "name": "Ruwanwella",
+        "places": []
+      },
+      {
+        "name": "Yatiyanthota",
+        "places": []
+      },
+      {
         "name": "Warakapola",
         "places": [
           "House Channel Centre",
@@ -966,19 +1965,6 @@
         "name": "Karawanella",
         "places": [
           "Sevana Channel Centre"
-        ]
-      },
-      {
-        "name": "Galigamuwa",
-        "places": [
-          "Medical Centre Kandy Road, Galigamuwa Town"
-        ]
-      },
-      {
-        "name": "Rambukkana",
-        "places": [
-          "Weligalle Medical centre",
-          "CENTER POLATHTHAPITIYA UDAGALADENIYA, RAMBUKKANA"
         ]
       },
       {
