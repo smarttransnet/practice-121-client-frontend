@@ -296,6 +296,9 @@ export const PatientQueue = () => {
   // Future Booking Date states
   const [availableDates, setAvailableDates] = useState<Date[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+<<<<<<< HEAD
+  const [selectedSessionId, setSelectedSessionId] = useState<string>('');
+=======
   const [selectedSessionId, setSelectedSessionId] = useState<string>('ALL');
   const [targetSessionId, setTargetSessionId] = useState<string>('');
 
@@ -352,6 +355,7 @@ export const PatientQueue = () => {
       return idx % daySessions.length === sessionIndex;
     });
   };
+>>>>>>> origin/main
 
   const getDayString = (date: Date) => {
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -418,9 +422,30 @@ export const PatientQueue = () => {
 
   // Fetch queue & subscribe to real-time SignalR push notifications + 5s polling fallback
   useEffect(() => {
+<<<<<<< HEAD
+    if (selectedCentre && selectedDate) {
+      const dateStr = formatDateLocal(selectedDate);
+      fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+
+      const dayStr = getDayString(selectedDate);
+      const matchingSg = selectedCentre.sessionGroups?.find(sg =>
+        sg.daysOfWeek?.some(d => d.toUpperCase() === dayStr)
+      );
+      if (matchingSg) {
+        setSelectedSessionId(matchingSg.id);
+      } else if (selectedCentre.sessionGroups?.length > 0) {
+        setSelectedSessionId(selectedCentre.sessionGroups[0].id);
+      } else {
+        setSelectedSessionId('');
+      }
+    } else {
+      setQueue([]);
+      setSelectedSessionId('');
+=======
     if (!selectedCentre || !selectedDate) {
       setQueue([]);
       return;
+>>>>>>> origin/main
     }
 
     const dateStr = formatDateLocal(selectedDate);
@@ -645,8 +670,7 @@ export const PatientQueue = () => {
         doctorId: selectedCentre.doctorId,
         practiceCentreId: selectedCentre.id,
         priority: priority,
-        visitDate: selectedDate ? formatDateLocal(selectedDate) : undefined,
-        sessionId: targetSessionId || undefined
+        sessionId: targetSessionId || selectedSessionId || undefined
       });
       handleCloseAddModal();
       refreshQueue();

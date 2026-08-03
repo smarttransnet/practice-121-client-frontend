@@ -39,6 +39,7 @@ interface SearchableSelectProps {
   helperText?: string
   freeSolo?: boolean
   onAddNew?: (val: string) => void
+  inputRef?: React.Ref<HTMLInputElement>
 }
 
 function SearchableSelect({
@@ -52,6 +53,7 @@ function SearchableSelect({
   helperText,
   freeSolo,
   onAddNew,
+  inputRef,
 }: SearchableSelectProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -114,6 +116,7 @@ function SearchableSelect({
   return (
     <>
       <TextField
+        inputRef={inputRef}
         fullWidth
         label={label}
         value={value}
@@ -234,6 +237,9 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
   const [mohAreasList, setMohAreasList] = useState<ApiLocation[]>([])
   const [placesList, setPlacesList] = useState<ApiLocation[]>([])
 
+  const mohInputRef = useRef<HTMLInputElement>(null)
+  const placeInputRef = useRef<HTMLInputElement>(null)
+
   // Fetch districts on mount
   useEffect(() => {
     httpClient.get<any>('/api/locations/districts')
@@ -337,11 +343,17 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
             onChange('placeId', '')
             onChange('mohAreaId', '')
             onChange('isNewPlace', false)
+            if (val) {
+              setTimeout(() => {
+                mohInputRef.current?.focus()
+              }, 50)
+            }
           }}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
         <SearchableSelect
+          inputRef={mohInputRef}
           label="MOH Area"
           value={mohArea}
           options={mohAreaNames}
@@ -354,11 +366,17 @@ export function LocationPicker({ district, mohArea, placeName, onChange, error }
             onChange('placeId', '')
             onChange('mohAreaId', '')
             onChange('isNewPlace', false)
+            if (val) {
+              setTimeout(() => {
+                placeInputRef.current?.focus()
+              }, 50)
+            }
           }}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
         <SearchableSelect
+          inputRef={placeInputRef}
           label="Hospital / Place"
           value={placeName}
           options={placeNames}
