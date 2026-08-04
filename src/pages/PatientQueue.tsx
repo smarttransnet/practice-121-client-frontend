@@ -48,6 +48,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import { useRef } from 'react';
 import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { httpClient } from '../api/httpClient';
 import {
@@ -131,11 +133,13 @@ const getCalendarDays = (viewDate: Date) => {
 const CalendarPicker = ({
   availableDates,
   selectedDate,
-  onSelectDate
+  onSelectDate,
+  calendarRef,
 }: {
   availableDates: Date[];
   selectedDate: Date | null;
   onSelectDate: (date: Date) => void;
+  calendarRef?: React.RefObject<HTMLDivElement | null>;
 }) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -160,7 +164,7 @@ const CalendarPicker = ({
   const showNext = currentMonth.getFullYear() < maxDate.getFullYear() || currentMonth.getMonth() < maxDate.getMonth();
 
   return (
-    <Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 3, p: 2, border: '1px solid', borderColor: 'divider' }}>
+    <Box ref={calendarRef} tabIndex={-1} sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 3, p: 2, border: '1px solid', borderColor: 'divider', outline: 'none' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <IconButton size="small" onClick={handlePrevMonth} disabled={!showPrev}>
           <ChevronLeftIcon />
@@ -238,6 +242,10 @@ const CalendarPicker = ({
 };
 
 export const PatientQueue = () => {
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+
   const [practiceCentres, setPracticeCentres] = useState<PracticeCentre[]>([]);
   const [selectedCentre, setSelectedCentre] = useState<PracticeCentre | null>(null);
   const [queue, setQueue] = useState<PatientQueueTicket[]>([]);
@@ -521,6 +529,18 @@ export const PatientQueue = () => {
   const handleSelectCentre = (centre: PracticeCentre) => {
     setSelectedCentre(centre);
     localStorage.setItem('selectedPracticeCentreId', centre.id);
+    setTimeout(() => {
+      calendarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      calendarRef.current?.focus();
+    }, 120);
+  };
+
+  const handleSelectDate = (date: Date) => {
+    setSelectedDate(date);
+    setTimeout(() => {
+      addButtonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      addButtonRef.current?.focus();
+    }, 120);
   };
 
   const fetchQueue = async (centreId: string, doctorId?: string, visitDate?: string) => {
@@ -823,15 +843,24 @@ export const PatientQueue = () => {
               boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                {/* Touch-Friendly Move Up/Down Buttons */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', bgcolor: 'action.hover', borderRadius: 2, p: 0.25 }}>
+                {/* Touch-Friendly Move Up/Down & Drag Indicator */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    bgcolor: 'rgba(143, 0, 255, 0.05)',
+                    borderRadius: 2.5,
+                    p: 0.5,
+                    border: '1px solid rgba(143, 0, 255, 0.15)',
+                  }}
+                >
                   <IconButton
                     size="small"
                     onClick={() => handleMoveUp(index, ticketsList)}
                     disabled={index === 0}
-                    sx={{ p: 0.25 }}
+                    sx={{ p: 0.5 }}
                     title="Move Up"
                   >
                     <KeyboardArrowUpIcon fontSize="small" />
@@ -840,7 +869,7 @@ export const PatientQueue = () => {
                     size="small"
                     onClick={() => handleMoveDown(index, ticketsList)}
                     disabled={index === ticketsList.length - 1}
-                    sx={{ p: 0.25 }}
+                    sx={{ p: 0.5 }}
                     title="Move Down"
                   >
                     <KeyboardArrowDownIcon fontSize="small" />
@@ -866,42 +895,54 @@ export const PatientQueue = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
               <Box>{getStatusChip(ticket.status)}</Box>
-              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center' }}>
                 {ticket.status === 0 && (
-                  <IconButton color="secondary" size="small" onClick={() => handleUpdateStatus(ticket.id, 1)}>
-                    <CheckIcon fontSize="small" />
-                  </IconButton>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<CheckCircleIcon />}
+                    onClick={() => handleUpdateStatus(ticket.id, 1)}
+                    sx={{
+                      fontWeight: 700,
+                      borderRadius: 2.5,
+                      textTransform: 'none',
+                      px: 2,
+                      py: 0.75,
+                      boxShadow: '0 2px 8px rgba(156, 39, 176, 0.25)',
+                    }}
+                  >
+                    Mark Ready
+                  </Button>
                 )}
-                {(ticket.status === 0 || ticket.status === 1) && (
-                  <IconButton color="warning" size="small" onClick={() => handleUpdateStatus(ticket.id, 2)}>
-                    <RecordVoiceOverIcon fontSize="small" />
-                  </IconButton>
-                )}
-                {ticket.status === 2 && (
-                  <IconButton color="info" size="small" onClick={() => handleUpdateStatus(ticket.id, 3)}>
-                    <PlayArrowIcon fontSize="small" />
-                  </IconButton>
+                {ticket.status === 1 && (
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="info"
+                    startIcon={<PlayArrowIcon />}
+                    onClick={() => handleUpdateStatus(ticket.id, 3)}
+                    sx={{ fontWeight: 700, borderRadius: 2.5, textTransform: 'none', px: 2, py: 0.75 }}
+                  >
+                    Start
+                  </Button>
                 )}
                 {ticket.status === 3 && (
-                  <IconButton color="success" size="small" onClick={() => handleUpdateStatus(ticket.id, 4)}>
-                    <CheckIcon fontSize="small" />
-                  </IconButton>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="success"
+                    startIcon={<CheckIcon />}
+                    onClick={() => handleUpdateStatus(ticket.id, 4)}
+                    sx={{ fontWeight: 700, borderRadius: 2.5, textTransform: 'none', px: 2, py: 0.75 }}
+                  >
+                    Complete
+                  </Button>
                 )}
                 {ticket.status < 4 && (
-                  <>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="error"
-                      sx={{ textTransform: 'none', px: 1, py: 0.25, fontSize: '0.75rem', borderRadius: 2 }}
-                      onClick={() => handleUpdateStatus(ticket.id, 6)}
-                    >
-                      No Show
-                    </Button>
-                    <IconButton color="error" size="small" onClick={() => handleUpdateStatus(ticket.id, 5)}>
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </>
+                  <IconButton color="error" size="small" title="Cancel Queue Ticket" onClick={() => handleUpdateStatus(ticket.id, 5)}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
                 )}
               </Box>
             </Box>
@@ -914,7 +955,7 @@ export const PatientQueue = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ width: 80, fontWeight: 700 }}>Arrange</TableCell>
+              <TableCell sx={{ width: 130, fontWeight: 700 }}>Arrange</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>No.</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Patient Name</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Mobile</TableCell>
@@ -938,13 +979,26 @@ export const PatientQueue = () => {
                   transition: 'opacity 0.2s, background-color 0.2s',
                 }}
               >
-                <TableCell sx={{ width: 80 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                <TableCell sx={{ width: 130 }}>
+                  <Box
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      bgcolor: 'rgba(143, 0, 255, 0.05)',
+                      borderRadius: 2.5,
+                      p: 0.5,
+                      border: '1px solid rgba(143, 0, 255, 0.15)',
+                    }}
+                  >
+                    <Tooltip title="Drag or click arrows to reorder">
+                      <DragIndicatorIcon sx={{ color: 'text.secondary', fontSize: 18, mr: 0.5, cursor: 'grab' }} />
+                    </Tooltip>
                     <IconButton
                       size="small"
                       onClick={() => handleMoveUp(index, ticketsList)}
                       disabled={index === 0}
                       title="Move Up"
+                      sx={{ p: 0.5 }}
                     >
                       <KeyboardArrowUpIcon fontSize="small" />
                     </IconButton>
@@ -953,6 +1007,7 @@ export const PatientQueue = () => {
                       onClick={() => handleMoveDown(index, ticketsList)}
                       disabled={index === ticketsList.length - 1}
                       title="Move Down"
+                      sx={{ p: 0.5 }}
                     >
                       <KeyboardArrowDownIcon fontSize="small" />
                     </IconButton>
@@ -966,54 +1021,56 @@ export const PatientQueue = () => {
                 <TableCell>{getPriorityChip(ticket.priority)}</TableCell>
                 <TableCell>{getStatusChip(ticket.status)}</TableCell>
                 <TableCell sx={{ textAlign: 'right' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, alignItems: 'center' }}>
                     {ticket.status === 0 && (
-                      <Tooltip title="Mark Ready">
-                        <IconButton color="secondary" onClick={() => handleUpdateStatus(ticket.id, 1)}>
-                          <CheckIcon />
-                        </IconButton>
-                      </Tooltip>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="secondary"
+                        startIcon={<CheckCircleIcon />}
+                        onClick={() => handleUpdateStatus(ticket.id, 1)}
+                        sx={{
+                          fontWeight: 700,
+                          borderRadius: 2.5,
+                          textTransform: 'none',
+                          px: 2,
+                          py: 0.75,
+                          boxShadow: '0 2px 8px rgba(156, 39, 176, 0.25)',
+                        }}
+                      >
+                        Mark Ready
+                      </Button>
                     )}
-                    {(ticket.status === 0 || ticket.status === 1) && (
-                      <Tooltip title="Call Patient">
-                        <IconButton color="warning" onClick={() => handleUpdateStatus(ticket.id, 2)}>
-                          <RecordVoiceOverIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                    {ticket.status === 2 && (
-                      <Tooltip title="Start Consultation">
-                        <IconButton color="info" onClick={() => handleUpdateStatus(ticket.id, 3)}>
-                          <PlayArrowIcon />
-                        </IconButton>
-                      </Tooltip>
+                    {ticket.status === 1 && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="info"
+                        startIcon={<PlayArrowIcon />}
+                        onClick={() => handleUpdateStatus(ticket.id, 3)}
+                        sx={{ fontWeight: 700, borderRadius: 2.5, textTransform: 'none', px: 2, py: 0.75 }}
+                      >
+                        Start
+                      </Button>
                     )}
                     {ticket.status === 3 && (
-                      <Tooltip title="Complete Consultation">
-                        <IconButton color="success" onClick={() => handleUpdateStatus(ticket.id, 4)}>
-                          <CheckIcon />
-                        </IconButton>
-                      </Tooltip>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="success"
+                        startIcon={<CheckIcon />}
+                        onClick={() => handleUpdateStatus(ticket.id, 4)}
+                        sx={{ fontWeight: 700, borderRadius: 2.5, textTransform: 'none', px: 2, py: 0.75 }}
+                      >
+                        Complete
+                      </Button>
                     )}
                     {ticket.status < 4 && (
-                      <>
-                        <Tooltip title="No Show">
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="error"
-                            sx={{ textTransform: 'none', px: 1, py: 0.5, borderRadius: 2 }}
-                            onClick={() => handleUpdateStatus(ticket.id, 6)}
-                          >
-                            No Show
-                          </Button>
-                        </Tooltip>
-                        <Tooltip title="Cancel">
-                          <IconButton color="error" onClick={() => handleUpdateStatus(ticket.id, 5)}>
-                            <CloseIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </>
+                      <Tooltip title="Cancel Queue Ticket">
+                        <IconButton color="error" onClick={() => handleUpdateStatus(ticket.id, 5)}>
+                          <CloseIcon />
+                        </IconButton>
+                      </Tooltip>
                     )}
                   </Box>
                 </TableCell>
@@ -1229,7 +1286,8 @@ export const PatientQueue = () => {
                     <CalendarPicker
                       availableDates={availableDates}
                       selectedDate={selectedDate}
-                      onSelectDate={setSelectedDate}
+                      onSelectDate={handleSelectDate}
+                      calendarRef={calendarRef}
                     />
                   </Box>
                 )}
@@ -1276,6 +1334,7 @@ export const PatientQueue = () => {
                 </Box>
 
                 <Button
+                  ref={addButtonRef}
                   onClick={() => setOpenAddModal(true)}
                   variant="contained"
                   className="gradient-primary-btn"
@@ -1395,12 +1454,19 @@ export const PatientQueue = () => {
             <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
               {addError && <Alert severity="error">{addError}</Alert>}
               <TextField
+                inputRef={phoneInputRef}
+                autoFocus
+                type="tel"
                 label="Patient Mobile Number"
                 variant="outlined"
                 fullWidth
                 value={patientMobile}
                 onChange={(e) => setPatientMobile(e.target.value)}
                 slotProps={{
+                  htmlInput: {
+                    inputMode: 'numeric',
+                    pattern: '[0-9]*',
+                  },
                   input: {
                     startAdornment: <SettingsPhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />
                   }

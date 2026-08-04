@@ -261,6 +261,9 @@ export function OtpVerificationDialog({
               variant="outlined"
               inputProps={{
                 maxLength: 1,
+                inputMode: 'numeric',
+                pattern: '[0-9]*',
+                type: 'tel',
                 style: {
                   textAlign: 'center',
                   fontSize: '1.4rem',

@@ -308,13 +308,21 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
 
       <TextField
         fullWidth
+        autoFocus
+        type="tel"
         label="Mobile Number"
-        placeholder="+94 77 000 0000"
+        placeholder="077 000 0000"
         value={mobile}
         onChange={e => setMobile(e.target.value)}
         onKeyDown={e => e.key === 'Enter' && handleSearch()}
+        slotProps={{
+          htmlInput: {
+            id: 'appt-mobile-input',
+            inputMode: 'numeric',
+            pattern: '[0-9]*',
+          },
+        }}
         sx={{ mb: 2 }}
-        inputProps={{ id: 'appt-mobile-input' }}
       />
 
       {/* Advanced search toggle */}
