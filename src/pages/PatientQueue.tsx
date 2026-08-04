@@ -246,6 +246,10 @@ export const PatientQueue = () => {
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
 
+  const isEditingQueueRef = useRef<boolean>(false);
+  const hasPendingSignalRUpdateRef = useRef<boolean>(false);
+  const isFetchingRef = useRef<boolean>(false);
+
   const [practiceCentres, setPracticeCentres] = useState<PracticeCentre[]>([]);
   const [selectedCentre, setSelectedCentre] = useState<PracticeCentre | null>(null);
   const [queue, setQueue] = useState<PatientQueueTicket[]>([]);
@@ -444,7 +448,7 @@ export const PatientQueue = () => {
     }
   }, [selectedCentre]);
 
-  // Fetch queue & subscribe to real-time SignalR push notifications + 5s polling fallback
+  // Fetch queue & subscribe to real-time SignalR push notifications + 30s background sync fallback
   useEffect(() => {
     if (!selectedCentre || !selectedDate) {
       setQueue([]);
@@ -454,10 +458,12 @@ export const PatientQueue = () => {
     const dateStr = formatDateLocal(selectedDate);
     fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
 
-    // 1. Setup 5-second polling interval fallback
+    // 1. Setup 30-second background sync fallback (pauses during edit/reorder & skips if fetching)
     const intervalId = setInterval(() => {
-      fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
-    }, 5000);
+      if (!isEditingQueueRef.current && !isFetchingRef.current) {
+        fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+      }
+    }, 30000);
 
     // 2. Setup SignalR WebSocket connection for instant zero-latency push updates
     const apiBase = httpClient.defaults.baseURL || 'https://practice121-api-687271578749.asia-southeast1.run.app';
@@ -473,7 +479,11 @@ export const PatientQueue = () => {
         connection.invoke('JoinQueueGroup', selectedCentre.id).catch(() => {});
         connection.on('QueueUpdated', (data: any) => {
           if (!data || !data.practiceCentreId || String(data.practiceCentreId).toLowerCase() === String(selectedCentre.id).toLowerCase()) {
-            fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+            if (isEditingQueueRef.current) {
+              hasPendingSignalRUpdateRef.current = true;
+            } else {
+              fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
+            }
           }
         });
       })
@@ -543,9 +553,10 @@ export const PatientQueue = () => {
     }, 120);
   };
 
-  const fetchQueue = async (centreId: string, doctorId?: string, visitDate?: string) => {
+  const fetchQueue = async (centreId: string, doctorId?: string, visitDate?: string, force?: boolean) => {
+    if (isFetchingRef.current && !force) return;
     try {
-      setLoadingQueue(true);
+      isFetchingRef.current = true;
       setError(null);
       const data = await getPatientQueue(centreId, doctorId, visitDate);
       setQueue(data);
@@ -553,6 +564,7 @@ export const PatientQueue = () => {
       setError(err.userFriendlyMessage || err.message || 'Failed to load patient queue');
     } finally {
       setLoadingQueue(false);
+      isFetchingRef.current = false;
     }
   };
 
@@ -722,6 +734,7 @@ export const PatientQueue = () => {
   };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
+    isEditingQueueRef.current = true;
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -739,7 +752,10 @@ export const PatientQueue = () => {
   };
 
   const handleDragEnd = async () => {
-    if (draggedIndex === null) return;
+    if (draggedIndex === null) {
+      isEditingQueueRef.current = false;
+      return;
+    }
     setDraggedIndex(null);
     
     try {
@@ -748,6 +764,12 @@ export const PatientQueue = () => {
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to persist queue order');
+    } finally {
+      isEditingQueueRef.current = false;
+      if (hasPendingSignalRUpdateRef.current && selectedCentre && selectedDate) {
+        hasPendingSignalRUpdateRef.current = false;
+        fetchQueue(selectedCentre.id, selectedCentre.doctorId, formatDateLocal(selectedDate), true);
+      }
     }
   };
 
@@ -765,11 +787,18 @@ export const PatientQueue = () => {
     newQueue.splice(mainPrevIndex, 0, moved);
 
     setQueue(newQueue);
+    isEditingQueueRef.current = true;
     try {
       await reorderPatientQueue(newQueue.map(t => t.id));
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to reorder queue');
+    } finally {
+      isEditingQueueRef.current = false;
+      if (hasPendingSignalRUpdateRef.current && selectedCentre && selectedDate) {
+        hasPendingSignalRUpdateRef.current = false;
+        fetchQueue(selectedCentre.id, selectedCentre.doctorId, formatDateLocal(selectedDate), true);
+      }
     }
   };
 
@@ -787,11 +816,18 @@ export const PatientQueue = () => {
     newQueue.splice(mainNextIndex, 0, moved);
 
     setQueue(newQueue);
+    isEditingQueueRef.current = true;
     try {
       await reorderPatientQueue(newQueue.map(t => t.id));
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to reorder queue');
+    } finally {
+      isEditingQueueRef.current = false;
+      if (hasPendingSignalRUpdateRef.current && selectedCentre && selectedDate) {
+        hasPendingSignalRUpdateRef.current = false;
+        fetchQueue(selectedCentre.id, selectedCentre.doctorId, formatDateLocal(selectedDate), true);
+      }
     }
   };
 
