@@ -60,7 +60,17 @@ export const addPatientQueueTicket = async (data: {
   patientId?: string;
   sessionId?: string;
 }): Promise<string> => {
-  const response = await httpClient.post<string>('/api/patient-queue', data);
+  const sanitizedSessionId =
+    data.sessionId && data.sessionId !== 'ALL' && data.sessionId.trim() !== ''
+      ? data.sessionId
+      : undefined;
+
+  const payload = {
+    ...data,
+    sessionId: sanitizedSessionId,
+  };
+
+  const response = await httpClient.post<string>('/api/patient-queue', payload);
   return response.data;
 };
 
