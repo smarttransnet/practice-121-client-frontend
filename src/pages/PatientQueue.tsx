@@ -45,6 +45,9 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { httpClient } from '../api/httpClient';
 import {
@@ -500,13 +503,24 @@ export const PatientQueue = () => {
       const res = await httpClient.get<PracticeCentre[]>('/api/practice-centres');
       setPracticeCentres(res.data);
       if (res.data.length > 0) {
-        setSelectedCentre(res.data[0]);
+        const savedCentreId = localStorage.getItem('selectedPracticeCentreId');
+        const found = savedCentreId ? res.data.find(pc => pc.id === savedCentreId) : null;
+        const initial = found || res.data[0];
+        setSelectedCentre(initial);
+        localStorage.setItem('selectedPracticeCentreId', initial.id);
+      } else {
+        setSelectedCentre(null);
       }
     } catch (err: any) {
       setError(err.userFriendlyMessage || err.message || 'Failed to load practice centres');
     } finally {
       setLoadingCentres(false);
     }
+  };
+
+  const handleSelectCentre = (centre: PracticeCentre) => {
+    setSelectedCentre(centre);
+    localStorage.setItem('selectedPracticeCentreId', centre.id);
   };
 
   const fetchQueue = async (centreId: string, doctorId?: string, visitDate?: string) => {
@@ -662,7 +676,8 @@ export const PatientQueue = () => {
         doctorId: selectedCentre.doctorId,
         practiceCentreId: selectedCentre.id,
         priority: priority,
-        sessionId: targetSessionId || selectedSessionId || undefined
+        visitDate: selectedDate ? formatDateLocal(selectedDate) : undefined,
+        sessionId: targetSessionId || (selectedSessionId !== 'ALL' ? selectedSessionId : undefined)
       });
       handleCloseAddModal();
       refreshQueue();
@@ -1071,27 +1086,140 @@ export const PatientQueue = () => {
           <Grid size={{ xs: 12, md: 4 }}>
             <Card className="glass-card" sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 3, p: 1 }}>
               <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  Select Practice Centre
-                </Typography>
-                <FormControl fullWidth size="medium">
-                  <InputLabel>Practice Centre</InputLabel>
-                  <Select
-                    value={selectedCentre?.id || ''}
-                    label="Practice Centre"
-                    onChange={(e) => {
-                      const centre = practiceCentres.find(pc => pc.id === e.target.value);
-                      setSelectedCentre(centre || null);
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                      Select Practice Centre
+                    </Typography>
+                    {practiceCentres.length > 1 && (
+                      <Chip
+                        label={`${practiceCentres.length} Centres`}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ fontWeight: 600, height: 22, fontSize: '0.7rem' }}
+                      />
+                    )}
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1.5,
+                      maxHeight: practiceCentres.length > 3 ? 320 : 'none',
+                      overflowY: practiceCentres.length > 3 ? 'auto' : 'visible',
+                      pr: practiceCentres.length > 3 ? 0.5 : 0,
                     }}
-                    sx={{ borderRadius: 3 }}
                   >
-                    {practiceCentres.map((pc) => (
-                      <MenuItem key={pc.id} value={pc.id}>
-                        {pc.clinicName} ({pc.placeName})
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                    {practiceCentres.map((pc) => {
+                      const isSelected = selectedCentre?.id === pc.id;
+                      return (
+                        <Card
+                          key={pc.id}
+                          component={ButtonBase}
+                          onClick={() => handleSelectCentre(pc)}
+                          variant="outlined"
+                          sx={{
+                            width: '100%',
+                            p: 2,
+                            borderRadius: 3,
+                            textAlign: 'left',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'stretch',
+                            gap: 1,
+                            cursor: 'pointer',
+                            transition: 'all 0.25s ease-in-out',
+                            borderColor: isSelected ? 'primary.main' : 'divider',
+                            borderWidth: isSelected ? 2 : 1,
+                            bgcolor: isSelected
+                              ? 'rgba(143, 0, 255, 0.06)'
+                              : 'background.paper',
+                            boxShadow: isSelected
+                              ? '0 4px 16px rgba(143, 0, 255, 0.12)'
+                              : '0 2px 6px rgba(0,0,0,0.02)',
+                            '&:hover': {
+                              borderColor: isSelected ? 'primary.main' : 'primary.light',
+                              bgcolor: isSelected
+                                ? 'rgba(143, 0, 255, 0.09)'
+                                : 'action.hover',
+                              transform: 'translateY(-1px)',
+                            },
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              <Box
+                                sx={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: 2,
+                                  bgcolor: isSelected ? 'primary.main' : 'rgba(143, 0, 255, 0.1)',
+                                  color: isSelected ? '#ffffff' : 'primary.main',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'all 0.2s',
+                                }}
+                              >
+                                <MedicalServicesIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                              <Box>
+                                <Typography
+                                  variant="subtitle1"
+                                  sx={{
+                                    fontWeight: 700,
+                                    lineHeight: 1.2,
+                                    color: isSelected ? 'primary.main' : 'text.primary',
+                                  }}
+                                >
+                                  {pc.clinicName}
+                                </Typography>
+                                {pc.placeName && (
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
+                                    <LocationOnIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                      {pc.placeName} {pc.districtName ? `• ${pc.districtName}` : ''}
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                            </Box>
+
+                            {isSelected ? (
+                              <Chip
+                                icon={<CheckCircleIcon sx={{ fontSize: '14px !important', color: '#fff !important' }} />}
+                                label="Selected"
+                                size="small"
+                                color="primary"
+                                sx={{ fontWeight: 700, height: 24, fontSize: '0.75rem' }}
+                              />
+                            ) : (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="inherit"
+                                sx={{
+                                  textTransform: 'none',
+                                  borderRadius: 2,
+                                  px: 1.5,
+                                  py: 0.25,
+                                  fontSize: '0.75rem',
+                                  borderColor: 'divider',
+                                  color: 'text.secondary',
+                                  pointerEvents: 'none',
+                                }}
+                              >
+                                Select
+                              </Button>
+                            )}
+                          </Box>
+                        </Card>
+                      );
+                    })}
+                  </Box>
+                </Box>
 
                 {selectedCentre && availableDates.length > 0 && (
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 2 }}>
