@@ -136,8 +136,15 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
       </div>
       
       <Paper className="glass-card" sx={{ p: 3 }}>
-        <Typography variant="h6" mb={2}>Basic Information</Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Typography variant="h6" mb={2}>Location</Typography>
+        <LocationPicker
+          district={data.district}
+          mohArea={data.mohArea}
+          placeName={data.placeName}
+          placeId={data.placeId}
+          onChange={(field, val) => setData(prev => ({ ...prev, [field]: val }))}
+        />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 3 }}>
           <TextField
             label="Clinic Name (Optional/Override)"
             value={data.clinicName}
@@ -153,17 +160,6 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
             fullWidth
           />
         </Box>
-      </Paper>
-
-      <Paper className="glass-card" sx={{ p: 3 }}>
-        <Typography variant="h6" mb={2}>Location</Typography>
-        <LocationPicker
-          district={data.district}
-          mohArea={data.mohArea}
-          placeName={data.placeName}
-          placeId={data.placeId}
-          onChange={(field, val) => setData(prev => ({ ...prev, [field]: val }))}
-        />
       </Paper>
 
       <Paper className="glass-card" sx={{ p: 3 }}>

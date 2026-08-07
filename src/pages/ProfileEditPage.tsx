@@ -31,13 +31,17 @@ import {
   Alert,
   Snackbar,
   Grid,
-  IconButton
+  IconButton,
+  Tabs,
+  Tab
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
+import DrawIcon from '@mui/icons-material/Draw'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import { MEDICAL_QUALIFICATIONS } from '../data/medicalQualifications'
+import { SignaturePad } from '../components/SignaturePad'
 
 interface QualificationItem {
   id?: string;
@@ -96,6 +100,7 @@ export function ProfileEditPage() {
   const [newSignaturePreview, setNewSignaturePreview] = useState<string | null>(null)
   const [showReplaceSigWarning, setShowReplaceSigWarning] = useState(false)
   const [pendingSignature, setPendingSignature] = useState<File | null>(null)
+  const [signatureMode, setSignatureMode] = useState<'upload' | 'draw'>('upload')
 
   // SLMC Certificate Document State
   const [slmcCertUrl, setSlmcCertUrl] = useState('')
@@ -760,18 +765,56 @@ export function ProfileEditPage() {
                 </Box>
               ) : (
                 <Box>
-                  <input type="file" ref={signatureInputRef} onChange={handleSignatureChange} style={{ display: 'none' }} accept="image/*" />
-                  <Stack direction="row" spacing={3} alignItems="center">
-                    {(newSignaturePreview || signatureUrl) && (
-                      <Box sx={{ border: '1px solid rgba(143, 0, 255, 0.1)', borderRadius: 2, p: 2, bgcolor: 'white' }}>
-                        <img src={newSignaturePreview || getFullImageUrl(signatureUrl)} alt="E-signature preview" style={{ maxHeight: 60, display: 'block' }} />
-                      </Box>
-                    )}
-                    <Button variant="outlined" startIcon={<CloudUploadIcon />} onClick={() => signatureInputRef.current?.click()}>
-                      {signatureUrl || newSignaturePreview ? 'Replace Signature' : 'Upload Signature'}
-                    </Button>
-                    {newSignaturePreview && <Button color="error" onClick={removeSelectedSignature}>Remove</Button>}
-                  </Stack>
+                  <Tabs
+                    value={signatureMode}
+                    onChange={(_, val) => setSignatureMode(val)}
+                    sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
+                  >
+                    <Tab icon={<CloudUploadIcon />} iconPosition="start" label="Upload Image" value="upload" />
+                    <Tab icon={<DrawIcon />} iconPosition="start" label="Draw Signature" value="draw" />
+                  </Tabs>
+
+                  {signatureMode === 'upload' ? (
+                    <Box>
+                      <input type="file" ref={signatureInputRef} onChange={handleSignatureChange} style={{ display: 'none' }} accept="image/*" />
+                      <Stack direction="row" spacing={3} alignItems="center">
+                        {(newSignaturePreview || signatureUrl) && (
+                          <Box sx={{ border: '1px solid rgba(143, 0, 255, 0.1)', borderRadius: 2, p: 2, bgcolor: 'white' }}>
+                            <img src={newSignaturePreview || getFullImageUrl(signatureUrl)} alt="E-signature preview" style={{ maxHeight: 60, display: 'block' }} />
+                          </Box>
+                        )}
+                        <Button variant="outlined" startIcon={<CloudUploadIcon />} onClick={() => signatureInputRef.current?.click()}>
+                          {signatureUrl || newSignaturePreview ? 'Replace Signature' : 'Upload Signature'}
+                        </Button>
+                        {newSignaturePreview && <Button color="error" onClick={removeSelectedSignature}>Remove</Button>}
+                      </Stack>
+                    </Box>
+                  ) : (
+                    <Box>
+                      {newSignaturePreview ? (
+                        <Stack direction="row" spacing={3} alignItems="center">
+                          <Box sx={{ border: '1px solid rgba(143, 0, 255, 0.1)', borderRadius: 2, p: 2, bgcolor: 'white' }}>
+                            <img src={newSignaturePreview} alt="Drawn signature preview" style={{ maxHeight: 60, display: 'block' }} />
+                          </Box>
+                          <Button variant="outlined" startIcon={<DrawIcon />} onClick={() => { setNewSignatureFile(null); setNewSignaturePreview(null); }}>
+                            Redraw Signature
+                          </Button>
+                          <Button color="error" onClick={removeSelectedSignature}>Remove</Button>
+                        </Stack>
+                      ) : (
+                        <SignaturePad
+                          onSave={(file) => {
+                            if (signatureUrl && !newSignatureFile) {
+                              setPendingSignature(file)
+                              setShowReplaceSigWarning(true)
+                            } else {
+                              applySignatureFile(file)
+                            }
+                          }}
+                        />
+                      )}
+                    </Box>
+                  )}
                 </Box>
               )}
             </Box>
