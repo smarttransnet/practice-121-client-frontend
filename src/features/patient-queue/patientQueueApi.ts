@@ -70,8 +70,23 @@ export const addPatientQueueTicket = async (data: {
     sessionId: sanitizedSessionId,
   };
 
-  const response = await httpClient.post<string>('/api/patient-queue', payload);
-  return response.data;
+  try {
+    const response = await httpClient.post<string>('/api/patient-queue', payload);
+    return response.data;
+  } catch (err: any) {
+    const data = err.response?.data;
+    let detailMsg = '';
+    if (data) {
+      if (typeof data === 'string') detailMsg = data;
+      else if (data.detail) detailMsg = data.detail;
+      else if (data.title) detailMsg = data.title;
+      else if (data.errors && typeof data.errors === 'object') {
+        const msgs = Object.values(data.errors).flat();
+        if (msgs.length > 0) detailMsg = msgs.join(', ');
+      }
+    }
+    throw new Error(detailMsg || err.userFriendlyMessage || err.message || 'Failed to add patient to queue');
+  }
 };
 
 export const updatePatientQueueTicketStatus = async (

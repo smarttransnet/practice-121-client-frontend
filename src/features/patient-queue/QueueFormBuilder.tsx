@@ -29,9 +29,13 @@ import SearchIcon from '@mui/icons-material/Search'
 import AddIcon from '@mui/icons-material/Add'
 import { FamilyPatientSelector } from '../patients/FamilyPatientSelector'
 import { AddChildModal } from '../patients/AddChildModal'
+import { OtpVerificationDialog } from '../../components/OtpVerificationDialog'
 import {
   getPatientByMobile,
   searchPatients,
+  sendPatientOtp,
+  verifyPatientOtp,
+  resendPatientOtp,
   type Patient
 } from './patientQueueApi'
 import { isValidLkMobile, normalizeLkMobile } from '../../utils/lkPhoneValidation'
@@ -71,7 +75,6 @@ interface QueueFormBuilderProps {
 }
 
 const STEPS = [
-  { label: 'Centre & Date', subtitle: 'Select Centre & Visit Date' },
   { label: 'Patient Lookup', subtitle: 'Mobile Search & Verification' },
   { label: 'Session & Priority', subtitle: 'Select Time Slot & Priority' },
   { label: 'Review & Confirm', subtitle: 'Confirm Queue Token' }
@@ -92,7 +95,7 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
   const formTopRef = useRef<HTMLDivElement>(null)
 
   const [activeStep, setActiveStep] = useState<number>(0)
-  const [completedSteps, setCompletedSteps] = useState<boolean[]>([false, false, false, false])
+  const [completedSteps, setCompletedSteps] = useState<boolean[]>([false, false, false])
   const [error, setError] = useState('')
 
   // Patient Lookup States
@@ -102,6 +105,12 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
   const [primaryPatientRecord, setPrimaryPatientRecord] = useState<Patient | null>(null)
   const [verifiedChildren, setVerifiedChildren] = useState<Patient[]>([])
   const [searchResults, setSearchResults] = useState<Patient[]>([])
+
+  // OTP Verification States
+  const [openOtpDialog, setOpenOtpDialog] = useState(false)
+  const [otpSessionId, setOtpSessionId] = useState<string>('')
+  const [maskedMobile, setMaskedMobile] = useState<string>('')
+  const [pendingMobile, setPendingMobile] = useState<string>('')
 
   // Advanced Search States
   const [searchFirstName, setSearchFirstName] = useState('')
@@ -115,6 +124,15 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
   const [targetSessionId, setTargetSessionId] = useState<string>('')
   const [priority, setPriority] = useState<number>(0)
   const [submitting, setSubmitting] = useState(false)
+
+  // Reset modal state when opened
+  useEffect(() => {
+    if (open) {
+      setActiveStep(0)
+      setCompletedSteps([false, false, false])
+      setError('')
+    }
+  }, [open])
 
   // Smooth scroll and focus on step change
   useEffect(() => {
@@ -132,6 +150,26 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
 
   if (!open) return null
 
+  const handleOtpVerified = async (verificationToken: string) => {
+    setOpenOtpDialog(false)
+    setLookupLoading(true)
+    setError('')
+    try {
+      const res = await getPatientByMobile(pendingMobile, verificationToken)
+      if (res && res.primaryPatient) {
+        setVerifiedPatient(res.primaryPatient)
+        setPrimaryPatientRecord(res.primaryPatient)
+        setVerifiedChildren(res.children || [])
+      } else {
+        setError('No patient record found for this mobile number.')
+      }
+    } catch (e: any) {
+      setError(e.message || 'Failed to load patient record after OTP verification.')
+    } finally {
+      setLookupLoading(false)
+    }
+  }
+
   const handleMobileLookup = async () => {
     setError('')
     const norm = normalizeLkMobile(patientMobile)
@@ -142,12 +180,17 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
 
     setLookupLoading(true)
     try {
-      const res = await getPatientByMobile(norm)
-      if (res && res.primaryPatient) {
-        setVerifiedPatient(res.primaryPatient)
-        setPrimaryPatientRecord(res.primaryPatient)
-        setVerifiedChildren(res.children || [])
-      } else {
+      const otpSendRes = await sendPatientOtp(norm)
+      if (otpSendRes.patientExists && otpSendRes.sessionId) {
+        setOtpSessionId(otpSendRes.sessionId)
+        setMaskedMobile(otpSendRes.maskedMobile || norm)
+        setPendingMobile(norm)
+        setOpenOtpDialog(true)
+        return
+      }
+
+      const hasAdvanced = searchFirstName.trim() || searchLastName.trim() || searchNic.trim()
+      if (hasAdvanced) {
         const advRes = await searchPatients({
           firstName: searchFirstName.trim() || undefined,
           lastName: searchLastName.trim() || undefined,
@@ -158,6 +201,8 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
         } else {
           setError('No matching patient found. You can register a new patient.')
         }
+      } else {
+        setError('No patient account found for this mobile number. You can register a new patient account below.')
       }
     } catch (e: any) {
       setError(e.message || 'Error searching patient record.')
@@ -167,19 +212,6 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
   }
 
   const validateStep0 = (): boolean => {
-    if (!selectedCentreId) {
-      setError('Please select a practice centre.')
-      return false
-    }
-    if (!selectedDate) {
-      setError('Please select a visit date.')
-      return false
-    }
-    setError('')
-    return true
-  }
-
-  const validateStep1 = (): boolean => {
     if (!verifiedPatient) {
       setError('Please search and select a verified patient record.')
       return false
@@ -191,14 +223,13 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
   const handleNextStep = () => {
     let isValid = false
     if (activeStep === 0) isValid = validateStep0()
-    else if (activeStep === 1) isValid = validateStep1()
     else isValid = true
 
     if (isValid) {
       const updated = [...completedSteps]
       updated[activeStep] = true
       setCompletedSteps(updated)
-      setActiveStep((prev) => Math.min(prev + 1, 3))
+      setActiveStep((prev) => Math.min(prev + 1, 2))
     }
   }
 
@@ -212,10 +243,14 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
     setSubmitting(true)
     setError('')
     try {
+      const rawMobile = verifiedPatient.mobileNumber || patientMobile
+      const mobileToUse = normalizeLkMobile(rawMobile) || rawMobile.trim()
+      const cleanSessionId = targetSessionId && targetSessionId !== 'ALL' && targetSessionId.trim() !== '' ? targetSessionId : undefined
+
       await onConfirmAdd({
         patientId: verifiedPatient.id,
-        patientMobile: verifiedPatient.mobileNumber || patientMobile,
-        sessionId: targetSessionId || undefined,
+        patientMobile: mobileToUse,
+        sessionId: cleanSessionId,
         priority,
         visitDate: formatIsoDate(selectedDate)
       })
@@ -277,7 +312,7 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
           </Box>
         </Box>
         <Chip
-          label={`Step ${activeStep + 1} / 4`}
+          label={`Step ${activeStep + 1} / 3`}
           size="small"
           color="primary"
           sx={{ fontWeight: 700 }}
@@ -301,55 +336,8 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
 
       {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
 
-      {/* Step 0: Centre & Date Selection */}
+      {/* Step 0: Patient Lookup & Identification */}
       {activeStep === 0 && (
-        <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4 }, pb: 6, borderRadius: 3 }}>
-          <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>
-            Select Practice Centre & Visit Date
-          </Typography>
-          <Typography variant="body2" color="text.secondary" mb={3}>
-            Choose the clinic location and scheduled date to add a patient ticket.
-          </Typography>
-
-          <Stack spacing={3}>
-            <FormControl fullWidth>
-              <InputLabel>Practice Centre</InputLabel>
-              <Select
-                value={selectedCentreId}
-                label="Practice Centre"
-                onChange={(e) => onSelectCentre(e.target.value)}
-                startAdornment={<LocationOnIcon sx={{ mr: 1, color: 'primary.main' }} />}
-              >
-                {practiceCentres.map((centre) => (
-                  <MenuItem key={centre.id} value={centre.id}>
-                    {centre.clinicName || centre.placeName} ({centre.districtName})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <Box>
-              <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-                Visit Date
-              </Typography>
-              <TextField
-                type="date"
-                fullWidth
-                value={selectedDate ? formatIsoDate(selectedDate) : ''}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    onSelectDate(new Date(e.target.value))
-                  }
-                }}
-                slotProps={{ inputLabel: { shrink: true } }}
-              />
-            </Box>
-          </Stack>
-        </Paper>
-      )}
-
-      {/* Step 1: Patient Lookup & Identification */}
-      {activeStep === 1 && (
         <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4 }, pb: 6, borderRadius: 3 }}>
           <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>
             Patient Search & Verification
@@ -509,8 +497,8 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
         </Paper>
       )}
 
-      {/* Step 2: Session Slot & Priority */}
-      {activeStep === 2 && (
+      {/* Step 1: Session Slot & Priority */}
+      {activeStep === 1 && (
         <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4 }, pb: 6, borderRadius: 3 }}>
           <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>
             Session & Priority Selection
@@ -555,8 +543,8 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
         </Paper>
       )}
 
-      {/* Step 3: Review & Summary */}
-      {activeStep === 3 && (
+      {/* Step 2: Review & Summary */}
+      {activeStep === 2 && (
         <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4 }, pb: 6, borderRadius: 3 }}>
           <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>
             Confirm Queue Ticket
@@ -640,7 +628,7 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
           {activeStep === 0 ? 'Cancel' : 'Back'}
         </Button>
 
-        {activeStep < 3 ? (
+        {activeStep < 2 ? (
           <Button
             onClick={handleNextStep}
             variant="contained"
@@ -688,6 +676,16 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
           }}
         />
       )}
+
+      <OtpVerificationDialog
+        open={openOtpDialog}
+        onClose={() => setOpenOtpDialog(false)}
+        maskedMobile={maskedMobile}
+        sessionId={otpSessionId}
+        onVerified={handleOtpVerified}
+        onVerifyOtp={verifyPatientOtp}
+        onResendOtp={resendPatientOtp}
+      />
     </Box>
   )
 }
