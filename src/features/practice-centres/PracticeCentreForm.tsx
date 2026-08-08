@@ -221,7 +221,7 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        pb: 12,
+        pb: 24, // Generous bottom clearance for fixed action bar
         outline: 'none',
         ...(isMobile && {
           position: 'fixed',
@@ -233,7 +233,7 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
           bgcolor: '#f8fafc',
           overflowY: 'auto',
           p: 2,
-          pb: 12
+          pb: 24
         })
       }}
     >
@@ -251,7 +251,7 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
 
       {/* Step 0: Location & Clinic Info */}
       {activeStep === 0 && (
-        <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4.5 }, borderRadius: 3 }}>
+        <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4.5 }, pb: { xs: 6, md: 6 }, borderRadius: 3 }}>
           <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>
             Location & Basic Information
           </Typography>
@@ -288,7 +288,7 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
 
       {/* Step 1: Sessions */}
       {activeStep === 1 && (
-        <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4.5 }, borderRadius: 3 }}>
+        <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4.5 }, pb: { xs: 6, md: 6 }, borderRadius: 3 }}>
           <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>
             Session Schedules & Time Blocks
           </Typography>
@@ -304,7 +304,7 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
 
       {/* Step 2: Nurses */}
       {activeStep === 2 && (
-        <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4.5 }, borderRadius: 3 }}>
+        <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4.5 }, pb: { xs: 6, md: 6 }, borderRadius: 3 }}>
           <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>
             Nurses & Support Staff
           </Typography>
@@ -320,7 +320,7 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
 
       {/* Step 3: Review & Summary */}
       {activeStep === 3 && (
-        <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4.5 }, borderRadius: 3 }}>
+        <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4.5 }, pb: { xs: 6, md: 6 }, borderRadius: 3 }}>
           <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>
             Review Practice Centre Configuration
           </Typography>
@@ -333,22 +333,23 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
 
       {/* Responsive Sticky Action Bar */}
       <Paper
-        elevation={4}
+        elevation={6}
         sx={{
           position: 'fixed',
-          bottom: 16,
-          left: isMobile ? 16 : { xs: 16, sm: 280 },
-          right: 16,
+          bottom: 12,
+          left: isMobile ? 12 : { xs: 12, sm: 280 },
+          right: 12,
           zIndex: 1300,
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           borderRadius: 3,
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(143, 0, 255, 0.2)',
-          boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)',
+          background: 'rgba(255, 255, 255, 0.96)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(143, 0, 255, 0.25)',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15)',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          gap: 1.5
         }}
       >
         <Button
@@ -357,12 +358,20 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
           color="inherit"
           startIcon={activeStep > 0 ? <ArrowBackIcon /> : undefined}
           disabled={isSaving}
-          sx={{ borderRadius: 2, px: { xs: 2, sm: 3 } }}
+          sx={{
+            borderRadius: 2.5,
+            px: { xs: 2, sm: 3 },
+            py: 1.2,
+            fontWeight: 700,
+            fontSize: { xs: '0.85rem', sm: '0.9rem' },
+            flex: { xs: 1, sm: 'none' },
+            maxWidth: { xs: '45%', sm: 'none' }
+          }}
         >
           {activeStep === 0 ? 'Cancel' : 'Back'}
         </Button>
 
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={1.5} sx={{ flex: { xs: 1, sm: 'none' }, justifyContent: 'flex-end' }}>
           {activeStep < 3 ? (
             <Button
               onClick={handleNextStep}
@@ -370,10 +379,14 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
               color="primary"
               endIcon={<ArrowForwardIcon />}
               sx={{
-                borderRadius: 2,
-                px: { xs: 3, sm: 4 },
+                borderRadius: 2.5,
+                px: { xs: 2.5, sm: 4 },
+                py: 1.2,
+                fontWeight: 700,
+                fontSize: { xs: '0.85rem', sm: '0.9rem' },
+                flex: { xs: 1, sm: 'none' },
                 background: 'linear-gradient(90deg, #8f00ff 0%, #6200ea 100%)',
-                boxShadow: '0 4px 16px rgba(143, 0, 255, 0.3)'
+                boxShadow: '0 4px 16px rgba(143, 0, 255, 0.35)'
               }}
             >
               Next Step
@@ -386,13 +399,17 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
               startIcon={isSaving ? undefined : <SaveIcon />}
               disabled={isSaving}
               sx={{
-                borderRadius: 2,
-                px: { xs: 3, sm: 5 },
+                borderRadius: 2.5,
+                px: { xs: 2.5, sm: 5 },
+                py: 1.2,
+                fontWeight: 700,
+                fontSize: { xs: '0.85rem', sm: '0.9rem' },
+                flex: { xs: 1, sm: 'none' },
                 background: 'linear-gradient(90deg, #8f00ff 0%, #6200ea 100%)',
-                boxShadow: '0 4px 16px rgba(143, 0, 255, 0.3)'
+                boxShadow: '0 4px 16px rgba(143, 0, 255, 0.35)'
               }}
             >
-              {isSaving ? 'Saving...' : 'Save Practice Centre'}
+              {isSaving ? 'Saving...' : 'Save Centre'}
             </Button>
           )}
         </Stack>
