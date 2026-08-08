@@ -10,12 +10,14 @@ import {
   useTheme,
   useMediaQuery,
   Paper,
-  Chip
+  Chip,
+  IconButton
 } from '@mui/material'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import PeopleIcon from '@mui/icons-material/People'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import CloseIcon from '@mui/icons-material/Close'
 
 export interface StepInfo {
   label: string
@@ -34,12 +36,14 @@ interface FormBuilderStepperProps {
   activeStep: number
   onStepClick: (stepIndex: number) => void
   completedSteps: boolean[]
+  onCancel?: () => void
 }
 
 export const FormBuilderStepper: React.FC<FormBuilderStepperProps> = ({
   activeStep,
   onStepClick,
-  completedSteps
+  completedSteps,
+  onCancel
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -51,33 +55,39 @@ export const FormBuilderStepper: React.FC<FormBuilderStepperProps> = ({
         elevation={0}
         sx={{
           p: 2,
-          mb: 3,
+          mb: 2.5,
           borderRadius: 3,
-          background: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(143, 0, 255, 0.12)',
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(143, 0, 255, 0.15)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
           <Box display="flex" alignItems="center" gap={1}>
+            {onCancel && (
+              <IconButton size="small" onClick={onCancel} sx={{ color: 'text.secondary', mr: 0.5 }}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            )}
             <Box
               sx={{
-                width: 32,
-                height: 32,
+                width: 30,
+                height: 30,
                 borderRadius: '50%',
                 bgcolor: 'primary.main',
                 color: 'white',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '0.875rem',
+                fontSize: '0.8rem',
                 fontWeight: 700
               }}
             >
               {activeStep + 1}
             </Box>
             <Box>
-              <Typography variant="subtitle2" fontWeight={700} color="text.primary">
+              <Typography variant="subtitle2" fontWeight={800} color="text.primary" sx={{ lineHeight: 1.2 }}>
                 {FORM_STEPS[activeStep].label}
               </Typography>
               <Typography variant="caption" color="text.secondary">
@@ -90,7 +100,7 @@ export const FormBuilderStepper: React.FC<FormBuilderStepperProps> = ({
             size="small"
             color="primary"
             variant="outlined"
-            sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+            sx={{ fontWeight: 700, fontSize: '0.7rem' }}
           />
         </Box>
         <LinearProgress

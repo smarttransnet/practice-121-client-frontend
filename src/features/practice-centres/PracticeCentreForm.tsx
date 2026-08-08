@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   Box,
   Button,
@@ -6,7 +6,9 @@ import {
   Typography,
   Paper,
   Alert,
-  Stack
+  Stack,
+  useTheme,
+  useMediaQuery
 } from '@mui/material'
 import type { PracticeCentre } from './types'
 import { LocationPicker } from './LocationPicker'
@@ -27,6 +29,10 @@ interface Props {
 }
 
 export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onCancel }: Props) {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+
+  const formTopRef = useRef<HTMLDivElement>(null)
   const errorRef = useRef<HTMLDivElement>(null)
   const [activeStep, setActiveStep] = useState<number>(0)
   const [completedSteps, setCompletedSteps] = useState<boolean[]>([false, false, false, false])
@@ -45,6 +51,17 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
 
   const [error, setError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+
+  // Smooth scroll and focus management on mount & step change
+  useEffect(() => {
+    formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    formTopRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    formTopRef.current?.focus()
+  }, [activeStep])
 
   const showError = (msg: string) => {
     setError(msg)
@@ -198,7 +215,28 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', pb: 10 }}>
+    <Box
+      ref={formTopRef}
+      tabIndex={-1}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        pb: 12,
+        outline: 'none',
+        ...(isMobile && {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1200,
+          bgcolor: '#f8fafc',
+          overflowY: 'auto',
+          p: 2,
+          pb: 12
+        })
+      }}
+    >
       <div ref={errorRef} style={{ scrollMarginTop: '80px' }}>
         {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
       </div>
@@ -208,6 +246,7 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
         activeStep={activeStep}
         onStepClick={handleStepClick}
         completedSteps={completedSteps}
+        onCancel={onCancel}
       />
 
       {/* Step 0: Location & Clinic Info */}
@@ -298,9 +337,9 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
         sx={{
           position: 'fixed',
           bottom: 16,
-          left: { xs: 16, sm: 280 },
+          left: isMobile ? 16 : { xs: 16, sm: 280 },
           right: 16,
-          zIndex: 1000,
+          zIndex: 1300,
           p: 2,
           borderRadius: 3,
           background: 'rgba(255, 255, 255, 0.95)',
