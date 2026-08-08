@@ -3,10 +3,6 @@ import {
   Box,
   Typography,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Card,
   CardContent,
   Table,
@@ -16,11 +12,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Chip,
   IconButton,
   Grid,
@@ -37,8 +28,6 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
-import SettingsPhoneIcon from '@mui/icons-material/SettingsPhone';
-import StarRateIcon from '@mui/icons-material/StarRate';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -57,20 +46,10 @@ import {
   addPatientQueueTicket,
   updatePatientQueueTicketStatus,
   reorderPatientQueue,
-  getPatientByMobile,
-  searchPatients,
-  updatePatientMobile,
-  sendPatientOtp,
-  verifyPatientOtp,
-  resendPatientOtp,
-  type PatientQueueTicket,
-  type Patient
+  type PatientQueueTicket
 } from '../features/patient-queue/patientQueueApi';
-import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation';
 import { formatDisplayDate, formatDisplayDateLong } from '../utils/dateUtils';
-import { FamilyPatientSelector } from '../features/patients/FamilyPatientSelector';
-import { AddChildModal } from '../features/patients/AddChildModal';
-import { OtpVerificationDialog } from '../components/OtpVerificationDialog';
+import { QueueFormBuilder } from '../features/patient-queue/QueueFormBuilder';
 
 interface DaySessionInfo {
   id: string;
@@ -244,7 +223,6 @@ const CalendarPicker = ({
 export const PatientQueue = () => {
   const calendarRef = useRef<HTMLDivElement>(null);
   const addButtonRef = useRef<HTMLButtonElement>(null);
-  const phoneInputRef = useRef<HTMLInputElement>(null);
 
   const isEditingQueueRef = useRef<boolean>(false);
   const hasPendingSignalRUpdateRef = useRef<boolean>(false);
@@ -254,56 +232,16 @@ export const PatientQueue = () => {
   const [selectedCentre, setSelectedCentre] = useState<PracticeCentre | null>(null);
   const [queue, setQueue] = useState<PatientQueueTicket[]>([]);
 
-
-  
   const [loadingCentres, setLoadingCentres] = useState(true);
   const [loadingQueue, setLoadingQueue] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Dialog / Modal State
+  // Queue Modal State
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [openAddModal, setOpenAddModal] = useState(false);
-  const [patientMobile, setPatientMobile] = useState('');
-  const [priority, setPriority] = useState<number>(0);
-  const [submitting, setSubmitting] = useState(false);
-  const [addError, setAddError] = useState<string | null>(null);
-
-  // Enhanced Queue dialog states
-  const [dialogMode, setDialogMode] = useState<'input' | 'verify' | 'select' | 'notFound'>('input');
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [searchFirstName, setSearchFirstName] = useState('');
-  const [searchLastName, setSearchLastName] = useState('');
-  const [searchNic, setSearchNic] = useState('');
-  const [primaryPatientRecord, setPrimaryPatientRecord] = useState<Patient | null>(null);
-  const [verifiedChildren, setVerifiedChildren] = useState<Patient[]>([]);
-  const [verifiedPatient, setVerifiedPatient] = useState<Patient | null>(null);
-  const [searchResults, setSearchResults] = useState<Patient[]>([]);
-  const [verificationLoading, setVerificationLoading] = useState(false);
-  const [openAddChildModal, setOpenAddChildModal] = useState(false);
-
-  const [openOtpDialogQueue, setOpenOtpDialogQueue] = useState(false);
-  const [otpSessionIdQueue, setOtpSessionIdQueue] = useState<string>('');
-  const [maskedMobileQueue, setMaskedMobileQueue] = useState<string>('');
-  const [pendingMobileQueue, setPendingMobileQueue] = useState<string>('');
-
-  const handleOtpVerifiedQueue = async (verificationToken: string) => {
-    try {
-      setVerificationLoading(true);
-      const lookupResult = await getPatientByMobile(pendingMobileQueue, verificationToken);
-      if (lookupResult) {
-        setPrimaryPatientRecord(lookupResult.primaryPatient);
-        setVerifiedChildren(lookupResult.children || []);
-        setVerifiedPatient(lookupResult.primaryPatient);
-        setDialogMode('verify');
-      } else {
-        setDialogMode('notFound');
-      }
-    } catch (err: any) {
-      setAddError(err.response?.data?.detail || err.message || 'Failed to load patient after OTP verification.');
-    } finally {
-      setVerificationLoading(false);
-    }
+  const handleCloseAddModal = () => {
+    setOpenAddModal(false);
   };
 
   // Drag and drop state
@@ -313,7 +251,6 @@ export const PatientQueue = () => {
   const [availableDates, setAvailableDates] = useState<Date[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSessionId, setSelectedSessionId] = useState<string>('ALL');
-  const [targetSessionId, setTargetSessionId] = useState<string>('');
 
   // Compute active sessions for the selected date
   const daySessions = useMemo<DaySessionInfo[]>(() => {
@@ -500,19 +437,14 @@ export const PatientQueue = () => {
 
   // Handle registeredMobile redirect callback from patient registration
   useEffect(() => {
-    const registeredMobile = searchParams.get('registeredMobile');
-    if (registeredMobile) {
-      setPatientMobile(registeredMobile);
+    const mobile = searchParams.get('registeredMobile');
+    if (mobile) {
       setOpenAddModal(true);
-      // Clean up url parameters
       const newParams = new URLSearchParams(searchParams);
       newParams.delete('registeredMobile');
       setSearchParams(newParams, { replace: true });
-      
-      // Fetch and verify immediately
-      checkAndVerifyPatient(registeredMobile);
     }
-  }, [searchParams]);
+  }, [searchParams, setSearchParams]);
 
   const fetchPracticeCentres = async () => {
     try {
@@ -572,152 +504,6 @@ export const PatientQueue = () => {
     if (selectedCentre && selectedDate) {
       const dateStr = formatDateLocal(selectedDate);
       fetchQueue(selectedCentre.id, selectedCentre.doctorId, dateStr);
-    }
-  };
-
-  const checkAndVerifyPatient = async (mobile: string) => {
-    try {
-      setVerificationLoading(true);
-      setAddError(null);
-      
-      const trimmedMobile = mobile.trim();
-      const hasMobile = !!trimmedMobile;
-      const hasAdvancedSearchTerms = searchFirstName.trim() || searchLastName.trim() || searchNic.trim();
-
-      if (!hasMobile && !hasAdvancedSearchTerms) {
-        setAddError('Patient Mobile Number is required or fill at least one Advanced Search field.');
-        return;
-      }
-
-      // 1. Check if patient exists by mobile number if provided
-      if (hasMobile) {
-        if (!isValidLkMobile(trimmedMobile)) {
-          setAddError('Please enter a valid Sri Lankan mobile number (e.g., 077 123 4567).');
-          return;
-        }
-        const normalizedMobile = normalizeLkMobile(trimmedMobile) ?? trimmedMobile;
-        const otpSendRes = await sendPatientOtp(normalizedMobile);
-        if (otpSendRes.patientExists && otpSendRes.sessionId) {
-          setOtpSessionIdQueue(otpSendRes.sessionId);
-          setMaskedMobileQueue(otpSendRes.maskedMobile || normalizedMobile);
-          setPendingMobileQueue(normalizedMobile);
-          setOpenOtpDialogQueue(true);
-          return;
-        }
-        if (!hasAdvancedSearchTerms) {
-          setDialogMode('notFound');
-          return;
-        }
-      }
-      
-      // 2. If not exists or no mobile provided, check if advanced search parameters were provided
-      if (hasAdvancedSearchTerms) {
-        const results = await searchPatients({
-          firstName: searchFirstName.trim(),
-          lastName: searchLastName.trim(),
-          nicNumber: searchNic.trim()
-        });
-        
-        if (results.length > 0) {
-          setSearchResults(results);
-          setDialogMode('select');
-          return;
-        }
-      }
-      
-      // 3. Otherwise, set mode to notFound
-      setDialogMode('notFound');
-      
-    } catch (err: any) {
-      console.error(err);
-      setAddError(err.response?.data?.detail || err.message || 'Failed to verify patient');
-    } finally {
-      setVerificationLoading(false);
-    }
-  };
-
-  const handleSelectPatient = async (patient: Patient) => {
-    try {
-      setVerificationLoading(true);
-      setAddError(null);
-      
-      const newMobile = normalizeLkMobile(patientMobile) ?? patientMobile.trim();
-      let updatedPatient = patient;
-      if (newMobile && newMobile !== patient.mobileNumber) {
-        // Update mobile in database to link
-        await updatePatientMobile(patient.id, newMobile);
-        updatedPatient = { ...patient, mobileNumber: newMobile };
-      }
-      setPrimaryPatientRecord(updatedPatient);
-      setVerifiedChildren([]);
-      setVerifiedPatient(updatedPatient);
-      setDialogMode('verify');
-    } catch (err: any) {
-      console.error(err);
-      setAddError(err.response?.data?.detail || err.message || 'Failed to link patient');
-    } finally {
-      setVerificationLoading(false);
-    }
-  };
-
-  const handleCloseAddModal = () => {
-    setOpenAddModal(false);
-    setPatientMobile('');
-    setPriority(0);
-    setDialogMode('input');
-    setShowAdvanced(false);
-    setSearchFirstName('');
-    setSearchLastName('');
-    setSearchNic('');
-    setPrimaryPatientRecord(null);
-    setVerifiedChildren([]);
-    setVerifiedPatient(null);
-    setSearchResults([]);
-    setAddError(null);
-    setOpenAddChildModal(false);
-  };
-
-  const handleAddTicket = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedCentre || !verifiedPatient) return;
-
-    try {
-      setSubmitting(true);
-      setAddError(null);
-
-      // Client-side duplicate check for the same session
-      const targetSessionTickets = targetSessionId ? getSessionTickets(targetSessionId) : queue;
-      const isAlreadyInSession = targetSessionTickets.some(t => {
-        if (t.status >= 4) return false; // Completed, Cancelled, No Show allowed
-        if (verifiedPatient.id && t.patientId) {
-          return t.patientId === verifiedPatient.id;
-        }
-        return false;
-      });
-
-      if (isAlreadyInSession) {
-        const patientDisplayName = `${verifiedPatient.firstName} ${verifiedPatient.lastName || ''}`.trim();
-        setAddError(`Patient (${patientDisplayName}) is already in the queue for this session.`);
-        setSubmitting(false);
-        return;
-      }
-
-      await addPatientQueueTicket({
-        patientMobile: primaryPatientRecord?.mobileNumber || verifiedPatient.mobileNumber,
-        patientId: verifiedPatient.id,
-        doctorId: selectedCentre.doctorId,
-        practiceCentreId: selectedCentre.id,
-        priority: priority,
-        visitDate: selectedDate ? formatDateLocal(selectedDate) : undefined,
-        sessionId: targetSessionId || (selectedSessionId !== 'ALL' ? selectedSessionId : undefined)
-      });
-      handleCloseAddModal();
-      refreshQueue();
-    } catch (err: any) {
-      console.error(err);
-      setAddError(err.userFriendlyMessage || err.response?.data?.detail || err.message || 'Failed to add patient to queue');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -1471,290 +1257,36 @@ export const PatientQueue = () => {
         </Grid>
       )}
 
-      {/* Add Queue Ticket Dialog Modal */}
-      {/* Add Queue Ticket Dialog Modal */}
-      <Dialog
+      {/* Dynamic Queue Form Generator */}
+      <QueueFormBuilder
         open={openAddModal}
         onClose={handleCloseAddModal}
-        PaperProps={{ sx: { borderRadius: 4, p: 2, minWidth: 450, maxWidth: 600 } }}
-      >
-        <DialogTitle sx={{ fontWeight: 'bold' }}>
-          {dialogMode === 'input' && "Add Patient to Queue"}
-          {dialogMode === 'verify' && "Verify Patient Details"}
-          {dialogMode === 'select' && "Select Matching Patient"}
-          {dialogMode === 'notFound' && "Patient Not Found"}
-        </DialogTitle>
-        
-        {dialogMode === 'input' && (
-          <form onSubmit={(e) => { e.preventDefault(); checkAndVerifyPatient(patientMobile); }}>
-            <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-              {addError && <Alert severity="error">{addError}</Alert>}
-              <TextField
-                inputRef={phoneInputRef}
-                autoFocus
-                type="tel"
-                label="Patient Mobile Number"
-                variant="outlined"
-                fullWidth
-                value={patientMobile}
-                onChange={(e) => setPatientMobile(e.target.value)}
-                slotProps={{
-                  htmlInput: {
-                    inputMode: 'numeric',
-                    pattern: '[0-9]*',
-                  },
-                  input: {
-                    startAdornment: <SettingsPhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                  }
-                }}
-              />
-              
-              <Button
-                variant="text"
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 600 }}
-              >
-                {showAdvanced ? "Hide Advanced Search" : "Use Advanced Search (If phone number changed)"}
-              </Button>
-
-              {showAdvanced && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2, border: '1px dashed #ccc', borderRadius: 3, bgcolor: '#fafafa' }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                    Advanced Search (Optional)
-                  </Typography>
-                  <TextField
-                    label="First Name"
-                    variant="outlined"
-                    fullWidth
-                    value={searchFirstName}
-                    onChange={(e) => setSearchFirstName(e.target.value)}
-                  />
-                  <TextField
-                    label="Last Name"
-                    variant="outlined"
-                    fullWidth
-                    value={searchLastName}
-                    onChange={(e) => setSearchLastName(e.target.value)}
-                  />
-                  <TextField
-                    label="NIC Number"
-                    variant="outlined"
-                    fullWidth
-                    value={searchNic}
-                    onChange={(e) => setSearchNic(e.target.value)}
-                  />
-                </Box>
-              )}
-            </DialogContent>
-            <DialogActions sx={{ p: 3 }}>
-              <Button onClick={handleCloseAddModal} variant="text" sx={{ textTransform: 'none', fontWeight: 700 }}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                className="gradient-primary-btn"
-                disabled={verificationLoading}
-                sx={{ px: 3 }}
-              >
-                {verificationLoading ? <CircularProgress size={24} /> : 'Check Patient'}
-              </Button>
-            </DialogActions>
-          </form>
-        )}
-
-        {dialogMode === 'verify' && (
-          <form onSubmit={handleAddTicket}>
-            <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-              {addError && <Alert severity="error">{addError}</Alert>}
-              
-              <Alert severity="info" sx={{ borderRadius: 3 }}>
-                Patient record found. Select who this appointment/queue ticket is for:
-              </Alert>
-
-              {primaryPatientRecord ? (
-                <FamilyPatientSelector
-                  primaryPatient={primaryPatientRecord}
-                  children={verifiedChildren}
-                  selectedPatientId={verifiedPatient?.id || primaryPatientRecord.id}
-                  onSelectPatient={(p) => setVerifiedPatient(p)}
-                  onOpenAddChild={() => setOpenAddChildModal(true)}
-                />
-              ) : (
-                <Card sx={{ bgcolor: '#f8f9fa', borderRadius: 3, boxShadow: 'none', border: '1px solid #e9ecef', p: 2 }}>
-                  <CardContent sx={{ p: '8px !important', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    <Typography variant="body1">
-                      <strong>Name:</strong> {verifiedPatient?.firstName} {verifiedPatient?.lastName}
-                    </Typography>
-                    <Typography variant="body1">
-                      <strong>NIC Number:</strong> {verifiedPatient?.nicNumber}
-                    </Typography>
-                    <Typography variant="body1">
-                      <strong>Mobile Number:</strong> {verifiedPatient?.mobileNumber}
-                    </Typography>
-                    {verifiedPatient?.gender && (
-                      <Typography variant="body1">
-                        <strong>Gender:</strong> {verifiedPatient?.gender}
-                      </Typography>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-
-              {primaryPatientRecord && (
-                <AddChildModal
-                  open={openAddChildModal}
-                  parentId={primaryPatientRecord.id}
-                  onClose={() => setOpenAddChildModal(false)}
-                  onChildAdded={(newChild) => {
-                    setVerifiedChildren(prev => [...prev, newChild]);
-                    setVerifiedPatient(newChild);
-                  }}
-                />
-              )}
-
-              {daySessions.length > 1 && (
-                <FormControl fullWidth>
-                  <InputLabel>Session</InputLabel>
-                  <Select
-                    value={targetSessionId}
-                    label="Session"
-                    onChange={(e) => setTargetSessionId(e.target.value)}
-                    startAdornment={<AccessTimeIcon sx={{ mr: 1, color: 'text.secondary' }} />}
-                  >
-                    {daySessions.map((session: DaySessionInfo) => (
-                      <MenuItem key={session.id} value={session.id}>
-                        {session.label} ({session.timeRange})
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-
-              <FormControl fullWidth>
-                <InputLabel>Priority</InputLabel>
-                <Select
-                  value={priority}
-                  label="Priority"
-                  onChange={(e) => setPriority(Number(e.target.value))}
-                  startAdornment={<StarRateIcon sx={{ mr: 1, color: 'text.secondary' }} />}
-                >
-                  <MenuItem value={0}>Normal Priority</MenuItem>
-                  <MenuItem value={1}>High Priority</MenuItem>
-                  <MenuItem value={2}>Emergency Priority</MenuItem>
-                </Select>
-              </FormControl>
-            </DialogContent>
-            <DialogActions sx={{ p: 3 }}>
-              <Button onClick={() => setDialogMode('input')} variant="text" sx={{ textTransform: 'none', fontWeight: 700 }}>
-                Back
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                className="gradient-primary-btn"
-                disabled={submitting}
-                sx={{ px: 3 }}
-              >
-                {submitting ? <CircularProgress size={24} /> : 'Confirm & Add to Queue'}
-              </Button>
-            </DialogActions>
-          </form>
-        )}
-
-        {dialogMode === 'select' && (
-          <Box>
-            <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-              {addError && <Alert severity="error">{addError}</Alert>}
-              <Typography variant="body2" color="text.secondary">
-                No patient matches the mobile number <strong>{patientMobile}</strong>, but matching records were found based on your advanced search. Select the correct patient to link this phone number and add to queue:
-              </Typography>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 300, overflowY: 'auto', mt: 1 }}>
-                {searchResults.map((patient) => (
-                  <Card key={patient.id} sx={{ border: '1px solid #e0e0e0', borderRadius: 3, boxShadow: 'none', p: 1.5 }}>
-                    <Grid container alignItems="center" spacing={2}>
-                      <Grid size={{ xs: 8 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                          {patient.firstName} {patient.lastName}
-                        </Typography>
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          NIC: {patient.nicNumber} | Old Mobile: {patient.mobileNumber}
-                        </Typography>
-                      </Grid>
-                      <Grid size={{ xs: 4 }} sx={{ textAlign: 'right' }}>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={() => handleSelectPatient(patient)}
-                          disabled={verificationLoading}
-                          sx={{ textTransform: 'none', borderRadius: 2 }}
-                        >
-                          Select & Link
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  </Card>
-                ))}
-              </Box>
-            </DialogContent>
-            <DialogActions sx={{ p: 3, justifyContent: 'space-between' }}>
-              <Button onClick={() => setDialogMode('input')} variant="text" sx={{ textTransform: 'none', fontWeight: 700 }}>
-                Back
-              </Button>
-              <Button
-                onClick={() => {
-                  setOpenAddModal(false);
-                  navigate(`/register/patient?redirect=/patient-queue&mobile=${encodeURIComponent(patientMobile)}`);
-                }}
-                variant="contained"
-                color="secondary"
-                sx={{ textTransform: 'none', borderRadius: 2 }}
-              >
-                Register New Patient
-              </Button>
-            </DialogActions>
-          </Box>
-        )}
-
-        {dialogMode === 'notFound' && (
-          <Box>
-            <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 3 }}>
-              <Typography variant="h6" align="center" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                No Patient Record Found
-              </Typography>
-              <Typography variant="body2" color="text.secondary" align="center">
-                We couldn't find any patient matching the mobile number or advanced search details in our database.
-              </Typography>
-            </DialogContent>
-            <DialogActions sx={{ p: 3, justifyContent: 'space-between' }}>
-              <Button onClick={() => setDialogMode('input')} variant="text" sx={{ textTransform: 'none', fontWeight: 700 }}>
-                Back
-              </Button>
-              <Button
-                onClick={() => {
-                  setOpenAddModal(false);
-                  navigate(`/register/patient?redirect=/patient-queue&mobile=${encodeURIComponent(patientMobile)}`);
-                }}
-                variant="contained"
-                className="gradient-primary-btn"
-                sx={{ textTransform: 'none', px: 3 }}
-              >
-                Register New Patient
-              </Button>
-            </DialogActions>
-          </Box>
-        )}
-      </Dialog>
-
-      <OtpVerificationDialog
-        open={openOtpDialogQueue}
-        onClose={() => setOpenOtpDialogQueue(false)}
-        maskedMobile={maskedMobileQueue}
-        sessionId={otpSessionIdQueue}
-        onVerified={handleOtpVerifiedQueue}
-        onVerifyOtp={(sid, code) => verifyPatientOtp(sid, code)}
-        onResendOtp={(sid) => resendPatientOtp(sid)}
+        practiceCentres={practiceCentres}
+        selectedCentreId={selectedCentre?.id || ''}
+        onSelectCentre={(id) => {
+          const found = practiceCentres.find(c => c.id === id);
+          if (found) setSelectedCentre(found);
+        }}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+        daySessions={daySessions}
+        onConfirmAdd={async (payload) => {
+          if (!selectedCentre) return;
+          await addPatientQueueTicket({
+            patientMobile: payload.patientMobile,
+            doctorId: selectedCentre.doctorId,
+            practiceCentreId: selectedCentre.id,
+            priority: payload.priority,
+            visitDate: payload.visitDate,
+            patientId: payload.patientId,
+            sessionId: payload.sessionId,
+          });
+          refreshQueue();
+        }}
+        onRegisterRedirect={(mobile) => {
+          handleCloseAddModal();
+          navigate(`/register/patient?redirect=/patient-queue&mobile=${encodeURIComponent(mobile)}`);
+        }}
       />
     </Box>
   );

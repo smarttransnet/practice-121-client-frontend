@@ -3,31 +3,13 @@ import { useParams, useLocation, useNavigate, useSearchParams } from 'react-rout
 import {
   Box,
   Container,
-  Typography,
-  Stepper,
-  Step,
-  StepLabel,
-  Card,
-  CardContent,
-  Stack,
-  Button,
   Skeleton,
   Alert,
-  Divider,
-  Chip,
-  Paper,
-  CircularProgress,
-  Grid,
 } from '@mui/material';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { AppointmentCalendar } from '../features/appointments/AppointmentCalendar';
-import { PatientLookupStep, type PatientRecord } from '../features/appointments/PatientLookupStep';
+import { type PatientRecord } from '../features/appointments/PatientLookupStep';
 import { getCentreAvailability, bookAppointment, type DayAvailability } from '../features/appointments/appointmentApi';
+import { AppointmentFormBuilder } from '../features/appointments/AppointmentFormBuilder';
+import { formatIsoDate } from '../utils/dateUtils';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
 
@@ -52,20 +34,14 @@ interface DoctorInfo {
   profilePictureUrl?: string;
 }
 
-import { formatDisplayDate, formatDisplayDateLong, formatIsoDate } from '../utils/dateUtils';
-
-const STEPS = ['Select Date', 'Your Details', 'Confirm'];
-
 export function BookAppointmentPage() {
   const { doctorId, centreId } = useParams<{ doctorId: string; centreId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Optional data passed via navigation state from PublicProfilePage
   const locationState = location.state as { doctorName?: string; clinicName?: string } | null;
 
-  const [activeStep, setActiveStep] = useState(0);
   const [doctor, setDoctor] = useState<DoctorInfo | null>(null);
   const [centre, setCentre] = useState<CentreInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,7 +59,6 @@ export function BookAppointmentPage() {
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [bookingResult, setBookingResult] = useState<{ ticketId: string; queueNumber: number; visitDate: string } | null>(null);
 
-  // Build availability map for calendar
   const availabilityMap = useMemo(() => {
     const map: Record<string, DayAvailability> = {};
     availability.forEach(a => {
@@ -92,7 +67,6 @@ export function BookAppointmentPage() {
     return map;
   }, [availability]);
 
-  // Compute active sessions for selected date
   const availableSessions = useMemo(() => {
     if (!selectedDate || !centre?.sessionGroups) return [];
     const dayAbbr = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][selectedDate.getDay()];
@@ -121,7 +95,6 @@ export function BookAppointmentPage() {
     return sessions;
   }, [selectedDate, centre]);
 
-  // Auto-select session if only 1 exists, or when date changes
   useEffect(() => {
     if (availableSessions.length === 1) {
       setSelectedSessionId(availableSessions[0].id);
@@ -134,11 +107,6 @@ export function BookAppointmentPage() {
     }
   }, [availableSessions]);
 
-  const selectedSession = useMemo(() => {
-    return availableSessions.find(s => s.id === selectedSessionId) ?? null;
-  }, [availableSessions, selectedSessionId]);
-
-  // Load doctor + centre info
   useEffect(() => {
     if (!doctorId || !centreId) {
       return;
@@ -176,7 +144,6 @@ export function BookAppointmentPage() {
     load();
   }, [doctorId, centreId]);
 
-  // Load availability once centre is loaded
   useEffect(() => {
     if (!doctorId || !centreId) {
       return;
@@ -188,29 +155,22 @@ export function BookAppointmentPage() {
       .finally(() => setAvailLoading(false));
   }, [doctorId, centreId]);
 
-  // Handle return from patient registration with mobile param
   useEffect(() => {
     const mobile = searchParams.get('registeredMobile');
     const returnDate = searchParams.get('returnDate');
     
     if (mobile) {
-      // Clean the URL params
       const newParams = new URLSearchParams(searchParams);
       newParams.delete('registeredMobile');
       newParams.delete('returnDate');
       navigate(`${location.pathname}${newParams.toString() ? '?' + newParams.toString() : ''}`, { replace: true });
       
-      // Restore date if present
       if (returnDate) {
-        // We assume returnDate is exactly YYYY-MM-DD
         const [y, m, d] = returnDate.split('-').map(Number);
         if (y && m && d) {
           setSelectedDate(new Date(y, m - 1, d));
         }
       }
-      
-      // Jump to Step 2 and pass the registered mobile
-      setActiveStep(1);
       setInitialMobile(decodeURIComponent(mobile));
     }
   }, [searchParams]);
@@ -241,87 +201,14 @@ export function BookAppointmentPage() {
   const doctorName = doctor?.fullName ?? locationState?.doctorName ?? 'Doctor';
   const clinicName = centre?.clinicName ?? locationState?.clinicName ?? 'Clinic';
   const pageTitle = `Book Appointment – ${doctorName} at ${clinicName}`;
-  const returnUrl = `/book/${doctorId}/centre/${centreId}${selectedDate ? `?returnDate=${formatIsoDate(selectedDate)}` : ''}`;
 
-  // --- Success screen ---
-  if (bookingResult) {
-    return (
-      <>
-        <title>{pageTitle}</title>
-        <Box sx={{ minHeight: '100vh', bgcolor: '#F8F9FA' }}>
-          <Box sx={{ height: 140, background: 'linear-gradient(135deg, #8F00FF 0%, #B854FF 100%)' }} />
-          <Container maxWidth="sm" sx={{ mt: -6, position: 'relative', zIndex: 2, pb: 6 }}>
-            <Card elevation={0} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', textAlign: 'center', p: 4 }}>
-              <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-                <Box sx={{
-                  width: 80, height: 80, borderRadius: '50%',
-                  bgcolor: 'rgba(16, 185, 129, 0.1)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <CheckCircleIcon sx={{ fontSize: '3rem', color: '#10b981' }} />
-                </Box>
-              </Box>
-              <Typography variant="h5" fontWeight={800} gutterBottom>
-                Appointment Booked!
-              </Typography>
-              <Typography variant="body1" color="text.secondary" mb={3}>
-                Your appointment has been confirmed. Please arrive a few minutes early.
-              </Typography>
-
-              <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, mb: 3, textAlign: 'left' }}>
-                <Stack spacing={1.5}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">Doctor</Typography>
-                    <Typography variant="body2" fontWeight={600}>{doctorName}</Typography>
-                  </Box>
-                  <Divider />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">Clinic</Typography>
-                    <Typography variant="body2" fontWeight={600}>{clinicName}</Typography>
-                  </Box>
-                  <Divider />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">Visit Date</Typography>
-                    <Typography variant="body2" fontWeight={600}>{formatDisplayDate(bookingResult.visitDate)}</Typography>
-                  </Box>
-                  <Divider />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">Queue Number</Typography>
-                    <Chip
-                      icon={<ConfirmationNumberIcon />}
-                      label={`#${bookingResult.queueNumber}`}
-                      color="primary"
-                      sx={{ fontWeight: 700, fontSize: '1rem', height: 32 }}
-                    />
-                  </Box>
-                </Stack>
-              </Paper>
-
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => navigate(`/doctor/${doctorId}`)}
-                sx={{ borderRadius: 6, textTransform: 'none', fontWeight: 600 }}
-              >
-                Back to Doctor Profile
-              </Button>
-            </Card>
-          </Container>
-        </Box>
-      </>
-    );
-  }
-
-  // --- Loading state ---
   if (loading) {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: '#F8F9FA' }}>
         <Box sx={{ height: 140, background: 'linear-gradient(135deg, #8F00FF 0%, #B854FF 100%)' }} />
         <Container maxWidth="md" sx={{ mt: -6, position: 'relative', zIndex: 2, pb: 6 }}>
-          <Card elevation={0} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', p: 4 }}>
-            <Skeleton variant="text" width="60%" height={40} sx={{ mb: 2 }} />
-            <Skeleton variant="rounded" width="100%" height={300} />
-          </Card>
+          <Skeleton variant="text" width="60%" height={40} sx={{ mb: 2 }} />
+          <Skeleton variant="rounded" width="100%" height={300} />
         </Container>
       </Box>
     );
@@ -337,248 +224,30 @@ export function BookAppointmentPage() {
 
   return (
     <>
-      {/* SEO meta tags */}
       <title>{pageTitle}</title>
       <meta name="description" content={`Book an appointment with ${doctorName} at ${clinicName}. Choose an available date and confirm your slot online.`} />
 
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-        {/* Header Banner */}
-        <Box sx={{ height: 140, background: 'linear-gradient(135deg, #8F00FF 0%, #B854FF 100%)', position: 'relative' }}>
-          <Container maxWidth="md" sx={{ height: '100%', display: 'flex', alignItems: 'flex-end', pb: 2 }}>
-            <Button
-              startIcon={<ArrowBackIcon />}
-              onClick={() => navigate(`/doctor/${doctorId}`)}
-              sx={{ color: 'rgba(255,255,255,0.85)', textTransform: 'none', '&:hover': { color: '#fff' } }}
-            >
-              Back to Profile
-            </Button>
-          </Container>
-        </Box>
-
-        <Container maxWidth="md" sx={{ mt: -4, position: 'relative', zIndex: 2, pb: 8 }}>
-          {/* Page heading card */}
-          <Card elevation={0} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', mb: 3, overflow: 'hidden' }}>
-            <Box sx={{ background: 'linear-gradient(135deg, rgba(143,0,255,0.04) 0%, rgba(184,84,255,0.04) 100%)', p: 3 }}>
-              <Typography variant="h5" fontWeight={800} gutterBottom>
-                Book an Appointment
-              </Typography>
-              <Typography variant="subtitle1" fontWeight={600} color="primary.main">
-                {doctorName}
-                {doctor?.specialty ? ` · ${doctor.specialty}` : ''}
-              </Typography>
-              {centre && (
-                <Stack direction="row" alignItems="center" spacing={0.5} mt={0.5}>
-                  <LocationOnIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
-                  <Typography variant="body2" color="text.secondary">
-                    {clinicName} &nbsp;·&nbsp; {centre.mohAreaName}, {centre.districtName}
-                  </Typography>
-                </Stack>
-              )}
-            </Box>
-          </Card>
-
-          {/* Stepper */}
-          <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-            {STEPS.map(label => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-
-          <Card elevation={0} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
-            <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-
-              {/* ── Step 0: Select Date ── */}
-              {activeStep === 0 && (
-                <Box>
-                  <Typography variant="h6" fontWeight={700} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CalendarMonthIcon color="primary" /> Select a Visit Date
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" mb={3}>
-                    Highlighted dates have available slots. Greyed dates are either unavailable or fully booked.
-                  </Typography>
-
-                  {availLoading ? (
-                    <Skeleton variant="rounded" width="100%" height={320} />
-                  ) : (
-                    <AppointmentCalendar
-                      availabilityMap={availabilityMap}
-                      selectedDate={selectedDate}
-                      onSelectDate={setSelectedDate}
-                    />
-                  )}
-
-                  {selectedDate && availableSessions.length > 0 && (
-                    <Box sx={{ mt: 3, p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
-                      <Typography variant="subtitle2" fontWeight={700} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <AccessTimeIcon color="primary" fontSize="small" /> 
-                        {availableSessions.length > 1 ? 'Multiple Sessions Available – Select a Session' : 'Available Session'}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" mb={2}>
-                        {availableSessions.length > 1 
-                          ? 'Please choose your preferred session time before continuing.' 
-                          : 'Your appointment will be assigned to the scheduled session below.'}
-                      </Typography>
-                      <Grid container spacing={1.5}>
-                        {availableSessions.map((session) => {
-                          const isSelected = selectedSessionId === session.id;
-                          return (
-                            <Grid key={session.id} size={{ xs: 12, sm: 6 }}>
-                              <Paper
-                                variant="outlined"
-                                onClick={() => setSelectedSessionId(session.id)}
-                                sx={{
-                                  p: 2,
-                                  borderRadius: 3,
-                                  cursor: 'pointer',
-                                  border: '2px solid',
-                                  borderColor: isSelected ? 'primary.main' : 'divider',
-                                  bgcolor: isSelected ? 'rgba(143, 0, 255, 0.05)' : 'transparent',
-                                  transition: 'all 0.2s',
-                                  '&:hover': { borderColor: 'primary.main' },
-                                }}
-                              >
-                                <Typography variant="subtitle2" fontWeight={700} color={isSelected ? 'primary.main' : 'text.primary'}>
-                                  {session.name}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  {session.timeRange}
-                                </Typography>
-                              </Paper>
-                            </Grid>
-                          );
-                        })}
-                      </Grid>
-                    </Box>
-                  )}
-
-                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button
-                      variant="contained"
-                      disabled={!selectedDate || (availableSessions.length > 1 && !selectedSessionId)}
-                      onClick={() => setActiveStep(1)}
-                      sx={{ borderRadius: 6, px: 4, textTransform: 'none', fontWeight: 700 }}
-                    >
-                      Continue →
-                    </Button>
-                  </Box>
-                </Box>
-              )}
-
-              {/* ── Step 1: Patient Lookup ── */}
-              {activeStep === 1 && (
-                <Box>
-                  <Typography variant="h6" fontWeight={700} gutterBottom>
-                    Your Details
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" mb={3}>
-                    We need your patient record to complete the booking. Enter your mobile number to look it up.
-                  </Typography>
-
-                  <PatientLookupStep
-                    onPatientConfirmed={patient => {
-                      setConfirmedPatient(patient);
-                      setActiveStep(2);
-                    }}
-                    registrationReturnUrl={returnUrl}
-                    initialMobile={initialMobile ?? undefined}
-                  />
-
-                  <Button
-                    startIcon={<ArrowBackIcon />}
-                    onClick={() => setActiveStep(0)}
-                    sx={{ mt: 2, textTransform: 'none', color: 'text.secondary' }}
-                  >
-                    Back
-                  </Button>
-                </Box>
-              )}
-
-              {/* ── Step 2: Confirm Booking ── */}
-              {activeStep === 2 && confirmedPatient && selectedDate && (
-                <Box>
-                  <Typography variant="h6" fontWeight={700} gutterBottom>
-                    Confirm Your Booking
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" mb={3}>
-                    Please review the details below and confirm your appointment.
-                  </Typography>
-
-                  <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, mb: 3 }}>
-                    <Stack spacing={2}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Doctor</Typography>
-                        <Typography variant="body2" fontWeight={600}>{doctorName}</Typography>
-                      </Box>
-                      <Divider />
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Clinic</Typography>
-                        <Typography variant="body2" fontWeight={600}>{clinicName}</Typography>
-                      </Box>
-                      <Divider />
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Visit Date</Typography>
-                        <Typography variant="body2" fontWeight={600}>
-                          {formatDisplayDateLong(selectedDate)}
-                        </Typography>
-                      </Box>
-                      {selectedSession && (
-                        <>
-                          <Divider />
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="body2" color="text.secondary">Session</Typography>
-                            <Typography variant="body2" fontWeight={600}>
-                              {selectedSession.name} ({selectedSession.timeRange})
-                            </Typography>
-                          </Box>
-                        </>
-                      )}
-                      <Divider />
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Patient</Typography>
-                        <Typography variant="body2" fontWeight={600}>
-                          {confirmedPatient.firstName} {confirmedPatient.lastName ?? ''}
-                        </Typography>
-                      </Box>
-                      <Divider />
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Mobile</Typography>
-                        <Typography variant="body2" fontWeight={600}>{confirmedPatient.mobileNumber}</Typography>
-                      </Box>
-                    </Stack>
-                  </Paper>
-
-                  {bookingError && (
-                    <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{bookingError}</Alert>
-                  )}
-
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                    <Button
-                      startIcon={<ArrowBackIcon />}
-                      onClick={() => setActiveStep(1)}
-                      variant="outlined"
-                      sx={{ borderRadius: 6, textTransform: 'none', flex: 1 }}
-                    >
-                      Back
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      size="large"
-                      onClick={handleConfirmBooking}
-                      disabled={booking}
-                      startIcon={booking ? <CircularProgress size={18} color="inherit" /> : <CheckCircleIcon />}
-                      sx={{ borderRadius: 6, textTransform: 'none', fontWeight: 700, flex: 2, py: 1.5 }}
-                    >
-                      {booking ? 'Confirming…' : 'Confirm Booking'}
-                    </Button>
-                  </Stack>
-                </Box>
-              )}
-
-            </CardContent>
-          </Card>
+      <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
+        <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
+          <AppointmentFormBuilder
+            doctor={doctor}
+            centre={centre}
+            availabilityMap={availabilityMap}
+            availLoading={availLoading}
+            availableSessions={availableSessions}
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+            selectedSessionId={selectedSessionId}
+            onSelectSession={setSelectedSessionId}
+            confirmedPatient={confirmedPatient}
+            onConfirmPatient={setConfirmedPatient}
+            initialMobile={initialMobile ?? undefined}
+            booking={booking}
+            bookingError={bookingError}
+            bookingResult={bookingResult}
+            onBook={handleConfirmBooking}
+            onCancel={() => navigate(`/doctor/${doctorId}`)}
+          />
         </Container>
       </Box>
     </>
