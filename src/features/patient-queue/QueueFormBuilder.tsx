@@ -18,7 +18,6 @@ import {
   Alert,
   LinearProgress,
 } from '@mui/material'
-import LocationOnIcon from '@mui/icons-material/LocationOn'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import StarRateIcon from '@mui/icons-material/StarRate'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -85,9 +84,9 @@ export const QueueFormBuilder: React.FC<QueueFormBuilderProps> = ({
   onClose,
   practiceCentres,
   selectedCentreId,
-  onSelectCentre,
+  onSelectCentre: _onSelectCentre,
   selectedDate,
-  onSelectDate,
+  onSelectDate: _onSelectDate,
   daySessions,
   onConfirmAdd,
   onRegisterRedirect
