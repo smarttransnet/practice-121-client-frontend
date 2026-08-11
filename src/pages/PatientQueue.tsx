@@ -466,9 +466,6 @@ export const PatientQueue = () => {
     if (activeStep > 0) setActiveStep(activeStep - 1);
   };
 
-  const nextText = ['Next: Select Date', 'Next: Search Patient', 'Next: Select Session', 'Next: Confirm Ticket', submitting ? 'Adding...' : 'Confirm & Add to Queue'][activeStep];
-  const backText = ['Back', 'Back: Select Centre', 'Back: Select Date', 'Back: Search Patient', 'Back: Select Session'][activeStep];
-
   const renderQueueTable = (ticketsList: PatientQueueTicket[]) => (
     <Box>
       {ticketsList.map((t) => (
@@ -491,8 +488,8 @@ export const PatientQueue = () => {
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', bgcolor: 'background.default' }}>
-      {/* Header */}
-      <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', zIndex: 10 }}>
+      {/* Header - Hidden on Mobile */}
+      <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', zIndex: 10, display: { xs: 'none', md: 'block' } }}>
         <AppBreadcrumbs />
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
           <Typography variant="h5" fontWeight={800}>Patient Queue</Typography>
@@ -513,37 +510,41 @@ export const PatientQueue = () => {
         <LinearProgress variant="determinate" value={((activeStep + 1) / 5) * 100} sx={{ mb: 3, borderRadius: 2, height: 6 }} />
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-        {/* --- STEP 0 & 1 Layout (Grid) --- */}
-        {activeStep <= 1 && (
+        {/* --- STEP 0: Select Centre --- */}
+        {activeStep === 0 && (
+          <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+            <Card sx={{ p: 4, borderRadius: 3, border: '2px solid', borderColor: 'primary.main' }}>
+               <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>Select Practice Centre</Typography>
+               <Typography variant="body2" color="text.secondary" mb={3}>Choose a centre to view its queue.</Typography>
+               {loadingCentres ? <CircularProgress /> : (
+               <Stack spacing={1.5}>
+                 {practiceCentres.map(pc => (
+                   <Card key={pc.id} component={ButtonBase} onClick={() => { setSelectedCentre(pc); setActiveStep(1); }}
+                         sx={{ p: 2, textAlign: 'left', bgcolor: selectedCentre?.id === pc.id ? 'primary.light' : 'background.paper', 
+                               color: selectedCentre?.id === pc.id ? 'primary.contrastText' : 'text.primary', borderRadius: 2 }}>
+                      <Typography fontWeight={700}>{pc.clinicName}</Typography>
+                      <Typography variant="caption">{pc.placeName}</Typography>
+                   </Card>
+                 ))}
+               </Stack>
+               )}
+            </Card>
+          </Box>
+        )}
+
+        {/* --- STEP 1: Date & Queue Layout (Grid) --- */}
+        {activeStep === 1 && (
           <Grid container spacing={4}>
-            {/* Left Panel: Centre & Date */}
+            {/* Left Panel: Date */}
             <Grid size={{ xs: 12, md: 4 }}>
-              <Stack spacing={3}>
-                <Card sx={{ p: 2, border: activeStep === 0 ? '2px solid' : '1px solid', borderColor: activeStep === 0 ? 'primary.main' : 'divider' }}>
-                   <Typography variant="subtitle1" fontWeight={700} mb={2}>Select Practice Centre</Typography>
-                   {loadingCentres ? <CircularProgress /> : (
-                   <Stack spacing={1.5}>
-                     {practiceCentres.map(pc => (
-                       <Card key={pc.id} component={ButtonBase} onClick={() => { setSelectedCentre(pc); setActiveStep(0); }}
-                             sx={{ p: 2, textAlign: 'left', bgcolor: selectedCentre?.id === pc.id ? 'primary.light' : 'background.paper', 
-                                   color: selectedCentre?.id === pc.id ? 'primary.contrastText' : 'text.primary', borderRadius: 2 }}>
-                          <Typography fontWeight={700}>{pc.clinicName}</Typography>
-                          <Typography variant="caption">{pc.placeName}</Typography>
-                       </Card>
-                     ))}
-                   </Stack>
-                   )}
-                </Card>
-                
-                <Card sx={{ p: 2, border: activeStep === 1 ? '2px solid' : '1px solid', borderColor: activeStep === 1 ? 'primary.main' : 'divider', opacity: selectedCentre ? 1 : 0.5 }}>
-                   <Typography variant="subtitle1" fontWeight={700} mb={2}>Select Visit Date</Typography>
-                   {selectedCentre ? (
-                     <CalendarPicker availableDates={availableDates} selectedDate={selectedDate} onSelectDate={(d) => { setSelectedDate(d); setActiveStep(1); }} />
-                   ) : (
-                     <Typography variant="body2" color="text.secondary">Please select a practice centre first.</Typography>
-                   )}
-                </Card>
-              </Stack>
+              <Card sx={{ p: 2, border: '2px solid', borderColor: 'primary.main' }}>
+                 <Typography variant="subtitle1" fontWeight={700} mb={2}>Select Visit Date</Typography>
+                 {selectedCentre ? (
+                   <CalendarPicker availableDates={availableDates} selectedDate={selectedDate} onSelectDate={(d) => { setSelectedDate(d); }} />
+                 ) : (
+                   <Typography variant="body2" color="text.secondary">Please select a practice centre first.</Typography>
+                 )}
+              </Card>
             </Grid>
             {/* Right Panel: Queue & Stats */}
             <Grid size={{ xs: 12, md: 8 }}>
@@ -679,11 +680,24 @@ export const PatientQueue = () => {
 
       {/* Fixed Footer */}
       <Paper elevation={6} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, p: 2, display: 'flex', justifyContent: 'space-between', zIndex: 1200, bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
-         <Button variant="outlined" disabled={activeStep === 0 || submitting} onClick={handleBack} startIcon={<ArrowBackIcon />}>
-            {backText}
+         <Button 
+           variant="outlined" 
+           disabled={activeStep === 0 || submitting} 
+           onClick={handleBack} 
+           startIcon={<ArrowBackIcon />}
+           sx={{ borderRadius: 8, px: 4, fontWeight: 700, textTransform: 'none' }}
+         >
+            Back
          </Button>
-         <Button variant="contained" color="primary" onClick={handleNext} disabled={submitting} endIcon={activeStep < 4 ? <ArrowForwardIcon /> : <CheckCircleIcon />}>
-            {nextText}
+         <Button 
+           variant="contained" 
+           color="primary" 
+           onClick={handleNext} 
+           disabled={submitting} 
+           endIcon={activeStep < 4 ? <ArrowForwardIcon /> : <CheckCircleIcon />}
+           sx={{ borderRadius: 8, px: 4, fontWeight: 700, textTransform: 'none', boxShadow: 3 }}
+         >
+            {activeStep === 4 ? (submitting ? 'Adding...' : 'Confirm') : 'Next'}
          </Button>
       </Paper>
 
