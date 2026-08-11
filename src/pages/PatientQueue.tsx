@@ -18,12 +18,14 @@ import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { httpClient } from '../api/httpClient';
 import {
   getPatientQueue, addPatientQueueTicket, updatePatientQueueTicketStatus,
-  getPatientByMobile, searchPatients, sendPatientOtp,
+  getPatientByMobile, searchPatients, sendPatientOtp, reorderPatientQueue,
   verifyPatientOtp, resendPatientOtp, type PatientQueueTicket, type Patient
 } from '../features/patient-queue/patientQueueApi';
 import { formatDisplayDate, formatDisplayDateLong, formatIsoDate } from '../utils/dateUtils';
@@ -443,6 +445,40 @@ export const PatientQueue = () => {
     try { await updatePatientQueueTicketStatus(ticketId, status); fetchQueue(selectedCentre.id, selectedCentre.doctorId, formatDateLocal(selectedDate!)); } catch {}
   };
 
+  const handleMoveUp = async (index: number) => {
+    if (index <= 0 || !selectedCentre) return;
+    isEditingQueueRef.current = true;
+    const newQueue = [...queue];
+    const temp = newQueue[index - 1];
+    newQueue[index - 1] = newQueue[index];
+    newQueue[index] = temp;
+    setQueue(newQueue);
+    try {
+      await reorderPatientQueue(newQueue.map(q => q.id));
+    } catch {
+      fetchQueue(selectedCentre.id, selectedCentre.doctorId, formatDateLocal(selectedDate!));
+    } finally {
+      isEditingQueueRef.current = false;
+    }
+  };
+
+  const handleMoveDown = async (index: number) => {
+    if (index >= queue.length - 1 || !selectedCentre) return;
+    isEditingQueueRef.current = true;
+    const newQueue = [...queue];
+    const temp = newQueue[index + 1];
+    newQueue[index + 1] = newQueue[index];
+    newQueue[index] = temp;
+    setQueue(newQueue);
+    try {
+      await reorderPatientQueue(newQueue.map(q => q.id));
+    } catch {
+      fetchQueue(selectedCentre.id, selectedCentre.doctorId, formatDateLocal(selectedDate!));
+    } finally {
+      isEditingQueueRef.current = false;
+    }
+  };
+
   // Next/Back Logic
   const handleNext = () => {
     if (activeStep === 0) {
@@ -468,11 +504,17 @@ export const PatientQueue = () => {
 
   const renderQueueTable = (ticketsList: PatientQueueTicket[]) => (
     <Box>
-      {ticketsList.map((t) => (
+      {ticketsList.map((t, index) => (
          <Card key={t.id} sx={{ mb: 1, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
-               <Typography variant="subtitle1" fontWeight={700}>{t.patientName}</Typography>
-               <Typography variant="caption" color="text.secondary">{t.patientMobile}</Typography>
+            <Box display="flex" alignItems="center" gap={1}>
+               <Box display="flex" flexDirection="column">
+                  <IconButton size="small" onClick={() => handleMoveUp(index)} disabled={index === 0}><KeyboardArrowUpIcon fontSize="small" /></IconButton>
+                  <IconButton size="small" onClick={() => handleMoveDown(index)} disabled={index === ticketsList.length - 1}><KeyboardArrowDownIcon fontSize="small" /></IconButton>
+               </Box>
+               <Box>
+                 <Typography variant="subtitle1" fontWeight={700}>{t.patientName}</Typography>
+                 <Typography variant="caption" color="text.secondary">{t.patientMobile}</Typography>
+               </Box>
             </Box>
             <Box display="flex" gap={1} alignItems="center">
               <Chip label={['Waiting','Ready','Called','In Consultation','Completed','Cancelled','No Show'][t.status] || 'Unknown'} size="small" />
