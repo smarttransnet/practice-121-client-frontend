@@ -526,14 +526,29 @@ export const PatientQueue = () => {
   };
 
   const renderQueueTable = (ticketsList: PatientQueueTicket[]) => {
-    // Group tickets by sessionName or resolve from daySessions
+    // Group tickets by sessionName or resolve from daySessions/practiceCentre
     const grouped: Record<string, PatientQueueTicket[]> = {};
     ticketsList.forEach(t => {
       let resolvedName = t.sessionName;
       if (!resolvedName && t.sessionId) {
-        const match = daySessions.find(ds => ds.id === t.sessionId);
+        const sid = String(t.sessionId).toLowerCase();
+        // Try to find in today's active sessions first
+        const match = daySessions.find(ds => String(ds.id).toLowerCase() === sid || String(ds.groupId).toLowerCase() === sid);
         if (match) {
           resolvedName = `${match.label} (${match.timeRange})`;
+        } else if (selectedCentre?.sessionGroups) {
+          // Fallback: search all session groups in the centre
+          for (const group of selectedCentre.sessionGroups) {
+            if (String(group.id).toLowerCase() === sid) {
+              resolvedName = `Scheduled Session (${group.daysOfWeek?.join(', ')})`;
+              break;
+            }
+            const tbMatch = group.timeBlocks?.find(tb => String(tb.id).toLowerCase() === sid);
+            if (tbMatch) {
+              resolvedName = `${tbMatch.label || 'Session'} (${tbMatch.startTime} - ${tbMatch.endTime})`;
+              break;
+            }
+          }
         }
       }
       const sName = resolvedName || 'Unassigned / Other';
