@@ -526,10 +526,17 @@ export const PatientQueue = () => {
   };
 
   const renderQueueTable = (ticketsList: PatientQueueTicket[]) => {
-    // Group tickets by sessionName
+    // Group tickets by sessionName or resolve from daySessions
     const grouped: Record<string, PatientQueueTicket[]> = {};
     ticketsList.forEach(t => {
-      const sName = t.sessionName || 'Unassigned / Other';
+      let resolvedName = t.sessionName;
+      if (!resolvedName && t.sessionId) {
+        const match = daySessions.find(ds => ds.id === t.sessionId);
+        if (match) {
+          resolvedName = `${match.label} (${match.timeRange})`;
+        }
+      }
+      const sName = resolvedName || 'Unassigned / Other';
       if (!grouped[sName]) grouped[sName] = [];
       grouped[sName].push(t);
     });
