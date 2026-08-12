@@ -303,8 +303,31 @@ export const PatientQueue = () => {
       // Order centres logic could be added here (e.g., nearest to start time)
       setPracticeCentres(res.data);
       if (res.data.length > 0) {
-        const savedCentreId = localStorage.getItem('selectedPracticeCentreId');
-        const initial = savedCentreId ? res.data.find(pc => pc.id === savedCentreId) || res.data[0] : res.data[0];
+        let initial = res.data[0];
+        const today = new Date();
+        const dayAbbr = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][today.getDay()];
+        const currentTime = today.getHours() * 60 + today.getMinutes();
+        let minDiff = Infinity;
+
+        for (const pc of res.data) {
+          if (!pc.sessionGroups) continue;
+          for (const group of pc.sessionGroups) {
+            if (group.daysOfWeek?.some(d => d.toUpperCase() === dayAbbr)) {
+              if (group.timeBlocks && group.timeBlocks.length > 0) {
+                for (const tb of group.timeBlocks) {
+                  const [hours, minutes] = tb.startTime.split(':').map(Number);
+                  const tbTime = hours * 60 + (minutes || 0);
+                  const diff = tbTime - currentTime;
+                  if (diff > -120 && diff < minDiff) {
+                    minDiff = diff;
+                    initial = pc;
+                  }
+                }
+              }
+            }
+          }
+        }
+
         setSelectedCentre(initial);
         localStorage.setItem('selectedPracticeCentreId', initial.id);
         setActiveStep(1); // Auto advance to date if loaded
@@ -502,29 +525,78 @@ export const PatientQueue = () => {
     if (activeStep > 0) setActiveStep(activeStep - 1);
   };
 
-  const renderQueueTable = (ticketsList: PatientQueueTicket[]) => (
-    <Box>
-      {ticketsList.map((t, index) => (
-         <Card key={t.id} sx={{ mb: 1, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box display="flex" alignItems="center" gap={1}>
-               <Box display="flex" flexDirection="column">
-                  <IconButton size="small" onClick={() => handleMoveUp(index)} disabled={index === 0}><KeyboardArrowUpIcon fontSize="small" /></IconButton>
-                  <IconButton size="small" onClick={() => handleMoveDown(index)} disabled={index === ticketsList.length - 1}><KeyboardArrowDownIcon fontSize="small" /></IconButton>
-               </Box>
-               <Box>
-                 <Typography variant="subtitle1" fontWeight={700}>{t.patientName}</Typography>
-                 <Typography variant="caption" color="text.secondary">{t.patientMobile}</Typography>
-               </Box>
-            </Box>
-            <Box display="flex" gap={1} alignItems="center">
-              <Chip label={['Waiting','Ready','Called','In Consultation','Completed','Cancelled','No Show'][t.status] || 'Unknown'} size="small" />
-              {t.status === 0 && <Button size="small" variant="contained" color="secondary" onClick={() => handleUpdateStatus(t.id, 1)}>Ready</Button>}
-              {t.status === 1 && <Button size="small" variant="contained" color="info" onClick={() => handleUpdateStatus(t.id, 3)}>Start</Button>}
-              {t.status === 3 && <Button size="small" variant="contained" color="success" onClick={() => handleUpdateStatus(t.id, 4)}>Done</Button>}
-              {t.status < 4 && <IconButton size="small" color="error" onClick={() => handleUpdateStatus(t.id, 5)}><CloseIcon fontSize="small" /></IconButton>}
-            </Box>
-         </Card>
-      ))}
+  const renderQueueTable = (ticketsList: PatientQueueTicket[]) => {
+    // Group tickets by sessionName
+    const grouped: Record<string, PatientQueueTicket[]> = {};
+    ticketsList.forEach(t => {
+      const sName = t.sessionName || 'Unassigned / Other';
+      if (!grouped[sName]) grouped[sName] = [];
+      grouped[sName].push(t);
+    });
+
+    return (
+      <Box>
+        {Object.entries(grouped).map(([sessionName, tickets]) => (
+          <Box key={sessionName} sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'primary.main', textTransform: 'uppercase' }}>
+              {sessionName} ({tickets.length} patients)
+            </Typography>
+            {tickets.map((t) => {
+               // We need original index for handleMoveUp / handleMoveDown
+               const originalIndex = ticketsList.findIndex(ticket => ticket.id === t.id);
+               return (
+                 <Card key={t.id} sx={{ mb: 1, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                       <Box display="flex" flexDirection="column">
+                          <IconButton size="small" onClick={() => handleMoveUp(originalIndex)} disabled={originalIndex === 0}><KeyboardArrowUpIcon fontSize="small" /></IconButton>
+                          <IconButton size="small" onClick={() => handleMoveDown(originalIndex)} disabled={originalIndex === ticketsList.length - 1}><KeyboardArrowDownIcon fontSize="small" /></IconButton>
+                       </Box>
+                       <Box>
+                         <Typography variant="subtitle1" fontWeight={700}>{t.patientName}</Typography>
+                         <Typography variant="caption" color="text.secondary">{t.patientMobile}</Typography>
+                       </Box>
+                    </Box>
+                    <Box display="flex" gap={1} alignItems="center">
+                      <Chip label={['Waiting','Ready','Called','In Consultation','Completed','Cancelled','No Show'][t.status] || 'Unknown'} size="small" />
+                      {t.status === 0 && <Button size="small" variant="contained" color="secondary" onClick={() => handleUpdateStatus(t.id, 1)}>Ready</Button>}
+                      {t.status === 1 && <Button size="small" variant="contained" color="info" onClick={() => handleUpdateStatus(t.id, 3)}>Start</Button>}
+                      {t.status === 3 && <Button size="small" variant="contained" color="success" onClick={() => handleUpdateStatus(t.id, 4)}>Done</Button>}
+                      {t.status < 4 && <IconButton size="small" color="error" onClick={() => handleUpdateStatus(t.id, 5)}><CloseIcon fontSize="small" /></IconButton>}
+                    </Box>
+                 </Card>
+               );
+            })}
+          </Box>
+        ))}
+      </Box>
+    );
+  };
+
+  const renderStepButtons = () => (
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', mt: activeStep === 1 ? 2 : 0 }}>
+       <Button 
+         variant="outlined" 
+         disabled={activeStep === 0 || submitting} 
+         onClick={handleBack} 
+         startIcon={<ArrowBackIcon />}
+         sx={{ borderRadius: 8, px: {xs:2, md:4}, fontWeight: 700, textTransform: 'none', bgcolor: 'background.paper' }}
+       >
+          Back
+       </Button>
+       <Button 
+         variant="contained" 
+         color="primary" 
+         onClick={handleNext} 
+         disabled={submitting} 
+         endIcon={activeStep < 4 ? <ArrowForwardIcon /> : <CheckCircleIcon />}
+         sx={{ borderRadius: 8, px: {xs:2, md:4}, fontWeight: 700, textTransform: 'none', boxShadow: 3 }}
+       >
+          {activeStep === 0 ? 'Next: Select Date' : 
+           activeStep === 1 ? 'Next: Add Patient' : 
+           activeStep === 2 ? 'Next: Select Session' : 
+           activeStep === 3 ? 'Next: Confirm' : 
+           (submitting ? 'Adding...' : 'Confirm')}
+       </Button>
     </Box>
   );
 
@@ -587,6 +659,7 @@ export const PatientQueue = () => {
                    <Typography variant="body2" color="text.secondary">Please select a practice centre first.</Typography>
                  )}
               </Card>
+              {activeStep === 1 && renderStepButtons()}
             </Grid>
             {/* Right Panel: Queue & Stats */}
             <Grid size={{ xs: 12, md: 8 }}>
@@ -721,27 +794,11 @@ export const PatientQueue = () => {
       </Box>
 
       {/* Fixed Footer */}
-      <Paper elevation={6} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, p: 2, display: 'flex', justifyContent: 'space-between', zIndex: 1200, bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
-         <Button 
-           variant="outlined" 
-           disabled={activeStep === 0 || submitting} 
-           onClick={handleBack} 
-           startIcon={<ArrowBackIcon />}
-           sx={{ borderRadius: 8, px: 4, fontWeight: 700, textTransform: 'none' }}
-         >
-            Back
-         </Button>
-         <Button 
-           variant="contained" 
-           color="primary" 
-           onClick={handleNext} 
-           disabled={submitting} 
-           endIcon={activeStep < 4 ? <ArrowForwardIcon /> : <CheckCircleIcon />}
-           sx={{ borderRadius: 8, px: 4, fontWeight: 700, textTransform: 'none', boxShadow: 3 }}
-         >
-            {activeStep === 4 ? (submitting ? 'Adding...' : 'Confirm') : 'Next'}
-         </Button>
-      </Paper>
+      {activeStep !== 1 && (
+        <Paper elevation={6} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, p: 2, display: 'flex', justifyContent: 'space-between', zIndex: 1200, bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
+           {renderStepButtons()}
+        </Paper>
+      )}
 
       <OtpVerificationDialog open={openOtpDialog} onClose={() => setOpenOtpDialog(false)} maskedMobile={maskedMobile} sessionId={otpSessionId} onVerified={handleOtpVerified} onVerifyOtp={verifyPatientOtp} onResendOtp={resendPatientOtp} />
       {primaryPatientRecord && <AddChildModal open={openAddChildModal} parentId={primaryPatientRecord.id} onClose={() => setOpenAddChildModal(false)} onChildAdded={c => { setVerifiedChildren(prev => [...prev, c]); setVerifiedPatient(c); }} />}

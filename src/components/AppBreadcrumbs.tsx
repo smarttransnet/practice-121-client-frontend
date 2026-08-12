@@ -61,6 +61,8 @@ export const AppBreadcrumbs: React.FC = () => {
     return segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
   };
 
+  const isPatientQueue = location.pathname.startsWith('/patient-queue');
+
   return (
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
@@ -82,28 +84,30 @@ export const AppBreadcrumbs: React.FC = () => {
       }}
     >
       {/* Go Back Action Button */}
-      <Button
-        variant="text"
-        size="small"
-        startIcon={<ArrowBackIcon sx={{ fontSize: '1.1rem !important' }} />}
-        onClick={handleGoBack}
-        sx={{
-          fontWeight: 700,
-          color: 'text.primary',
-          borderRadius: '10px',
-          px: 1.5,
-          py: 0.5,
-          textTransform: 'none',
-          bgcolor: 'rgba(143, 0, 255, 0.06)',
-          '&:hover': {
-            bgcolor: 'rgba(143, 0, 255, 0.12)',
-            transform: 'translateX(-2px)',
-          },
-          transition: 'all 0.2s ease',
-        }}
-      >
-        Back
-      </Button>
+      {!isPatientQueue && (
+        <Button
+          variant="text"
+          size="small"
+          startIcon={<ArrowBackIcon sx={{ fontSize: '1.1rem !important' }} />}
+          onClick={handleGoBack}
+          sx={{
+            fontWeight: 700,
+            color: 'text.primary',
+            borderRadius: '10px',
+            px: 1.5,
+            py: 0.5,
+            textTransform: 'none',
+            bgcolor: 'rgba(143, 0, 255, 0.06)',
+            '&:hover': {
+              bgcolor: 'rgba(143, 0, 255, 0.12)',
+              transform: 'translateX(-2px)',
+            },
+            transition: 'all 0.2s ease',
+          }}
+        >
+          Back
+        </Button>
+      )}
 
       {/* Dynamic Breadcrumbs Trail */}
       <Breadcrumbs
