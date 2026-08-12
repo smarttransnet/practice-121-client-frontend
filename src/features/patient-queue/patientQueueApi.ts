@@ -11,6 +11,7 @@ export interface PatientQueueTicket {
   practiceCentreId: string;
   visitDate: string;
   sessionId?: string;
+  sessionName?: string;
   status: number; // PatientQueueStatus
   priority: number; // PatientQueuePriority
   createdAt: string;
