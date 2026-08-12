@@ -166,6 +166,7 @@ export const PatientQueue = () => {
   const [queue, setQueue] = useState<PatientQueueTicket[]>([]);
   const isEditingQueueRef = useRef(false);
   const isFetchingRef = useRef(false);
+  const [selectedSessionFilter, setSelectedSessionFilter] = useState<string>('ALL');
 
   // --- Step 2: Patient Search ---
   const [patientMobile, setPatientMobile] = useState('');
@@ -525,17 +526,26 @@ export const PatientQueue = () => {
     if (activeStep > 0) setActiveStep(activeStep - 1);
   };
 
-  const renderQueueTable = (ticketsList: PatientQueueTicket[]) => {
-    // Group tickets by sessionName or resolve from daySessions/practiceCentre
+  // --- Queue Grouping & Filtering ---
+  const { groupedQueue, sessionFilters } = useMemo(() => {
     const grouped: Record<string, PatientQueueTicket[]> = {};
-    ticketsList.forEach(t => {
+    const filters = new Set<string>();
+    
+    // Pre-populate with today's expected sessions
+    daySessions.forEach(ds => {
+      const label = ds.timeRange ? `${ds.label} (${ds.timeRange})` : ds.label;
+      filters.add(label);
+      grouped[label] = [];
+    });
+
+    queue.forEach(t => {
       let resolvedName = t.sessionName;
       if (!resolvedName && t.sessionId) {
         const sid = String(t.sessionId).toLowerCase();
         // Try to find in today's active sessions first
         const match = daySessions.find(ds => String(ds.id).toLowerCase() === sid || String(ds.groupId).toLowerCase() === sid);
         if (match) {
-          resolvedName = `${match.label} (${match.timeRange})`;
+          resolvedName = match.timeRange ? `${match.label} (${match.timeRange})` : match.label;
         } else if (selectedCentre?.sessionGroups) {
           // Fallback: search all session groups in the centre
           for (const group of selectedCentre.sessionGroups) {
@@ -554,24 +564,69 @@ export const PatientQueue = () => {
       const sName = resolvedName || 'Unassigned / Other';
       if (!grouped[sName]) grouped[sName] = [];
       grouped[sName].push(t);
+      filters.add(sName);
     });
+
+    return { groupedQueue: grouped, sessionFilters: ['ALL', ...Array.from(filters)] };
+  }, [queue, daySessions, selectedCentre]);
+
+  const filteredQueue = useMemo(() => {
+    if (selectedSessionFilter === 'ALL') return queue;
+    return groupedQueue[selectedSessionFilter] || [];
+  }, [queue, groupedQueue, selectedSessionFilter]);
+
+  // Set default session filter
+  useEffect(() => {
+    if (daySessions.length > 0) {
+      const today = new Date();
+      const isToday = selectedDate && selectedDate.toDateString() === today.toDateString();
+      let defaultLabel = 'ALL';
+      if (isToday) {
+        const currentTime = today.getHours() * 60 + today.getMinutes();
+        const upcomingSessions = daySessions.filter(s => {
+          if (!s.startTime) return true;
+          const [h, m] = s.startTime.split(':').map(Number);
+          return (h * 60 + (m || 0)) >= currentTime;
+        });
+        const target = upcomingSessions.length > 0 ? upcomingSessions[0] : daySessions[0];
+        defaultLabel = target.timeRange ? `${target.label} (${target.timeRange})` : target.label;
+      } else {
+        const target = daySessions[0];
+        defaultLabel = target.timeRange ? `${target.label} (${target.timeRange})` : target.label;
+      }
+      setSelectedSessionFilter(defaultLabel);
+    } else {
+      setSelectedSessionFilter('ALL');
+    }
+  }, [daySessions, selectedDate]);
+
+  const renderQueueTable = () => {
+    const groupsToRender = selectedSessionFilter === 'ALL' 
+      ? Object.keys(groupedQueue) 
+      : [selectedSessionFilter].filter(k => groupedQueue[k]);
 
     return (
       <Box>
-        {Object.entries(grouped).map(([sessionName, tickets]) => (
-          <Box key={sessionName} sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'primary.main', textTransform: 'uppercase' }}>
-              {sessionName} ({tickets.length} patients)
-            </Typography>
-            {tickets.map((t) => {
-               // We need original index for handleMoveUp / handleMoveDown
-               const originalIndex = ticketsList.findIndex(ticket => ticket.id === t.id);
+        {groupsToRender.map(sessionName => {
+          const tickets = groupedQueue[sessionName] || [];
+          if (tickets.length === 0 && selectedSessionFilter === 'ALL') return null;
+
+          return (
+            <Box key={sessionName} sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'primary.main', textTransform: 'uppercase' }}>
+                {sessionName} ({tickets.length} patients)
+              </Typography>
+              {tickets.length === 0 ? (
+                <Typography variant="body2" color="text.secondary" fontStyle="italic" pl={1}>No patients in this session yet.</Typography>
+              ) : tickets.map((t) => {
+                 // We need original index for handleMoveUp / handleMoveDown
+                 const originalIndex = queue.findIndex(ticket => ticket.id === t.id);
                return (
                  <Card key={t.id} sx={{ mb: 1, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box display="flex" alignItems="center" gap={1}>
                        <Box display="flex" flexDirection="column">
                           <IconButton size="small" onClick={() => handleMoveUp(originalIndex)} disabled={originalIndex === 0}><KeyboardArrowUpIcon fontSize="small" /></IconButton>
-                          <IconButton size="small" onClick={() => handleMoveDown(originalIndex)} disabled={originalIndex === ticketsList.length - 1}><KeyboardArrowDownIcon fontSize="small" /></IconButton>
+                          <IconButton size="small" onClick={() => handleMoveDown(originalIndex)} disabled={originalIndex === queue.length - 1}><KeyboardArrowDownIcon fontSize="small" /></IconButton>
                        </Box>
                        <Box>
                          <Typography variant="subtitle1" fontWeight={700}>{t.patientName}</Typography>
@@ -589,7 +644,8 @@ export const PatientQueue = () => {
                );
             })}
           </Box>
-        ))}
+        );
+      })}
       </Box>
     );
   };
@@ -693,13 +749,27 @@ export const PatientQueue = () => {
                      <IconButton onClick={() => fetchQueue(selectedCentre!.id, selectedCentre!.doctorId, formatDateLocal(selectedDate!))} disabled={!selectedDate}><RefreshIcon /></IconButton>
                   </Box>
                   {selectedDate && (
-                    <Grid container spacing={2} mb={3}>
-                      <Grid size={{xs: 4}}><Box sx={{p: 2, bgcolor: 'primary.light', borderRadius: 2, textAlign: 'center'}}><Typography variant="h5" fontWeight={800}>{queue.filter(q=>q.status<=1).length}</Typography><Typography variant="caption">Waiting</Typography></Box></Grid>
-                      <Grid size={{xs: 4}}><Box sx={{p: 2, bgcolor: 'warning.light', borderRadius: 2, textAlign: 'center'}}><Typography variant="h5" fontWeight={800}>{queue.filter(q=>q.status===2||q.status===3).length}</Typography><Typography variant="caption">Active</Typography></Box></Grid>
-                      <Grid size={{xs: 4}}><Box sx={{p: 2, bgcolor: 'success.light', borderRadius: 2, textAlign: 'center'}}><Typography variant="h5" fontWeight={800}>{queue.filter(q=>q.status===4).length}</Typography><Typography variant="caption">Done</Typography></Box></Grid>
-                    </Grid>
+                    <Box mb={3}>
+                      <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 1, mb: 2, '&::-webkit-scrollbar': { height: 6 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 3 } }}>
+                        {sessionFilters.map(filter => (
+                          <Chip 
+                            key={filter} 
+                            label={filter === 'ALL' ? 'Show All' : filter} 
+                            onClick={() => setSelectedSessionFilter(filter)}
+                            color={selectedSessionFilter === filter ? 'primary' : 'default'}
+                            variant={selectedSessionFilter === filter ? 'filled' : 'outlined'}
+                            sx={{ fontWeight: selectedSessionFilter === filter ? 700 : 500, cursor: 'pointer' }}
+                          />
+                        ))}
+                      </Box>
+                      <Grid container spacing={2}>
+                        <Grid size={{xs: 4}}><Box sx={{p: 2, bgcolor: 'primary.light', borderRadius: 2, textAlign: 'center'}}><Typography variant="h5" fontWeight={800}>{filteredQueue.filter(q=>q.status<=1).length}</Typography><Typography variant="caption">Waiting</Typography></Box></Grid>
+                        <Grid size={{xs: 4}}><Box sx={{p: 2, bgcolor: 'warning.light', borderRadius: 2, textAlign: 'center'}}><Typography variant="h5" fontWeight={800}>{filteredQueue.filter(q=>q.status===2||q.status===3).length}</Typography><Typography variant="caption">Active</Typography></Box></Grid>
+                        <Grid size={{xs: 4}}><Box sx={{p: 2, bgcolor: 'success.light', borderRadius: 2, textAlign: 'center'}}><Typography variant="h5" fontWeight={800}>{filteredQueue.filter(q=>q.status===4).length}</Typography><Typography variant="caption">Done</Typography></Box></Grid>
+                      </Grid>
+                    </Box>
                   )}
-                  {queue.length > 0 ? renderQueueTable(queue) : <Typography color="text.secondary" textAlign="center" py={4}>No patients in queue yet.</Typography>}
+                  {sessionFilters.length > 1 ? renderQueueTable() : <Typography color="text.secondary" textAlign="center" py={4}>No patients in queue yet.</Typography>}
                </Card>
             </Grid>
           </Grid>
