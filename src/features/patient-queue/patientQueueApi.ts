@@ -27,12 +27,12 @@ export interface Patient {
   dateOfBirth?: string;
   gender?: string;
   mobileNumber: string;
-  parentId?: string;
+  isMobileOwner: boolean;
 }
 
 export interface PatientLookupResponse {
-  primaryPatient: Patient;
-  children: Patient[];
+  primaryPatient: Patient | null;
+  familyMembers: Patient[];
 }
 
 export const getPatientQueue = async (

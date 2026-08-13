@@ -16,7 +16,6 @@ import {
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import {
   getPatientByMobilePublic,
@@ -25,9 +24,9 @@ import {
   verifyPatientOtpPublic,
   resendPatientOtpPublic,
 } from './appointmentApi';
+import { registerPatient } from '../patients/patientsApi';
 import { isValidLkMobile, normalizeLkMobile } from '../../utils/lkPhoneValidation';
-import { FamilyPatientSelector } from '../patients/FamilyPatientSelector';
-import { AddChildModal } from '../patients/AddChildModal';
+import { AddPatientInlineForm } from '../patients/AddPatientInlineForm';
 import { OtpVerificationDialog } from '../../components/OtpVerificationDialog';
 
 export interface PatientRecord {
@@ -59,16 +58,52 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
   
   const [primaryPatient, setPrimaryPatient] = useState<PatientRecord | null>(null);
   const [childrenPatients, setChildrenPatients] = useState<PatientRecord[]>([]);
-  const [selectedPatient, setSelectedPatient] = useState<PatientRecord | null>(null);
   const [searchResults, setSearchResults] = useState<PatientRecord[]>([]);
   const [mode, setMode] = useState<'input' | 'notFound' | 'select' | 'confirm'>('input');
-
-  const [openAddChildModal, setOpenAddChildModal] = useState(false);
 
   const [openOtpDialog, setOpenOtpDialog] = useState(false);
   const [otpSessionId, setOtpSessionId] = useState<string>('');
   const [maskedMobile, setMaskedMobile] = useState<string>('');
   const [pendingMobile, setPendingMobile] = useState<string>('');
+
+  const [showAddInlineForm, setShowAddInlineForm] = useState<'myself' | 'family' | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleInlineSubmit = async (data: any) => {
+    setSubmitting(true);
+    try {
+      // Need to use the verified mobile number
+      const targetMobile = pendingMobile || mobile;
+      const patientId = await registerPatient({
+        ...data,
+        mobileNumber: targetMobile,
+      });
+
+      const newPatient: PatientRecord = {
+        id: patientId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        nicNumber: data.nicNumber,
+        dateOfBirth: data.dateOfBirth,
+        gender: data.gender,
+        mobileNumber: targetMobile,
+      };
+
+      if (data.isMobileOwner) {
+        setPrimaryPatient(newPatient);
+      } else {
+        setChildrenPatients(prev => [...prev, newPatient]);
+      }
+      
+      setShowAddInlineForm(null);
+      // Auto-select the newly added patient
+      onPatientConfirmed(newPatient);
+    } catch (err: any) {
+      setError(err.message || 'Failed to register patient.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleOtpVerified = async (verificationToken: string) => {
     setLoading(true);
@@ -76,8 +111,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
       const lookupResult = await getPatientByMobilePublic(pendingMobile, verificationToken);
       if (lookupResult) {
         setPrimaryPatient(lookupResult.primaryPatient);
-        setChildrenPatients(lookupResult.children || []);
-        setSelectedPatient(lookupResult.primaryPatient);
+        setChildrenPatients(lookupResult.familyMembers || []);
         setMode('confirm');
       } else {
         setMode('notFound');
@@ -92,7 +126,6 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
   const reset = () => {
     setPrimaryPatient(null);
     setChildrenPatients([]);
-    setSelectedPatient(null);
     setSearchResults([]);
     setError(null);
     setMode('input');
@@ -145,7 +178,6 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
       } else if (results.length === 1) {
         setPrimaryPatient(results[0]);
         setChildrenPatients([]);
-        setSelectedPatient(results[0]);
         setMode('confirm');
       } else {
         setSearchResults(results);
@@ -169,56 +201,54 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
   const handleSelectFromResults = (patient: PatientRecord) => {
     setPrimaryPatient(patient);
     setChildrenPatients([]);
-    setSelectedPatient(patient);
     setSearchResults([]);
     setMode('confirm');
   };
 
-  const handleChildAdded = (newChild: PatientRecord) => {
-    setChildrenPatients(prev => [...prev, newChild]);
-    setSelectedPatient(newChild);
-  };
-
   // ---------- Confirm card with Family Selector ----------
-  if (mode === 'confirm' && primaryPatient && selectedPatient) {
+  if (mode === 'confirm') {
     return (
       <Box>
-        <Alert
-          icon={<CheckCircleIcon fontSize="inherit" />}
-          severity="success"
-          sx={{ mb: 2, borderRadius: 2 }}
-        >
-          Patient record found! Select who this appointment is for below:
-        </Alert>
+        <Typography variant="subtitle2" fontWeight={700} mb={2}>Who is this appointment for?</Typography>
 
-        <FamilyPatientSelector
-          primaryPatient={primaryPatient}
-          children={childrenPatients}
-          selectedPatientId={selectedPatient.id}
-          onSelectPatient={(p) => setSelectedPatient(p)}
-          onOpenAddChild={() => setOpenAddChildModal(true)}
-        />
+        {!showAddInlineForm && (
+          <Stack spacing={2}>
+            {primaryPatient && (
+              <Card variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box><Typography fontWeight={700}>For Me ({primaryPatient.firstName})</Typography></Box>
+                <Button size="small" variant="contained" onClick={() => onPatientConfirmed(primaryPatient)}>Select</Button>
+              </Card>
+            )}
+            {!primaryPatient && (
+              <Card variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box><Typography fontWeight={700}>For Me (New Patient)</Typography></Box>
+                <Button size="small" variant="outlined" onClick={() => setShowAddInlineForm('myself')}>Add Details</Button>
+              </Card>
+            )}
 
-        <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
-          <Button variant="outlined" onClick={reset} sx={{ borderRadius: 6, textTransform: 'none' }}>
-            Not me – Search Again
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => onPatientConfirmed(selectedPatient)}
-            sx={{ borderRadius: 6, textTransform: 'none', fontWeight: 700, flex: 1 }}
-          >
-            Confirm Patient: {selectedPatient.firstName} {selectedPatient.lastName ?? ''}
-          </Button>
-        </Stack>
+            <Typography variant="subtitle2" fontWeight={700} mt={2}>Family Members</Typography>
+            {childrenPatients.map(fm => (
+              <Card key={fm.id} variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box><Typography fontWeight={700}>{fm.firstName} {fm.lastName}</Typography></Box>
+                <Button size="small" variant="contained" onClick={() => onPatientConfirmed(fm)}>Select</Button>
+              </Card>
+            ))}
+            <Button color="secondary" onClick={() => setShowAddInlineForm('family')} startIcon={<PersonAddAltIcon />}>Add Family Member</Button>
+          </Stack>
+        )}
 
-        <AddChildModal
-          open={openAddChildModal}
-          parentId={primaryPatient.id}
-          onClose={() => setOpenAddChildModal(false)}
-          onChildAdded={handleChildAdded}
-        />
+        {showAddInlineForm && (
+          <AddPatientInlineForm
+            isMobileOwner={showAddInlineForm === 'myself'}
+            onSubmit={handleInlineSubmit}
+            onCancel={() => setShowAddInlineForm(null)}
+            isLoading={submitting}
+          />
+        )}
+
+        <Button variant="outlined" onClick={reset} size="small" sx={{ borderRadius: 6, textTransform: 'none', mt: 3, display: showAddInlineForm ? 'none' : 'inline-flex' }}>
+          Not me – Search Again
+        </Button>
       </Box>
     );
   }

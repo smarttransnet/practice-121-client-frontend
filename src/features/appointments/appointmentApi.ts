@@ -127,8 +127,8 @@ export const getPatientByMobilePublic = async (
   mobileNumber: string,
   verificationToken?: string,
 ): Promise<{
-  primaryPatient: { id: string; firstName: string; lastName?: string; nicNumber?: string; dateOfBirth?: string; gender?: string; mobileNumber: string; parentId?: string };
-  children: { id: string; firstName: string; lastName?: string; nicNumber?: string; dateOfBirth?: string; gender?: string; mobileNumber: string; parentId?: string }[];
+  primaryPatient: { id: string; firstName: string; lastName?: string; nicNumber?: string; dateOfBirth?: string; gender?: string; mobileNumber: string; isMobileOwner: boolean } | null;
+  familyMembers: { id: string; firstName: string; lastName?: string; nicNumber?: string; dateOfBirth?: string; gender?: string; mobileNumber: string; isMobileOwner: boolean }[];
 } | null> => {
   let url = `${API_BASE}/api/patients/by-mobile?mobileNumber=${encodeURIComponent(mobileNumber)}`;
   if (verificationToken) {

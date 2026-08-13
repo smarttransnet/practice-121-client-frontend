@@ -106,6 +106,7 @@ export function PatientForm({ entryPoint }: Props) {
         dateOfBirth: dateOfBirth || undefined,
         gender: gender || undefined,
         mobileNumber: finalMobile,
+        isMobileOwner: true,
         createdByDoctorId: !isDirect ? user?.accountId : undefined
       })
 

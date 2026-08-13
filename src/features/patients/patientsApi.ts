@@ -1,12 +1,13 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 export const registerPatient = async (data: {
-  nicNumber: string
+  nicNumber?: string
   firstName: string
   lastName?: string
   dateOfBirth?: string
   gender?: string
   mobileNumber: string
+  isMobileOwner: boolean
   createdByDoctorId?: string
 }) => {
   const token = localStorage.getItem('token')
@@ -56,39 +57,6 @@ export const uploadPatientDocument = async (
   if (!response.ok) {
     const errorData = await response.json().catch(() => null)
     throw new Error(errorData?.title || 'Upload failed')
-  }
-
-  return response.json()
-}
-
-export const addChildPatient = async (
-  parentId: string,
-  data: {
-    firstName: string
-    lastName?: string
-    fullName?: string
-    dateOfBirth: string
-    gender: string
-  }
-) => {
-  const token = localStorage.getItem('token')
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  }
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-
-  const response = await fetch(`${API_URL}/patients/${parentId}/children`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(data),
-  })
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null)
-    throw new Error(errorData?.detail || errorData?.title || 'Failed to add child patient')
   }
 
   return response.json()

@@ -31,7 +31,7 @@ interface FamilyPatientSelectorProps {
   children: PatientOption[];
   selectedPatientId: string;
   onSelectPatient: (patient: PatientOption) => void;
-  onOpenAddChild: () => void;
+  onOpenAddChild?: () => void;
 }
 
 export const FamilyPatientSelector: React.FC<FamilyPatientSelectorProps> = ({
@@ -47,19 +47,21 @@ export const FamilyPatientSelector: React.FC<FamilyPatientSelectorProps> = ({
         <Typography variant="subtitle2" fontWeight={700} color="text.secondary">
           Who is this appointment for?
         </Typography>
-        <Button
-          size="small"
-          startIcon={<AddIcon />}
-          onClick={onOpenAddChild}
-          sx={{
-            borderRadius: 6,
-            textTransform: 'none',
-            fontWeight: 700,
-            color: 'primary.main',
-          }}
-        >
-          Add Child
-        </Button>
+        {onOpenAddChild && (
+          <Button
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={onOpenAddChild}
+            sx={{
+              borderRadius: 6,
+              textTransform: 'none',
+              fontWeight: 700,
+              color: 'primary.main',
+            }}
+          >
+            Add Family Member
+          </Button>
+        )}
       </Box>
 
       <Stack spacing={1.5}>

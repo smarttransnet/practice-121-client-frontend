@@ -3,9 +3,9 @@ import {
   Box, Typography, Button, Card, Paper, Chip, IconButton, Grid,
   CircularProgress, Alert, ButtonBase, Stack, TextField,
   RadioGroup, FormControlLabel, Radio,
-  LinearProgress, Accordion, AccordionSummary, AccordionDetails
+  LinearProgress
 } from '@mui/material';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { AppBreadcrumbs } from '../components/AppBreadcrumbs';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
@@ -17,7 +17,6 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
@@ -25,13 +24,12 @@ import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { httpClient } from '../api/httpClient';
 import {
   getPatientQueue, addPatientQueueTicket, updatePatientQueueTicketStatus,
-  getPatientByMobile, searchPatients, sendPatientOtp, reorderPatientQueue,
+  getPatientByMobile, sendPatientOtp, reorderPatientQueue,
   verifyPatientOtp, resendPatientOtp, type PatientQueueTicket, type Patient
 } from '../features/patient-queue/patientQueueApi';
 import { formatDisplayDate, formatDisplayDateLong, formatIsoDate } from '../utils/dateUtils';
 import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation';
-import { FamilyPatientSelector } from '../features/patients/FamilyPatientSelector';
-import { AddChildModal } from '../features/patients/AddChildModal';
+import { AddPatientInlineForm } from '../features/patients/AddPatientInlineForm';
 import { OtpVerificationDialog } from '../components/OtpVerificationDialog';
 
 // --- Types ---
@@ -147,7 +145,6 @@ const CalendarPicker = ({ availableDates, selectedDate, onSelectDate }: {
 
 // --- Main PatientQueue Wizard Component ---
 export const PatientQueue = () => {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -168,17 +165,12 @@ export const PatientQueue = () => {
   const isFetchingRef = useRef(false);
   const [selectedSessionFilter, setSelectedSessionFilter] = useState<string>('ALL');
 
-  // --- Step 2: Patient Search ---
+  // --- Step 2: Patient Search & Select ---
   const [patientMobile, setPatientMobile] = useState('');
   const [lookupLoading, setLookupLoading] = useState(false);
   const [verifiedPatient, setVerifiedPatient] = useState<Patient | null>(null);
-  const [primaryPatientRecord, setPrimaryPatientRecord] = useState<Patient | null>(null);
-  const [verifiedChildren, setVerifiedChildren] = useState<Patient[]>([]);
-  const [searchResults, setSearchResults] = useState<Patient[]>([]);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [searchFirstName, setSearchFirstName] = useState('');
-  const [searchLastName, setSearchLastName] = useState('');
-  const [searchNic, setSearchNic] = useState('');
+  const [patientLookup, setPatientLookup] = useState<{ primaryPatient: Patient | null; familyMembers: Patient[] } | null>(null);
+  const [showAddInlineForm, setShowAddInlineForm] = useState<'myself' | 'family' | null>(null);
 
   // OTP State
   const [openOtpDialog, setOpenOtpDialog] = useState(false);
@@ -186,9 +178,6 @@ export const PatientQueue = () => {
   const [maskedMobile, setMaskedMobile] = useState('');
   const [pendingMobile, setPendingMobile] = useState('');
   
-  // Modals
-  const [openAddChildModal, setOpenAddChildModal] = useState(false);
-
   // --- Step 3: Session & Priority ---
   const [targetSessionId, setTargetSessionId] = useState<string>('');
   const [priority, setPriority] = useState<number>(0);
@@ -363,26 +352,14 @@ export const PatientQueue = () => {
     setLookupLoading(true);
     try {
       const otpSendRes = await sendPatientOtp(norm);
-      if (otpSendRes.patientExists && otpSendRes.sessionId) {
+      if (otpSendRes.sessionId) {
         setOtpSessionId(otpSendRes.sessionId);
         setMaskedMobile(otpSendRes.maskedMobile || norm);
         setPendingMobile(norm);
         setOpenOtpDialog(true);
-        return;
-      }
-      if (searchFirstName.trim() || searchLastName.trim() || searchNic.trim()) {
-        const advRes = await searchPatients({
-          firstName: searchFirstName.trim() || undefined,
-          lastName: searchLastName.trim() || undefined,
-          nicNumber: searchNic.trim() || undefined
-        });
-        if (advRes.length > 0) setSearchResults(advRes);
-        else setError('No matching patient found.');
-      } else {
-        setError('No patient account found for this mobile number.');
       }
     } catch (e: any) {
-      setError(e.message || 'Error searching patient record.');
+      setError(e.message || 'Error validating mobile number.');
     } finally {
       setLookupLoading(false);
     }
@@ -394,17 +371,52 @@ export const PatientQueue = () => {
     setError(null);
     try {
       const res = await getPatientByMobile(pendingMobile, token);
-      if (res && res.primaryPatient) {
-        setVerifiedPatient(res.primaryPatient);
-        setPrimaryPatientRecord(res.primaryPatient);
-        setVerifiedChildren(res.children || []);
+      if (res) {
+        setPatientLookup(res);
       } else {
-        setError('No patient record found for this mobile number.');
+        // New mobile number with no records
+        setPatientLookup({ primaryPatient: null, familyMembers: [] });
       }
     } catch (e: any) {
       setError(e.message || 'Failed to load patient record.');
     } finally {
       setLookupLoading(false);
+    }
+  };
+
+  const handleInlineSubmit = async (data: any) => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      // Assuming registerPatient is imported from patientsApi
+      // If we don't have it imported here, we'll need to add it, but we can assume we'll add it to the imports
+      const { registerPatient } = await import('../features/patients/patientsApi');
+      const newPatient = await registerPatient({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dateOfBirth: data.dateOfBirth,
+        nicNumber: data.nicNumber,
+        gender: data.gender,
+        mobileNumber: pendingMobile,
+        isMobileOwner: data.isMobileOwner,
+        createdByDoctorId: selectedCentre?.doctorId
+      });
+      // The API returns the new patient id, we can set verified patient
+      setVerifiedPatient({
+        id: newPatient.id || newPatient,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dateOfBirth: data.dateOfBirth,
+        nicNumber: data.nicNumber,
+        gender: data.gender,
+        mobileNumber: pendingMobile,
+        isMobileOwner: data.isMobileOwner
+      });
+      setShowAddInlineForm(null);
+    } catch (e: any) {
+      setError(e.message || 'Failed to register patient.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -439,9 +451,8 @@ export const PatientQueue = () => {
   const resetAddPatientState = () => {
     setPatientMobile('');
     setVerifiedPatient(null);
-    setPrimaryPatientRecord(null);
-    setVerifiedChildren([]);
-    setSearchResults([]);
+    setPatientLookup(null);
+    setShowAddInlineForm(null);
     setPriority(0);
     setTargetSessionId(daySessions.length > 0 ? daySessions[0].id : '');
   };
@@ -782,39 +793,53 @@ export const PatientQueue = () => {
                 <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>Patient Search & Verification</Typography>
                 <Typography variant="body2" color="text.secondary" mb={3}>Enter patient's mobile number or search by details.</Typography>
 
-                {!verifiedPatient ? (
+                {!patientLookup && !verifiedPatient ? (
                   <Stack spacing={3}>
                     <Box display="flex" gap={1.5}>
                       <TextField fullWidth label="Mobile Number" placeholder="077 123 4567" value={patientMobile} onChange={(e) => setPatientMobile(e.target.value)} />
                       <Button variant="contained" onClick={handleMobileLookup} disabled={lookupLoading} startIcon={lookupLoading ? <CircularProgress size={20} color="inherit" /> : <SearchIcon />}>Search</Button>
                     </Box>
-
-                    <Accordion expanded={showAdvanced} onChange={() => setShowAdvanced(!showAdvanced)} variant="outlined">
-                       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                          <Typography variant="caption" fontWeight={700}>ADVANCED PATIENT SEARCH (IF MOBILE UNKNOWN)</Typography>
-                       </AccordionSummary>
-                       <AccordionDetails>
-                          <Grid container spacing={2}>
-                            <Grid size={{xs: 12, sm: 6}}><TextField fullWidth size="small" label="First Name" value={searchFirstName} onChange={e=>setSearchFirstName(e.target.value)}/></Grid>
-                            <Grid size={{xs: 12, sm: 6}}><TextField fullWidth size="small" label="Last Name" value={searchLastName} onChange={e=>setSearchLastName(e.target.value)}/></Grid>
-                            <Grid size={{xs: 12}}><TextField fullWidth size="small" label="NIC Number" value={searchNic} onChange={e=>setSearchNic(e.target.value)}/></Grid>
-                            <Grid size={{xs: 12}}><Button variant="outlined" fullWidth onClick={handleMobileLookup}>Search Details</Button></Grid>
-                          </Grid>
-                       </AccordionDetails>
-                    </Accordion>
-
-                    {searchResults.length > 0 && (
-                      <Stack spacing={1.5}>
-                        <Typography variant="subtitle2" fontWeight={700}>Search Matches ({searchResults.length})</Typography>
-                        {searchResults.map(p => (
-                          <Card key={p.id} variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Box><Typography fontWeight={700}>{p.firstName} {p.lastName}</Typography><Typography variant="caption">{p.mobileNumber}</Typography></Box>
-                            <Button size="small" variant="outlined" onClick={() => { setVerifiedPatient(p); setPrimaryPatientRecord(p); }}>Select</Button>
+                  </Stack>
+                ) : !verifiedPatient && patientLookup ? (
+                  <Stack spacing={3}>
+                    <Typography variant="subtitle2" fontWeight={700}>Who is this consultation for?</Typography>
+                    
+                    {!showAddInlineForm && (
+                      <Stack spacing={2}>
+                        {patientLookup.primaryPatient && (
+                          <Card variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box><Typography fontWeight={700}>For Me ({patientLookup.primaryPatient.firstName})</Typography></Box>
+                            <Button size="small" variant="contained" onClick={() => setVerifiedPatient(patientLookup.primaryPatient!)}>Select</Button>
+                          </Card>
+                        )}
+                        {!patientLookup.primaryPatient && (
+                          <Card variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box><Typography fontWeight={700}>For Me (New Patient)</Typography></Box>
+                            <Button size="small" variant="outlined" onClick={() => setShowAddInlineForm('myself')}>Add Details</Button>
+                          </Card>
+                        )}
+                        
+                        <Typography variant="subtitle2" fontWeight={700} mt={2}>Family Members</Typography>
+                        {patientLookup.familyMembers.map(fm => (
+                          <Card key={fm.id} variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box><Typography fontWeight={700}>{fm.firstName} {fm.lastName}</Typography></Box>
+                            <Button size="small" variant="contained" onClick={() => setVerifiedPatient(fm)}>Select</Button>
                           </Card>
                         ))}
+                        <Button color="secondary" onClick={() => setShowAddInlineForm('family')} startIcon={<AddIcon />}>Add Family Member</Button>
                       </Stack>
                     )}
-                    <Button color="secondary" onClick={() => navigate(`/register/patient?redirect=/patient-queue&mobile=${encodeURIComponent(patientMobile)}`)} startIcon={<AddIcon />}>Register New Patient</Button>
+
+                    {showAddInlineForm && (
+                      <AddPatientInlineForm
+                        isMobileOwner={showAddInlineForm === 'myself'}
+                        onSubmit={handleInlineSubmit}
+                        onCancel={() => setShowAddInlineForm(null)}
+                        isLoading={submitting}
+                      />
+                    )}
+
+                    <Button size="small" onClick={() => setPatientLookup(null)} sx={{ alignSelf: 'flex-start' }}>← Try a different number</Button>
                   </Stack>
                 ) : (
                   <Stack spacing={3}>
@@ -822,13 +847,12 @@ export const PatientQueue = () => {
                       <Box display="flex" alignItems="center" gap={1.5}>
                         <CheckCircleIcon color="primary" sx={{ fontSize: 28 }} />
                         <Box>
-                          <Typography fontWeight={800}>{verifiedPatient.firstName} {verifiedPatient.lastName}</Typography>
-                          <Typography variant="caption">Mobile: {verifiedPatient.mobileNumber}</Typography>
+                          <Typography fontWeight={800}>{verifiedPatient?.firstName} {verifiedPatient?.lastName}</Typography>
+                          <Typography variant="caption">Mobile: {verifiedPatient?.mobileNumber}</Typography>
                         </Box>
                       </Box>
-                      <Button size="small" onClick={() => { setVerifiedPatient(null); setPrimaryPatientRecord(null); }}>Change</Button>
+                      <Button size="small" onClick={() => setVerifiedPatient(null)}>Change</Button>
                     </Card>
-                    {primaryPatientRecord && <FamilyPatientSelector primaryPatient={primaryPatientRecord} children={verifiedChildren} selectedPatientId={verifiedPatient.id} onSelectPatient={p => setVerifiedPatient(p)} onOpenAddChild={() => setOpenAddChildModal(true)} />}
                   </Stack>
                 )}
              </Card>
@@ -893,7 +917,6 @@ export const PatientQueue = () => {
       )}
 
       <OtpVerificationDialog open={openOtpDialog} onClose={() => setOpenOtpDialog(false)} maskedMobile={maskedMobile} sessionId={otpSessionId} onVerified={handleOtpVerified} onVerifyOtp={verifyPatientOtp} onResendOtp={resendPatientOtp} />
-      {primaryPatientRecord && <AddChildModal open={openAddChildModal} parentId={primaryPatientRecord.id} onClose={() => setOpenAddChildModal(false)} onChildAdded={c => { setVerifiedChildren(prev => [...prev, c]); setVerifiedPatient(c); }} />}
     </Box>
   );
 };
