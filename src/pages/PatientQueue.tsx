@@ -820,7 +820,7 @@ export const PatientQueue = () => {
                         )}
                         
                         <Typography variant="subtitle2" fontWeight={700} mt={2}>Family Members</Typography>
-                        {patientLookup.familyMembers.map(fm => (
+                        {(patientLookup.familyMembers || []).map((fm: any) => (
                           <Card key={fm.id} variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Box><Typography fontWeight={700}>{fm.firstName} {fm.lastName}</Typography></Box>
                             <Button size="small" variant="contained" onClick={() => setVerifiedPatient(fm)}>Select</Button>
