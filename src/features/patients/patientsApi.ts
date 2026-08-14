@@ -19,10 +19,17 @@ export const registerPatient = async (data: {
     headers['Authorization'] = `Bearer ${token}`
   }
 
+  const payload = { ...data };
+  if (!payload.nicNumber) delete payload.nicNumber;
+  if (!payload.lastName) delete payload.lastName;
+  if (!payload.dateOfBirth) delete payload.dateOfBirth;
+  if (!payload.gender) delete payload.gender;
+  if (!payload.createdByDoctorId) delete payload.createdByDoctorId;
+
   const response = await fetch(`${API_URL}/patients/register`, {
     method: 'POST',
     headers,
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   })
 
   if (!response.ok) {
