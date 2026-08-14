@@ -68,7 +68,8 @@ interface AppointmentFormBuilderProps {
 }
 
 const STEPS = [
-  { label: 'Date & Session', subtitle: 'Select Date & Session Time' },
+  { label: 'Date', subtitle: 'Select Visit Date' },
+  { label: 'Session', subtitle: 'Select Session Time' },
   { label: 'Patient Information', subtitle: 'Mobile Search & Contact' },
   { label: 'Review & Confirm', subtitle: 'Confirm Booking Token' }
 ]
@@ -98,7 +99,7 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
   const formTopRef = useRef<HTMLDivElement>(null)
 
   const [activeStep, setActiveStep] = useState<number>(0)
-  const [completedSteps, setCompletedSteps] = useState<boolean[]>([false, false, false])
+  const [completedSteps, setCompletedSteps] = useState<boolean[]>([false, false, false, false])
   const [stepError, setStepError] = useState<string | null>(null)
 
   // Smooth scroll and focus management on mount & step change
@@ -112,6 +113,11 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
       setStepError('Please select a visit date from the calendar.')
       return false
     }
+    setStepError(null)
+    return true
+  }
+
+  const validateStep1 = (): boolean => {
     if (availableSessions.length > 0 && !selectedSessionId) {
       setStepError('Please select an available session time slot.')
       return false
@@ -120,7 +126,7 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
     return true
   }
 
-  const validateStep1 = (): boolean => {
+  const validateStep2 = (): boolean => {
     if (!confirmedPatient) {
       setStepError('Please complete patient identification and verification.')
       return false
@@ -133,13 +139,14 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
     let isValid = false
     if (activeStep === 0) isValid = validateStep0()
     else if (activeStep === 1) isValid = validateStep1()
+    else if (activeStep === 2) isValid = validateStep2()
     else isValid = true
 
     if (isValid) {
       const updated = [...completedSteps]
       updated[activeStep] = true
       setCompletedSteps(updated)
-      setActiveStep((prev) => Math.min(prev + 1, 2))
+      setActiveStep((prev) => Math.min(prev + 1, 3))
     }
   }
 
@@ -203,7 +210,7 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
           </Box>
         </Box>
         <Chip
-          label={`Step ${activeStep + 1} / 3`}
+          label={`Step ${activeStep + 1} / 4`}
           size="small"
           color="primary"
           sx={{ fontWeight: 700 }}
@@ -285,13 +292,27 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
               <AppointmentCalendar
                 availabilityMap={availabilityMap}
                 selectedDate={selectedDate}
-                onSelectDate={onSelectDate}
+                onSelectDate={(d) => {
+                  onSelectDate(d);
+                  const updated = [...completedSteps];
+                  updated[0] = true;
+                  setCompletedSteps(updated);
+                  setActiveStep(1);
+                }}
               />
+            </Paper>
+          )}
 
+          {/* Step 1: Select Session Slot */}
+          {activeStep === 1 && (
+            <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4 }, pb: 6, borderRadius: 3 }}>
               {selectedDate && (
-                <Box mt={4}>
-                  <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-                    Available Session Slots for {formatDisplayDateLong(selectedDate)}
+                <Box>
+                  <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>
+                    Select Session Time
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" mb={3}>
+                    Choose an available session for {formatDisplayDateLong(selectedDate)}
                   </Typography>
 
                   {availableSessions.length === 0 ? (
@@ -304,7 +325,13 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
                         <Card
                           key={session.id}
                           variant="outlined"
-                          onClick={() => onSelectSession(session.id)}
+                          onClick={() => {
+                            onSelectSession(session.id);
+                            const updated = [...completedSteps];
+                            updated[1] = true;
+                            setCompletedSteps(updated);
+                            setActiveStep(2);
+                          }}
                           sx={{
                             p: 2,
                             borderRadius: 3,
@@ -339,8 +366,8 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
             </Paper>
           )}
 
-          {/* Step 1: Patient Lookup & Contact */}
-          {activeStep === 1 && (
+          {/* Step 2: Patient Lookup & Contact */}
+          {activeStep === 2 && (
             <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4 }, pb: 6, borderRadius: 3 }}>
               <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>
                 Patient Identification & Contact
@@ -350,7 +377,15 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
               </Typography>
 
               <PatientLookupStep
-                onPatientConfirmed={onConfirmPatient}
+                onPatientConfirmed={(patient) => {
+                  onConfirmPatient(patient);
+                  if (patient) {
+                    const updated = [...completedSteps];
+                    updated[2] = true;
+                    setCompletedSteps(updated);
+                    setActiveStep(3);
+                  }
+                }}
                 registrationReturnUrl=""
                 initialMobile={initialMobile || undefined}
                 createdByDoctorId={doctorId}
@@ -358,8 +393,8 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
             </Paper>
           )}
 
-          {/* Step 2: Review & Confirm */}
-          {activeStep === 2 && (
+          {/* Step 3: Review & Confirm */}
+          {activeStep === 3 && (
             <Paper className="glass-card" sx={{ p: { xs: 2.5, md: 4 }, pb: 6, borderRadius: 3 }}>
               <Typography variant="h6" fontWeight={800} color="primary.main" mb={1}>
                 Review & Confirm Appointment
@@ -454,7 +489,7 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
               {activeStep === 0 ? 'Cancel' : 'Back'}
             </Button>
 
-            {activeStep < 2 ? (
+            {activeStep < 3 ? (
               <Button
                 onClick={handleNextStep}
                 variant="contained"

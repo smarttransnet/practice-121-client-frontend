@@ -31,6 +31,7 @@ import { formatDisplayDate, formatDisplayDateLong, formatIsoDate } from '../util
 import { isValidLkMobile, normalizeLkMobile } from '../utils/lkPhoneValidation';
 import { AddPatientInlineForm } from '../features/patients/AddPatientInlineForm';
 import { OtpVerificationDialog } from '../components/OtpVerificationDialog';
+import { calculateAge } from '../utils/dateUtils';
 
 // --- Types ---
 interface DaySessionInfo {
@@ -372,7 +373,16 @@ export const PatientQueue = () => {
     try {
       const res = await getPatientByMobile(pendingMobile, token);
       if (res) {
-        setPatientLookup(res);
+        let pPatient = res.primaryPatient;
+        let pFamily = res.familyMembers || [];
+
+        // If no primary patient but we have family members, use the first family member as primary
+        if (!pPatient && pFamily.length > 0) {
+          pPatient = pFamily[0];
+          pFamily = pFamily.slice(1);
+        }
+
+        setPatientLookup({ primaryPatient: pPatient, familyMembers: pFamily });
       } else {
         // New mobile number with no records
         setPatientLookup({ primaryPatient: null, familyMembers: [] });
@@ -534,6 +544,18 @@ export const PatientQueue = () => {
   const handleBack = () => {
     setError(null);
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    if (activeStep === 2) {
+      if (verifiedPatient) {
+        setVerifiedPatient(null);
+        return;
+      }
+      if (patientLookup) {
+        setPatientLookup(null);
+        return;
+      }
+    }
+    
     if (activeStep > 0) setActiveStep(activeStep - 1);
   };
 
@@ -820,12 +842,54 @@ export const PatientQueue = () => {
                         )}
                         
                         <Typography variant="subtitle2" fontWeight={700} mt={2}>Family Members</Typography>
-                        {(patientLookup.familyMembers || []).map((fm: any) => (
-                          <Card key={fm.id} variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Box><Typography fontWeight={700}>{fm.firstName} {fm.lastName}</Typography></Box>
-                            <Button size="small" variant="contained" onClick={() => setVerifiedPatient(fm)}>Select</Button>
-                          </Card>
-                        ))}
+                        
+                        {(() => {
+                          const adults = (patientLookup.familyMembers || []).filter((p: any) => {
+                            const age = calculateAge(p.dateOfBirth);
+                            return age === null || age >= 18;
+                          });
+                          const children = (patientLookup.familyMembers || []).filter((p: any) => {
+                            const age = calculateAge(p.dateOfBirth);
+                            return age !== null && age < 18;
+                          });
+
+                          return (
+                            <>
+                              {adults.length > 0 && (
+                                <Box mt={1}>
+                                  <Typography variant="caption" color="text.secondary" fontWeight={700} textTransform="uppercase" display="block" mb={1}>Adults (18+)</Typography>
+                                  <Stack spacing={1}>
+                                    {adults.map((fm: any) => (
+                                      <Card key={fm.id} variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Box><Typography fontWeight={700}>{fm.firstName} {fm.lastName}</Typography></Box>
+                                        <Button size="small" variant="contained" onClick={() => setVerifiedPatient(fm)}>Select</Button>
+                                      </Card>
+                                    ))}
+                                  </Stack>
+                                </Box>
+                              )}
+
+                              {children.length > 0 && (
+                                <Box mt={1}>
+                                  <Typography variant="caption" color="text.secondary" fontWeight={700} textTransform="uppercase" display="block" mb={1}>Children (Under 18)</Typography>
+                                  <Stack spacing={1}>
+                                    {children.map((fm: any) => (
+                                      <Card key={fm.id} variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Box><Typography fontWeight={700}>{fm.firstName} {fm.lastName}</Typography></Box>
+                                        <Button size="small" variant="contained" onClick={() => setVerifiedPatient(fm)}>Select</Button>
+                                      </Card>
+                                    ))}
+                                  </Stack>
+                                </Box>
+                              )}
+                              
+                              {(patientLookup.familyMembers || []).length === 0 && (
+                                 <Typography variant="body2" color="text.secondary" fontStyle="italic">No other family members found.</Typography>
+                              )}
+                            </>
+                          );
+                        })()}
+                        
                         <Button color="secondary" onClick={() => setShowAddInlineForm('family')} startIcon={<AddIcon />}>Add Family Member</Button>
                       </Stack>
                     )}

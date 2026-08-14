@@ -26,6 +26,7 @@ import {
 } from './appointmentApi';
 import { registerPatient } from '../patients/patientsApi';
 import { isValidLkMobile, normalizeLkMobile } from '../../utils/lkPhoneValidation';
+import { calculateAge } from '../../utils/dateUtils';
 import { AddPatientInlineForm } from '../patients/AddPatientInlineForm';
 import { OtpVerificationDialog } from '../../components/OtpVerificationDialog';
 
@@ -112,8 +113,17 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
     try {
       const lookupResult = await getPatientByMobilePublic(pendingMobile, verificationToken);
       if (lookupResult) {
-        setPrimaryPatient(lookupResult.primaryPatient);
-        setChildrenPatients(lookupResult.familyMembers || []);
+        let pPatient = lookupResult.primaryPatient;
+        let pFamily = lookupResult.familyMembers || [];
+
+        // If no primary patient but we have family members, use the first family member as primary
+        if (!pPatient && pFamily.length > 0) {
+          pPatient = pFamily[0];
+          pFamily = pFamily.slice(1);
+        }
+
+        setPrimaryPatient(pPatient);
+        setChildrenPatients(pFamily);
         setMode('confirm');
       } else {
         setMode('notFound');
@@ -229,12 +239,54 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
             )}
 
             <Typography variant="subtitle2" fontWeight={700} mt={2}>Family Members</Typography>
-            {childrenPatients.map(fm => (
-              <Card key={fm.id} variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box><Typography fontWeight={700}>{fm.firstName} {fm.lastName}</Typography></Box>
-                <Button size="small" variant="contained" onClick={() => onPatientConfirmed(fm)}>Select</Button>
-              </Card>
-            ))}
+            
+            {(() => {
+              const adults = childrenPatients.filter(p => {
+                const age = calculateAge(p.dateOfBirth);
+                return age === null || age >= 18;
+              });
+              const children = childrenPatients.filter(p => {
+                const age = calculateAge(p.dateOfBirth);
+                return age !== null && age < 18;
+              });
+
+              return (
+                <>
+                  {adults.length > 0 && (
+                    <Box mt={1}>
+                      <Typography variant="caption" color="text.secondary" fontWeight={700} textTransform="uppercase" display="block" mb={1}>Adults (18+)</Typography>
+                      <Stack spacing={1}>
+                        {adults.map(fm => (
+                          <Card key={fm.id} variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box><Typography fontWeight={700}>{fm.firstName} {fm.lastName}</Typography></Box>
+                            <Button size="small" variant="contained" onClick={() => onPatientConfirmed(fm)}>Select</Button>
+                          </Card>
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
+
+                  {children.length > 0 && (
+                    <Box mt={1}>
+                      <Typography variant="caption" color="text.secondary" fontWeight={700} textTransform="uppercase" display="block" mb={1}>Children (Under 18)</Typography>
+                      <Stack spacing={1}>
+                        {children.map(fm => (
+                          <Card key={fm.id} variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box><Typography fontWeight={700}>{fm.firstName} {fm.lastName}</Typography></Box>
+                            <Button size="small" variant="contained" onClick={() => onPatientConfirmed(fm)}>Select</Button>
+                          </Card>
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
+                  
+                  {childrenPatients.length === 0 && (
+                     <Typography variant="body2" color="text.secondary" fontStyle="italic">No other family members found.</Typography>
+                  )}
+                </>
+              );
+            })()}
+            
             <Button color="secondary" onClick={() => setShowAddInlineForm('family')} startIcon={<PersonAddAltIcon />}>Add Family Member</Button>
           </Stack>
         )}

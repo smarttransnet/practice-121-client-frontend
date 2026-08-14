@@ -61,3 +61,21 @@ export function formatIsoDate(date: Date): string {
 
   return `${year}-${month}-${day}`
 }
+
+/**
+ * Calculates age in years from a date of birth string or Date.
+ */
+export function calculateAge(dateOfBirth: Date | string | null | undefined): number | null {
+  const dob = parseDate(dateOfBirth)
+  if (!dob) return null
+  
+  const today = new Date()
+  let age = today.getFullYear() - dob.getFullYear()
+  const m = today.getMonth() - dob.getMonth()
+  
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+    age--
+  }
+  
+  return age
+}
