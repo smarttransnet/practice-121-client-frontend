@@ -550,6 +550,19 @@ export const PatientQueue = () => {
       setShowAddInlineForm(null);
       return;
     }
+
+    // Handle going back within Step 2
+    if (activeStep === 2) {
+      if (verifiedPatient) {
+        setVerifiedPatient(null);
+        return;
+      }
+      if (patientLookup) {
+        setPatientLookup(null);
+        setPatientMobile('');
+        return;
+      }
+    }
     
     if (activeStep > 0) setActiveStep(activeStep - 1);
   };
