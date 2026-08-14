@@ -376,6 +376,12 @@ export const PatientQueue = () => {
         let pPatient = res.primaryPatient;
         let pFamily = res.familyMembers || [];
 
+        // If no primary patient but we have family members, use the first family member as primary
+        if (!pPatient && pFamily.length > 0) {
+          pPatient = pFamily[0];
+          pFamily = pFamily.slice(1);
+        }
+
         setPatientLookup({ primaryPatient: pPatient, familyMembers: pFamily });
       } else {
         // New mobile number with no records
