@@ -376,12 +376,6 @@ export const PatientQueue = () => {
         let pPatient = res.primaryPatient;
         let pFamily = res.familyMembers || [];
 
-        // If no primary patient but we have family members, use the first family member as primary
-        if (!pPatient && pFamily.length > 0) {
-          pPatient = pFamily[0];
-          pFamily = pFamily.slice(1);
-        }
-
         setPatientLookup({ primaryPatient: pPatient, familyMembers: pFamily });
       } else {
         // New mobile number with no records
@@ -545,15 +539,10 @@ export const PatientQueue = () => {
     setError(null);
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     
-    if (activeStep === 2) {
-      if (verifiedPatient) {
-        setVerifiedPatient(null);
-        return;
-      }
-      if (patientLookup) {
-        setPatientLookup(null);
-        return;
-      }
+    // Only intercept if we are showing the inline Add Family form
+    if (activeStep === 2 && showAddInlineForm) {
+      setShowAddInlineForm(null);
+      return;
     }
     
     if (activeStep > 0) setActiveStep(activeStep - 1);

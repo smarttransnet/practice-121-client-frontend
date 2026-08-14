@@ -116,12 +116,6 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
         let pPatient = lookupResult.primaryPatient;
         let pFamily = lookupResult.familyMembers || [];
 
-        // If no primary patient but we have family members, use the first family member as primary
-        if (!pPatient && pFamily.length > 0) {
-          pPatient = pFamily[0];
-          pFamily = pFamily.slice(1);
-        }
-
         setPrimaryPatient(pPatient);
         setChildrenPatients(pFamily);
         setMode('confirm');
