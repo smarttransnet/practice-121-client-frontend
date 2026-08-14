@@ -64,6 +64,7 @@ interface AppointmentFormBuilderProps {
   bookingResult: { ticketId: string; queueNumber: number; visitDate: string } | null
   onBook: () => void
   onCancel: () => void
+  doctorId?: string
 }
 
 const STEPS = [
@@ -89,7 +90,8 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
   bookingError,
   bookingResult,
   onBook,
-  onCancel
+  onCancel,
+  doctorId
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -351,6 +353,7 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
                 onPatientConfirmed={onConfirmPatient}
                 registrationReturnUrl=""
                 initialMobile={initialMobile || undefined}
+                createdByDoctorId={doctorId}
               />
             </Paper>
           )}

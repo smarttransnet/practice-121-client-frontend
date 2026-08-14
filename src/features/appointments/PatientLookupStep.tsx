@@ -44,9 +44,10 @@ interface Props {
   onPatientConfirmed: (patient: PatientRecord) => void;
   registrationReturnUrl: string;
   initialMobile?: string; // pre-filled mobile returned from registration
+  createdByDoctorId?: string;
 }
 
-export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, initialMobile }: Props) {
+export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, initialMobile, createdByDoctorId }: Props) {
   const [mobile, setMobile] = useState(initialMobile ?? '');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -77,6 +78,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
       const patientId = await registerPatient({
         ...data,
         mobileNumber: targetMobile,
+        createdByDoctorId: createdByDoctorId,
       });
 
       const newPatient: PatientRecord = {

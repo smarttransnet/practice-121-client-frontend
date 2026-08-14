@@ -247,6 +247,7 @@ export function BookAppointmentPage() {
             bookingResult={bookingResult}
             onBook={handleConfirmBooking}
             onCancel={() => navigate(`/doctor/${doctorId}`)}
+            doctorId={doctorId}
           />
         </Container>
       </Box>
