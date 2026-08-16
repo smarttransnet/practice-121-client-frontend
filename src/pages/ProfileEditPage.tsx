@@ -183,9 +183,17 @@ export function ProfileEditPage() {
     setSpecialty(profile.specialty ?? '')
     setSubSpecialty(profile.subSpecialty ?? '')
     setBio(profile.bio ?? '')
-    setProfilePictureUrl(profile.profilePictureUrl ?? '')
     const ts = Date.now();
-    setSignatureUrl(profile.eSignature?.signatureDataUrl ?? (profile.eSignature?.signatureData ? `/api/files/signature/${profile.accountId}?t=${ts}` : ''))
+    let avatarUrl = profile.profilePictureUrl ?? '';
+    if (avatarUrl.startsWith('/api/files/avatar/')) {
+      avatarUrl = `${avatarUrl}?t=${ts}`;
+    }
+    setProfilePictureUrl(avatarUrl)
+    let sigUrl = profile.eSignature?.signatureDataUrl ?? '';
+    if (sigUrl.startsWith('/api/files/signature/')) {
+      sigUrl = `${sigUrl}?t=${ts}`;
+    }
+    setSignatureUrl(sigUrl)
     setNicNumber(profile.nicNumber ?? '')
     setSlmcRegNumber(profile.slmcRegNumber ?? '')
 
@@ -394,7 +402,16 @@ export function ProfileEditPage() {
     e.preventDefault()
     setSaveError(null)
 
-    if (!validateForm()) return
+    if (!validateForm()) {
+      setSaveError('Please fix the validation errors before saving.')
+      // Jump to the step with the error
+      if (!firstName.trim() || !lastName.trim() || (mobileNumber && !isValidLkMobile(mobileNumber)) || (nicNumber && !isValidNic(nicNumber))) {
+        setActiveStep(0)
+      } else if (!specialty) {
+        setActiveStep(1)
+      }
+      return
+    }
 
     try {
       setSaveLoading(true)
@@ -418,26 +435,20 @@ export function ProfileEditPage() {
       if (newAvatarFile) {
         const formData = new FormData()
         formData.append('file', newAvatarFile)
-        await httpClient.post('/api/profile/avatar', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
+        await httpClient.post('/api/profile/avatar', formData)
       }
 
       if (newSignatureFile) {
         const formData = new FormData()
         formData.append('file', newSignatureFile)
-        await httpClient.post('/api/profile/signature', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
+        await httpClient.post('/api/profile/signature', formData)
       }
 
       if (slmcCertFile) {
         const formData = new FormData()
         formData.append('file', slmcCertFile)
         formData.append('type', '2') 
-        await httpClient.post('/api/profile/documents', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
+        await httpClient.post('/api/profile/documents', formData)
       }
 
       // Process Qualifications
@@ -448,9 +459,7 @@ export function ProfileEditPage() {
           const formData = new FormData()
           formData.append('name', q.name.trim())
           if (q.file) formData.append('file', q.file)
-          await httpClient.post('/api/profile/qualifications', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          })
+          await httpClient.post('/api/profile/qualifications', formData)
         }
       }
 
