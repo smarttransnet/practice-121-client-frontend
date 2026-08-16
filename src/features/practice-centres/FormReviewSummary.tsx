@@ -174,15 +174,31 @@ export const FormReviewSummary: React.FC<FormReviewSummaryProps> = ({
                   {data.sessionGroups.map((group, gIdx) => (
                     <Box key={group.id || gIdx} sx={{ bgcolor: 'rgba(143, 0, 255, 0.03)', p: 1.5, borderRadius: 2 }}>
                       <Box display="flex" gap={0.5} flexWrap="wrap" mb={1}>
-                        {group.daysOfWeek.map((day) => (
-                          <Chip key={day} label={day} size="small" color="primary" sx={{ height: 20, fontSize: '0.65rem' }} />
-                        ))}
+                        {group.specificDate ? (
+                          <Chip label={`Specific Date: ${group.specificDate}`} size="small" color="secondary" sx={{ height: 20, fontSize: '0.65rem' }} />
+                        ) : (
+                          group.daysOfWeek.map((day) => (
+                            <Chip key={day} label={day} size="small" color="primary" sx={{ height: 20, fontSize: '0.65rem' }} />
+                          ))
+                        )}
                       </Box>
                       {group.timeBlocks.map((tb, tbIdx) => (
                         <Typography key={tb.id || tbIdx} variant="caption" display="block" color="text.primary">
                           • {tb.label || 'Block'}: {tb.startTime} - {tb.endTime}
                         </Typography>
                       ))}
+                      {group.daysOff && group.daysOff.length > 0 && (
+                        <Box mt={1}>
+                          <Typography variant="caption" fontWeight={700} color="error.main">
+                            Exception Days Off:
+                          </Typography>
+                          <Box display="flex" gap={0.5} flexWrap="wrap" mt={0.5}>
+                            {group.daysOff.map((day, dIdx) => (
+                              <Chip key={dIdx} label={day} size="small" color="error" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
+                            ))}
+                          </Box>
+                        </Box>
+                      )}
                     </Box>
                   ))}
                 </Stack>

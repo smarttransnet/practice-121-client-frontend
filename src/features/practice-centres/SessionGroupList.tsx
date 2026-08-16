@@ -1,19 +1,20 @@
+import { useState } from 'react'
 import {
   Box,
   Button,
   Card,
-  Checkbox,
-  FormControlLabel,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Grid,
   IconButton,
-  TextField,
   Typography
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
 import type { SessionGroup } from './types'
-
-const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+import { SessionGroupStepper } from './SessionGroupStepper'
 
 interface Props {
   groups: SessionGroup[]
@@ -21,176 +22,86 @@ interface Props {
 }
 
 export function SessionGroupList({ groups, onChange }: Props) {
-  const addGroup = () => {
-    onChange([
-      ...groups,
-      {
-        id: crypto.randomUUID(),
-        daysOfWeek: [],
-        timeBlocks: [{ id: crypto.randomUUID(), label: 'Morning', startTime: '08:00', endTime: '12:00' }]
-      }
-    ])
+  const [isStepperOpen, setIsStepperOpen] = useState(false)
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
+
+  const handleAdd = () => {
+    setEditingIndex(null)
+    setIsStepperOpen(true)
   }
 
-  const removeGroup = (index: number) => {
+  const handleEdit = (index: number) => {
+    setEditingIndex(index)
+    setIsStepperOpen(true)
+  }
+
+  const handleRemove = (index: number) => {
     const next = [...groups]
     next.splice(index, 1)
     onChange(next)
   }
 
-  const updateGroup = (index: number, updated: SessionGroup) => {
+  const handleSaveGroup = (group: SessionGroup) => {
     const next = [...groups]
-    next[index] = updated
+    if (editingIndex !== null) {
+      next[editingIndex] = group
+    } else {
+      next.push(group)
+    }
     onChange(next)
+    setIsStepperOpen(false)
   }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 4 }}>
       {groups.map((group, gIdx) => (
-        <Card key={group.id} className="glass-card" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6" fontWeight={700} color="primary.main">
-              Session Group {gIdx + 1}
-            </Typography>
-            <IconButton color="error" size="small" onClick={() => removeGroup(gIdx)}>
-              <DeleteIcon />
-            </IconButton>
+        <Card key={group.id || gIdx} className="glass-card" sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+            <Box>
+              <Typography variant="h6" fontWeight={700} color="primary.main">
+                Session Group {gIdx + 1}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {group.specificDate 
+                  ? `Specific Date: ${group.specificDate}` 
+                  : `Recurring: ${group.daysOfWeek.join(', ')}`}
+              </Typography>
+            </Box>
+            <Box>
+              <IconButton color="primary" size="small" onClick={() => handleEdit(gIdx)} sx={{ mr: 1 }}>
+                <EditIcon />
+              </IconButton>
+              <IconButton color="error" size="small" onClick={() => handleRemove(gIdx)}>
+                <DeleteIcon />
+              </IconButton>
+            </Box>
           </Box>
 
-          <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-            Select Operating Days
+          <Typography variant="subtitle2" fontWeight={700} gutterBottom sx={{ mt: 2 }}>
+            Time Blocks ({group.timeBlocks.length})
           </Typography>
-          <Grid container spacing={0.5} sx={{ mb: 3 }}>
-            {DAYS.map((day) => (
-              <Grid key={day} size={{ xs: 4, sm: 3, md: 1.7 }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      size="small"
-                      checked={group.daysOfWeek.includes(day)}
-                      onChange={(e) => {
-                        const newDays = e.target.checked
-                          ? [...group.daysOfWeek, day]
-                          : group.daysOfWeek.filter((d) => d !== day)
-                        updateGroup(gIdx, { ...group, daysOfWeek: newDays })
-                      }}
-                    />
-                  }
-                  label={<Typography variant="body2" fontWeight={600}>{day}</Typography>}
-                  sx={{ mr: 0, '& .MuiFormControlLabel-label': { fontSize: '0.8rem' } }}
-                />
-              </Grid>
-            ))}
-          </Grid>
-
-          <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-            Time Blocks
-          </Typography>
-          <Box display="flex" flexDirection="column" gap={2}>
-            {group.timeBlocks.map((tb, tbIdx) => (
-              <Box
-                key={tb.id}
-                sx={{
-                  p: { xs: 1.5, sm: 2 },
-                  borderRadius: 2,
-                  bgcolor: 'rgba(255, 255, 255, 0.7)',
-                  border: '1px solid rgba(143, 0, 255, 0.1)'
-                }}
-              >
-                <Grid container spacing={1.5} alignItems="center">
-                  <Grid size={{ xs: 10, sm: 11, md: 4 }}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Label (e.g. Morning)"
-                      value={tb.label}
-                      onChange={(e) => {
-                        const blocks = [...group.timeBlocks]
-                        blocks[tbIdx] = { ...tb, label: e.target.value }
-                        updateGroup(gIdx, { ...group, timeBlocks: blocks })
-                      }}
-                    />
-                  </Grid>
-
-                  <Grid size={{ xs: 2, sm: 1 }} display={{ xs: 'flex', md: 'none' }} justifyContent="flex-end">
-                    <IconButton
-                      color="error"
-                      size="small"
-                      onClick={() => {
-                        const blocks = [...group.timeBlocks]
-                        blocks.splice(tbIdx, 1)
-                        updateGroup(gIdx, { ...group, timeBlocks: blocks })
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Grid>
-
-                  <Grid size={{ xs: 6, sm: 6, md: 3.5 }}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      type="time"
-                      label="Start Time"
-                      slotProps={{ inputLabel: { shrink: true } }}
-                      value={tb.startTime}
-                      onChange={(e) => {
-                        const blocks = [...group.timeBlocks]
-                        blocks[tbIdx] = { ...tb, startTime: e.target.value }
-                        updateGroup(gIdx, { ...group, timeBlocks: blocks })
-                      }}
-                    />
-                  </Grid>
-
-                  <Grid size={{ xs: 6, sm: 6, md: 3.5 }}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      type="time"
-                      label="End Time"
-                      slotProps={{ inputLabel: { shrink: true } }}
-                      value={tb.endTime}
-                      onChange={(e) => {
-                        const blocks = [...group.timeBlocks]
-                        blocks[tbIdx] = { ...tb, endTime: e.target.value }
-                        updateGroup(gIdx, { ...group, timeBlocks: blocks })
-                      }}
-                    />
-                  </Grid>
-
-                  <Grid size={{ md: 1 }} display={{ xs: 'none', md: 'flex' }} justifyContent="center">
-                    <IconButton
-                      color="error"
-                      size="small"
-                      onClick={() => {
-                        const blocks = [...group.timeBlocks]
-                        blocks.splice(tbIdx, 1)
-                        updateGroup(gIdx, { ...group, timeBlocks: blocks })
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Grid>
-                </Grid>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+            {group.timeBlocks.map((tb, i) => (
+              <Box key={i} sx={{ px: 1.5, py: 0.5, bgcolor: 'primary.50', color: 'primary.900', borderRadius: 1, fontSize: '0.8rem', fontWeight: 600 }}>
+                {tb.label}: {tb.startTime} - {tb.endTime}
               </Box>
             ))}
-
-            <Button
-              startIcon={<AddIcon />}
-              variant="outlined"
-              size="small"
-              onClick={() => {
-                const blocks = [
-                  ...group.timeBlocks,
-                  { id: crypto.randomUUID(), label: '', startTime: '', endTime: '' }
-                ]
-                updateGroup(gIdx, { ...group, timeBlocks: blocks })
-              }}
-              sx={{ alignSelf: 'flex-start', mt: 1, borderRadius: 2 }}
-            >
-              Add Time Block
-            </Button>
           </Box>
+
+          {group.daysOff && group.daysOff.length > 0 && (
+            <>
+              <Typography variant="subtitle2" fontWeight={700} gutterBottom color="error.main">
+                Exception Days Off ({group.daysOff.length})
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {group.daysOff.map((dOff, i) => (
+                  <Box key={i} sx={{ px: 1.5, py: 0.5, bgcolor: 'error.50', color: 'error.900', borderRadius: 1, fontSize: '0.8rem', fontWeight: 600 }}>
+                    {dOff}
+                  </Box>
+                ))}
+              </Box>
+            </>
+          )}
         </Card>
       ))}
 
@@ -198,11 +109,32 @@ export function SessionGroupList({ groups, onChange }: Props) {
         variant="contained"
         color="secondary"
         startIcon={<AddIcon />}
-        onClick={addGroup}
+        onClick={handleAdd}
         sx={{ alignSelf: 'flex-start', borderRadius: 2.5, px: 3, py: 1 }}
       >
         Add Session Group
       </Button>
+
+      <Dialog
+        open={isStepperOpen}
+        onClose={() => setIsStepperOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: 'primary.main', pb: 0 }}>
+          {editingIndex !== null ? 'Edit Session Group' : 'New Session Group'}
+        </DialogTitle>
+        <DialogContent>
+          {isStepperOpen && (
+            <SessionGroupStepper
+              initialGroup={editingIndex !== null ? groups[editingIndex] : undefined}
+              onSave={handleSaveGroup}
+              onCancel={() => setIsStepperOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   )
 }
