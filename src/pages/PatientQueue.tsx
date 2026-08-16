@@ -24,7 +24,7 @@ import SensorsIcon from '@mui/icons-material/Sensors';
 import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { httpClient } from '../api/httpClient';
 import {
-  getPatientQueue, addPatientQueueTicket,
+  getPatientQueue, addPatientQueueTicket, updatePatientQueueTicketStatus,
   getPatientByMobile, sendPatientOtp, reorderPatientQueue,
   verifyPatientOtp, resendPatientOtp, type PatientQueueTicket, type Patient
 } from '../features/patient-queue/patientQueueApi';
@@ -56,6 +56,7 @@ interface SessionGroup {
   daysOfWeek: string[];
   specificDates?: string[];
   timeBlocks: TimeBlock[];
+  daysOff?: string[];
 }
 
 interface PracticeCentre {
@@ -490,17 +491,44 @@ export const PatientQueue = () => {
   };
   const getAvailableDates = (centre: PracticeCentre | null) => {
     if (!centre || !centre.sessionGroups) return [];
-    const activeDays = new Set(centre.sessionGroups.flatMap(sg => sg.daysOfWeek?.map(d => d.toUpperCase()) || []));
     const dates: Date[] = [];
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
     for (let i = 0; i < 28; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
-      if (activeDays.has(['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][d.getDay()])) dates.push(d);
+      const dateStr = formatDateLocal(d);
+      const dayName = dayNames[d.getDay()];
+
+      const isAvailable = centre.sessionGroups.some(sg => {
+        const isOff = sg.daysOff?.includes(dateStr);
+        if (isOff) return false;
+        const isSpecific = sg.specificDates?.includes(dateStr);
+        const isWeekly = sg.daysOfWeek?.map(dw => dw.toUpperCase()).includes(dayName);
+        return isSpecific || isWeekly;
+      });
+
+      if (isAvailable) {
+        dates.push(d);
+      }
     }
     return dates;
   };
   
+
+  const handleCancelTicket = async (ticketId: string) => {
+    if (!window.confirm('Are you sure you want to cancel this ticket?')) return;
+    try {
+      await updatePatientQueueTicketStatus(ticketId, 4); // 4 = Cancelled
+      if (selectedCentre && selectedDate) {
+        fetchQueue(selectedCentre.id, selectedCentre.doctorId, formatDateLocal(selectedDate));
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to cancel ticket');
+    }
+  };
 
   const handleMoveUp = async (index: number) => {
     if (index <= 0 || !selectedCentre) return;
@@ -692,7 +720,7 @@ export const PatientQueue = () => {
                       {t.status === 0 && <Button size="small" variant="contained" color="secondary" disabled>Ready</Button>}
                       {t.status === 1 && <Button size="small" variant="contained" color="info" disabled>Start</Button>}
                       {t.status === 3 && <Button size="small" variant="contained" color="success" disabled>Done</Button>}
-                      {t.status < 4 && <IconButton size="small" color="error" disabled><CloseIcon fontSize="small" /></IconButton>}
+                      {t.status < 4 && <IconButton size="small" color="error" onClick={() => handleCancelTicket(t.id)}><CloseIcon fontSize="small" /></IconButton>}
                     </Box>
                  </Card>
                );
