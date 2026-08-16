@@ -126,7 +126,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
         setChildrenPatients(pFamily);
         setMode('confirm');
       } else {
-        setMode('notFound');
+        setMode('confirm');
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load patient record after verification.');
@@ -173,7 +173,8 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
           return;
         }
         if (!hasAdvanced) {
-          setMode('notFound');
+          setPendingMobile(normalizedMobile);
+          setMode('confirm');
           return;
         }
       }
@@ -186,7 +187,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
       });
 
       if (results.length === 0) {
-        setMode('notFound');
+        setMode('confirm');
       } else if (results.length === 1) {
         setPrimaryPatient(results[0]);
         setChildrenPatients([]);
@@ -354,35 +355,6 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
     return url;
   };
 
-  // ---------- Not found ----------
-  if (mode === 'notFound') {
-    return (
-      <Box>
-        <Alert severity="warning" sx={{ mb: 2, borderRadius: 2 }}>
-          No patient record found with the provided details.
-        </Alert>
-        <Typography variant="body2" color="text.secondary" mb={2}>
-          You need to be registered as a patient before booking an appointment.
-        </Typography>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <Button variant="outlined" onClick={reset} sx={{ borderRadius: 6, textTransform: 'none' }}>
-            ← Try Again
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<PersonAddAltIcon />}
-            component={MuiLink}
-            href={buildRegistrationUrl()}
-            sx={{ borderRadius: 6, textTransform: 'none', fontWeight: 700, flex: 1, textDecoration: 'none' }}
-          >
-            Register as New Patient
-          </Button>
-        </Stack>
-      </Box>
-    );
-  }
-
   // ---------- Search input ----------
   return (
     <Box>
@@ -473,10 +445,7 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
 
       <Divider sx={{ my: 2 }} />
       <Typography variant="caption" color="text.secondary" align="center" display="block">
-        Not registered yet?{' '}
-        <MuiLink href={buildRegistrationUrl()} underline="hover" color="primary">
-          Register here
-        </MuiLink>
+        Not registered yet? Use the search above, and if no record is found you will be prompted to register.
       </Typography>
 
       <OtpVerificationDialog

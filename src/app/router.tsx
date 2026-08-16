@@ -14,8 +14,6 @@ import { ProtectedRoute } from '../features/auth/ProtectedRoute';
 import { VerifyProcessPage } from '../pages/VerifyProcessPage';
 import { PublicProfilePage } from '../pages/PublicProfilePage';
 import { PracticeCentresTab } from '../features/practice-centres/PracticeCentresTab';
-import { RegisterPatientPage } from '../pages/RegisterPatientPage';
-import { CreatePatientPage } from '../pages/CreatePatientPage';
 import { PatientQueue } from '../pages/PatientQueue';
 import { BookAppointmentPage } from '../pages/BookAppointmentPage';
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
@@ -26,7 +24,6 @@ const router = createHashRouter([
   { path: '/book/:doctorId/centre/:centreId', element: <BookAppointmentPage /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
-  { path: '/register/patient', element: <RegisterPatientPage /> },
   { path: '/verify-otp', element: <OTPVerifyPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
@@ -42,7 +39,6 @@ const router = createHashRouter([
       { index: true, element: <DashboardPage /> },
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'reports', element: <ReportsPage /> },
-      { path: 'patients/new', element: <CreatePatientPage /> },
       { path: 'todos', element: <TodosPage /> },
       {
         path: 'settings',

@@ -19,7 +19,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import SensorsIcon from '@mui/icons-material/Sensors';
 import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { httpClient } from '../api/httpClient';
 import {
@@ -432,6 +433,13 @@ export const PatientQueue = () => {
 
   const handleFinalSubmit = async () => {
     if (!verifiedPatient || !selectedDate || !selectedCentre) return;
+    
+    // Prevent duplicate patients in the queue for the same day
+    if (queue.some(t => t.patientId === verifiedPatient.id)) {
+      setError("This patient is already in the queue for today.");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     try {
@@ -447,6 +455,7 @@ export const PatientQueue = () => {
         practiceCentreId: selectedCentre.id
       });
       fetchQueue(selectedCentre.id, selectedCentre.doctorId, formatDateLocal(selectedDate));
+
       
       // Reset logic
       resetAddPatientState();
@@ -676,10 +685,11 @@ export const PatientQueue = () => {
                     </Box>
                     <Box display="flex" gap={1} alignItems="center">
                       <Chip label={['Waiting','Ready','Called','In Consultation','Completed','Cancelled','No Show'][t.status] || 'Unknown'} size="small" />
-                      {t.status === 0 && <Button size="small" variant="contained" color="secondary" onClick={() => handleUpdateStatus(t.id, 1)}>Ready</Button>}
-                      {t.status === 1 && <Button size="small" variant="contained" color="info" onClick={() => handleUpdateStatus(t.id, 3)}>Start</Button>}
-                      {t.status === 3 && <Button size="small" variant="contained" color="success" onClick={() => handleUpdateStatus(t.id, 4)}>Done</Button>}
-                      {t.status < 4 && <IconButton size="small" color="error" onClick={() => handleUpdateStatus(t.id, 5)}><CloseIcon fontSize="small" /></IconButton>}
+                      {/* Status buttons made read-only by omitting onClick */}
+                      {t.status === 0 && <Button size="small" variant="contained" color="secondary" disabled>Ready</Button>}
+                      {t.status === 1 && <Button size="small" variant="contained" color="info" disabled>Start</Button>}
+                      {t.status === 3 && <Button size="small" variant="contained" color="success" disabled>Done</Button>}
+                      {t.status < 4 && <IconButton size="small" color="error" disabled><CloseIcon fontSize="small" /></IconButton>}
                     </Box>
                  </Card>
                );
@@ -784,9 +794,12 @@ export const PatientQueue = () => {
             <Grid size={{ xs: 12, md: 8 }}>
                <Card sx={{ p: 3, height: '100%', opacity: selectedDate ? 1 : 0.5 }}>
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                     <Typography variant="h6" fontWeight={700}>
-                        {selectedDate ? `Queue for ${formatDisplayDate(selectedDate)}` : 'Queue Overview'}
-                     </Typography>
+                     <Box display="flex" alignItems="center" gap={1.5}>
+                       <Typography variant="h6" fontWeight={700}>
+                          {selectedDate ? `Queue for ${formatDisplayDate(selectedDate)}` : 'Queue Overview'}
+                       </Typography>
+                       <Chip icon={<SensorsIcon fontSize="small" />} label="Live" size="small" color="success" variant="outlined" sx={{ fontWeight: 700 }} />
+                     </Box>
                      <IconButton onClick={() => fetchQueue(selectedCentre!.id, selectedCentre!.doctorId, formatDateLocal(selectedDate!))} disabled={!selectedDate}><RefreshIcon /></IconButton>
                   </Box>
                   {selectedDate && (
@@ -940,13 +953,40 @@ export const PatientQueue = () => {
                <Stack spacing={4}>
                   <Box>
                      <Typography variant="subtitle2" fontWeight={700} mb={2}>Select Session</Typography>
-                     <RadioGroup value={targetSessionId} onChange={e => setTargetSessionId(e.target.value)}>
+                     <Stack spacing={1.5}>
                         {daySessions.map(s => (
-                           <Card key={s.id} variant="outlined" sx={{ mb: 1, p: 1, borderColor: targetSessionId === s.id ? 'primary.main' : 'divider', bgcolor: targetSessionId === s.id ? 'primary.light' : 'transparent' }}>
-                              <FormControlLabel value={s.id} control={<Radio />} label={`${s.label} (${s.timeRange})`} sx={{ width: '100%', m: 0 }} />
+                           <Card 
+                             key={s.id} 
+                             variant="outlined" 
+                             onClick={() => setTargetSessionId(s.id)}
+                             sx={{ 
+                               p: 2, 
+                               borderRadius: 3, 
+                               cursor: 'pointer',
+                               transition: 'all 0.2s ease',
+                               bgcolor: targetSessionId === s.id ? 'rgba(143, 0, 255, 0.08)' : 'background.paper', 
+                               borderColor: targetSessionId === s.id ? 'primary.main' : 'divider'
+                             }}
+                           >
+                              <Box display="flex" justifyContent="space-between" alignItems="center">
+                                <Box display="flex" alignItems="center" gap={1.5}>
+                                  <AccessTimeIcon color={targetSessionId === s.id ? 'primary' : 'action'} />
+                                  <Box>
+                                    <Typography variant="subtitle2" fontWeight={700}>
+                                      {s.label}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {s.timeRange}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                                {targetSessionId === s.id && (
+                                  <CheckCircleIcon color="primary" fontSize="small" />
+                                )}
+                              </Box>
                            </Card>
                         ))}
-                     </RadioGroup>
+                     </Stack>
                   </Box>
                   <Box>
                      <Typography variant="subtitle2" fontWeight={700} mb={2}>Ticket Priority</Typography>

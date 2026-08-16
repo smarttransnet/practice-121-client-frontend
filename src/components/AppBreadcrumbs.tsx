@@ -84,7 +84,7 @@ export const AppBreadcrumbs: React.FC = () => {
       }}
     >
       {/* Go Back Action Button */}
-      {!isPatientQueue && (
+      {!isPatientQueue && !isHome && (
         <Button
           variant="text"
           size="small"

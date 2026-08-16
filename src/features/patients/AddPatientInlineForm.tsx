@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { useNicAutoFill } from '../../hooks/useNicAutoFill';
 import { calculateAge } from '../../utils/ageHelper';
+import { decodeNic } from '../../utils/nicDecoder';
 
 export interface InlinePatientData {
   firstName: string;
@@ -62,6 +63,14 @@ export const AddPatientInlineForm: React.FC<Props> = ({ isMobileOwner, onSubmit,
     if (nicInput.error) {
       setError(nicInput.error);
       return;
+    }
+
+    if (dateOfBirth && nicInput.nicNumber) {
+      const decoded = decodeNic(nicInput.nicNumber);
+      if (decoded.isValid && decoded.dateOfBirth !== dateOfBirth) {
+        setError('Date of birth does not match the provided NIC. Please check both values.');
+        return;
+      }
     }
 
     try {
