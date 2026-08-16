@@ -61,8 +61,8 @@ export function SessionGroupList({ groups, onChange }: Props) {
                 Session Group {gIdx + 1}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {group.specificDate 
-                  ? `Specific Date: ${group.specificDate}` 
+                {group.specificDates && group.specificDates.length > 0
+                  ? `Specific Dates: ${group.specificDates.join(', ')}` 
                   : `Recurring: ${group.daysOfWeek.join(', ')}`}
               </Typography>
             </Box>

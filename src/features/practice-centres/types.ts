@@ -15,7 +15,7 @@ export interface PracticeCentre {
 export interface SessionGroup {
   id?: string
   daysOfWeek: string[] // e.g. ["MON", "WED"]
-  specificDate?: string // "YYYY-MM-DD"
+  specificDates?: string[] // e.g. ["YYYY-MM-DD"]
   timeBlocks: TimeBlock[]
   daysOff?: string[] // "YYYY-MM-DD"
 }

@@ -57,8 +57,10 @@ export function PracticeCentreList({ centres, onEdit, onDelete, onCreateNew }: P
                     <Typography variant="subtitle2">Sessions:</Typography>
                     {centre.sessionGroups.map((sg, i) => (
                       <Box key={i} mt={1} display="flex" gap={1} flexWrap="wrap">
-                        {sg.specificDate ? (
-                          <Chip size="small" color="secondary" label={`Specific Date: ${sg.specificDate}`} />
+                        {sg.specificDates && sg.specificDates.length > 0 ? (
+                          sg.specificDates.map((sDate, sdIdx) => (
+                            <Chip key={`sd-${sdIdx}`} size="small" color="secondary" label={`Specific Date: ${sDate}`} />
+                          ))
                         ) : (
                           sg.daysOfWeek.map(d => <Chip size="small" key={d} label={d} />)
                         )}

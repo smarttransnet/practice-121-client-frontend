@@ -54,6 +54,7 @@ interface TimeBlock {
 interface SessionGroup {
   id: string;
   daysOfWeek: string[];
+  specificDates?: string[];
   timeBlocks: TimeBlock[];
 }
 
@@ -261,9 +262,15 @@ export const PatientQueue = () => {
   const daySessions = useMemo<DaySessionInfo[]>(() => {
     if (!selectedDate || !selectedCentre?.sessionGroups) return [];
     const dayAbbr = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][selectedDate.getDay()];
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const dateString = `${selectedDate.getFullYear()}-${pad(selectedDate.getMonth() + 1)}-${pad(selectedDate.getDate())}`;
+
     const sessions: DaySessionInfo[] = [];
     selectedCentre.sessionGroups.forEach((group) => {
-      if (group.daysOfWeek?.some(d => d.toUpperCase() === dayAbbr)) {
+      const isDayMatch = group.daysOfWeek?.some(d => d.toUpperCase() === dayAbbr);
+      const isDateMatch = group.specificDates?.includes(dateString);
+
+      if (isDayMatch || isDateMatch) {
         if (group.timeBlocks && group.timeBlocks.length > 0) {
           group.timeBlocks.forEach(tb => sessions.push({
             id: tb.id || group.id || '', groupId: group.id || '', label: tb.label || 'Session',

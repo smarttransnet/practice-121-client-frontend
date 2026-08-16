@@ -77,16 +77,45 @@ export function SessionGroupStepper({ initialGroup, onSave, onCancel }: Props) {
       </Grid>
 
       <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-        Additional Specific Date (Optional)
+        Additional Specific Dates (Optional)
       </Typography>
-      <TextField
-        type="date"
-        fullWidth
-        InputLabelProps={{ shrink: true }}
-        value={group.specificDate || ''}
-        onChange={(e) => setGroup({ ...group, specificDate: e.target.value || undefined })}
-        sx={{ mt: 1 }}
-      />
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+        {group.specificDates?.map((sDate, idx) => (
+          <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <TextField
+              type="date"
+              size="small"
+              value={sDate}
+              onChange={(e) => {
+                const nextDates = [...(group.specificDates || [])]
+                nextDates[idx] = e.target.value
+                setGroup({ ...group, specificDates: nextDates })
+              }}
+            />
+            <IconButton
+              color="error"
+              size="small"
+              onClick={() => {
+                const nextDates = [...(group.specificDates || [])]
+                nextDates.splice(idx, 1)
+                setGroup({ ...group, specificDates: nextDates })
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Box>
+        ))}
+      </Box>
+
+      <Button
+        startIcon={<AddIcon />}
+        variant="text"
+        onClick={() => {
+          setGroup({ ...group, specificDates: [...(group.specificDates || []), ''] })
+        }}
+      >
+        Add Specific Date
+      </Button>
     </Box>
   )
 

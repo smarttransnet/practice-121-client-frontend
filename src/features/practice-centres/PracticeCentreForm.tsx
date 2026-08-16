@@ -101,7 +101,10 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
     const allSessions: { day: string; start: string; end: string; centreName: string }[] = []
     for (const centre of otherCentres) {
       for (const sg of centre.sessionGroups) {
-        const days = sg.specificDate ? [sg.specificDate] : sg.daysOfWeek
+        const days = [...sg.daysOfWeek]
+        if (sg.specificDates && sg.specificDates.length > 0) {
+          days.push(...sg.specificDates)
+        }
         for (const day of days) {
           for (const tb of sg.timeBlocks) {
             if (tb.startTime && tb.endTime) {
@@ -114,7 +117,10 @@ export function PracticeCentreForm({ initialData, otherCentres = [], onSave, onC
 
     const currentSessions: { day: string; start: string; end: string; centreName: string }[] = []
     for (const sg of data.sessionGroups) {
-      const days = sg.specificDate ? [sg.specificDate] : sg.daysOfWeek
+      const days = [...sg.daysOfWeek]
+      if (sg.specificDates && sg.specificDates.length > 0) {
+        days.push(...sg.specificDates)
+      }
       for (const day of days) {
         for (const tb of sg.timeBlocks) {
           currentSessions.push({ day, start: tb.startTime, end: tb.endTime, centreName: 'this form' })

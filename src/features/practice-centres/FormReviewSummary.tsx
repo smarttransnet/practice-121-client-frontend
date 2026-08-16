@@ -174,8 +174,10 @@ export const FormReviewSummary: React.FC<FormReviewSummaryProps> = ({
                   {data.sessionGroups.map((group, gIdx) => (
                     <Box key={group.id || gIdx} sx={{ bgcolor: 'rgba(143, 0, 255, 0.03)', p: 1.5, borderRadius: 2 }}>
                       <Box display="flex" gap={0.5} flexWrap="wrap" mb={1}>
-                        {group.specificDate ? (
-                          <Chip label={`Specific Date: ${group.specificDate}`} size="small" color="secondary" sx={{ height: 20, fontSize: '0.65rem' }} />
+                        {group.specificDates && group.specificDates.length > 0 ? (
+                          group.specificDates.map((sDate, sdIdx) => (
+                            <Chip key={`sd-${sdIdx}`} label={`Specific Date: ${sDate}`} size="small" color="secondary" sx={{ height: 20, fontSize: '0.65rem' }} />
+                          ))
                         ) : (
                           group.daysOfWeek.map((day) => (
                             <Chip key={day} label={day} size="small" color="primary" sx={{ height: 20, fontSize: '0.65rem' }} />
