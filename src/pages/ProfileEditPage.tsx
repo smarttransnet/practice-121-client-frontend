@@ -33,7 +33,10 @@ import {
   Grid,
   IconButton,
   Tabs,
-  Tab
+  Tab,
+  Stepper,
+  Step,
+  StepLabel,
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
@@ -75,6 +78,8 @@ export function ProfileEditPage() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [toastOpen, setToastOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
+  const [activeStep, setActiveStep] = useState(0)
+  const steps = ['Basic Information', 'Profession & Bio', 'Qualifications', 'E-Signature']
 
   // Form Fields State
   const [firstName, setFirstName] = useState('')
@@ -178,7 +183,8 @@ export function ProfileEditPage() {
     setSubSpecialty(profile.subSpecialty ?? '')
     setBio(profile.bio ?? '')
     setProfilePictureUrl(profile.profilePictureUrl ?? '')
-    setSignatureUrl(profile.eSignature?.signatureDataUrl ?? (profile.eSignature?.signatureData ? `/api/files/signature/${profile.accountId}` : ''))
+    const ts = Date.now();
+    setSignatureUrl(profile.eSignature?.signatureDataUrl ?? (profile.eSignature?.signatureData ? `/api/files/signature/${profile.accountId}?t=${ts}` : ''))
     setNicNumber(profile.nicNumber ?? '')
     setSlmcRegNumber(profile.slmcRegNumber ?? '')
 
@@ -220,6 +226,35 @@ export function ProfileEditPage() {
       fetchQualifications()
     }
     setMode('view')
+    setActiveStep(0)
+  }
+
+  const handleNext = () => {
+    const newErrors: { [key: string]: string } = {}
+    if (activeStep === 0) {
+      if (!firstName.trim()) newErrors.firstName = 'First Name is required'
+      if (!lastName.trim()) newErrors.lastName = 'Last Name is required'
+      if (mobileNumber && !isValidLkMobile(mobileNumber)) {
+        newErrors.mobileNumber = 'Please enter a valid Sri Lankan mobile number (e.g., 077 123 4567).'
+      }
+      if (nicNumber && !isValidNic(nicNumber)) {
+        newErrors.nicNumber = 'Please enter a valid Sri Lankan NIC number.'
+      }
+    } else if (activeStep === 1) {
+      if (!specialty) newErrors.specialty = 'Core Speciality is required'
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    setErrors({})
+    setActiveStep((prev) => prev + 1)
+  }
+
+  const handleBack = () => {
+    setActiveStep((prev) => prev - 1)
   }
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -495,6 +530,15 @@ export function ProfileEditPage() {
               Edit Profile
             </Button>
           )}
+          {isEdit && (
+            <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          )}
           <Stack component="form" onSubmit={handleSaveSubmit} autoComplete="off" spacing={4}>
 
             {saveError && (
@@ -504,6 +548,7 @@ export function ProfileEditPage() {
             )}
 
             {/* Basic Info */}
+            {(!isEdit || activeStep === 0) && (
             <Box>
               <Typography variant="h6" fontWeight={800} color="primary.main" gutterBottom>
                 Basic Information
@@ -558,9 +603,11 @@ export function ProfileEditPage() {
                 </Grid>
               </Grid>
             </Box>
-            <Divider />
+            )}
+            {(!isEdit || activeStep === 0) && <Divider />}
 
             {/* Profession Information */}
+            {(!isEdit || activeStep === 1) && (
             <Box>
               <Typography variant="h6" fontWeight={800} color="primary.main" gutterBottom>
                 Profession Information
@@ -613,10 +660,68 @@ export function ProfileEditPage() {
                 </Grid>
               </Box>
             </Box>
-            <Divider />
+            )}
+            {/* Bio / About */}
+            {(!isEdit || activeStep === 1) && (
+              <Box>
+                <Typography variant="h6" fontWeight={800} color="primary.main" gutterBottom>
+                  Bio / About
+                </Typography>
+                {isEdit ? (
+                  <Box sx={{
+                    '.ql-editor': {
+                      minHeight: '200px',
+                      fontSize: '1rem',
+                      fontFamily: 'inherit',
+                    },
+                    '.ql-container': {
+                      borderBottomLeftRadius: '8px',
+                      borderBottomRightRadius: '8px',
+                      borderColor: 'divider'
+                    },
+                    '.ql-toolbar': {
+                      borderTopLeftRadius: '8px',
+                      borderTopRightRadius: '8px',
+                      borderColor: 'divider'
+                    }
+                  }}>
+                    <ReactQuill theme="snow" value={bio} onChange={setBio} placeholder="Write something about yourself..." />
+                  </Box>
+                ) : (
+                  <Box sx={{ p: 3, bgcolor: 'action.hover', borderRadius: 2 }}>
+                    {bio ? (
+                      <Box className="ql-snow" sx={{
+                        '& .ql-editor': {
+                          p: 0,
+                          minHeight: 'auto',
+                          color: 'text.primary',
+                          lineHeight: 1.6,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit',
+                          wordBreak: 'break-word',
+                          border: 'none',
+                        },
+                        '& .ql-editor *, & .ql-editor [style], & .ql-editor span, & .ql-editor p, & .ql-editor div, & .ql-editor li, & .ql-editor ul, & .ql-editor ol, & .ql-editor strong, & .ql-editor em, & .ql-editor u, & .ql-editor a, & .ql-editor h1, & .ql-editor h2, & .ql-editor h3, & .ql-editor h4, & .ql-editor h5, & .ql-editor h6': {
+                          backgroundColor: 'transparent !important',
+                          background: 'transparent !important',
+                          color: 'inherit !important',
+                        },
+                      }}>
+                        <Box className="ql-editor" dangerouslySetInnerHTML={{ __html: bio }} />
+                      </Box>
+                    ) : (
+                      <Typography variant="body1" sx={{ lineHeight: 1.8, color: 'text.secondary' }}>No bio provided.</Typography>
+                    )}
+                  </Box>
+                )}
+              </Box>
+            )}
+            
+            {(!isEdit || activeStep === 1) && <Divider />}
 
             {/* Qualifications Section */}
-            <Box>
+            {(!isEdit || activeStep === 2) && (
+              <Box>
               <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography variant="h6" fontWeight={800} color="primary.main">
                   Qualifications
@@ -692,66 +797,13 @@ export function ProfileEditPage() {
                   })}
                 </Stack>
               )}
-            </Box>
-            <Divider />
-
-            {/* Bio / About - Made fully viewable */}
-            <Box>
-              <Typography variant="h6" fontWeight={800} color="primary.main" gutterBottom>
-                Bio / About
-              </Typography>
-              {isEdit ? (
-                <Box sx={{
-                  '.ql-editor': {
-                    minHeight: '200px',
-                    fontSize: '1rem',
-                    fontFamily: 'inherit',
-                  },
-                  '.ql-container': {
-                    borderBottomLeftRadius: '8px',
-                    borderBottomRightRadius: '8px',
-                    borderColor: 'divider'
-                  },
-                  '.ql-toolbar': {
-                    borderTopLeftRadius: '8px',
-                    borderTopRightRadius: '8px',
-                    borderColor: 'divider'
-                  }
-                }}>
-                  <ReactQuill theme="snow" value={bio} onChange={setBio} placeholder="Write something about yourself..." />
-                </Box>
-              ) : (
-                <Box sx={{ p: 3, bgcolor: 'action.hover', borderRadius: 2 }}>
-                  {bio ? (
-                    <Box className="ql-snow" sx={{
-                      '& .ql-editor': {
-                        p: 0,
-                        minHeight: 'auto',
-                        color: 'text.primary',
-                        lineHeight: 1.6,
-                        fontSize: '1rem',
-                        fontFamily: 'inherit',
-                        wordBreak: 'break-word',
-                        border: 'none',
-                      },
-                      '& .ql-editor *, & .ql-editor [style], & .ql-editor span, & .ql-editor p, & .ql-editor div, & .ql-editor li, & .ql-editor ul, & .ql-editor ol, & .ql-editor strong, & .ql-editor em, & .ql-editor u, & .ql-editor a, & .ql-editor h1, & .ql-editor h2, & .ql-editor h3, & .ql-editor h4, & .ql-editor h5, & .ql-editor h6': {
-                        backgroundColor: 'transparent !important',
-                        background: 'transparent !important',
-                        color: 'inherit !important',
-                      },
-                    }}>
-                      <Box className="ql-editor" dangerouslySetInnerHTML={{ __html: bio }} />
-                    </Box>
-                  ) : (
-                    <Typography variant="body1" sx={{ lineHeight: 1.8, color: 'text.secondary' }}>No bio provided.</Typography>
-                  )}
-                </Box>
-              )}
-            </Box>
-            <Divider />
+              </Box>
+            )}
+            {(!isEdit || activeStep === 2) && <Divider />}
 
             {/* E-Signature */}
-            <Box>
+            {(!isEdit || activeStep === 3) && (
+              <Box>
               <Typography variant="h6" fontWeight={800} color="primary.main" gutterBottom>
                 E-Signature
               </Typography>
@@ -818,16 +870,29 @@ export function ProfileEditPage() {
                 </Box>
               )}
             </Box>
+            )}
 
             {/* Save Buttons at Bottom */}
             {isEdit && (
-              <Box sx={{ position: 'sticky', bottom: 16, zIndex: 10, bgcolor: 'background.paper', p: 2, borderRadius: 2, boxShadow: '0 -4px 20px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                <Button variant="text" color="inherit" onClick={handleCancelClick} disabled={saveLoading} sx={{ px: 3 }}>
-                  Cancel
-                </Button>
-                <Button type="submit" variant="contained" disabled={saveLoading} className="gradient-primary-btn" sx={{ px: 4 }}>
-                  {saveLoading ? 'Saving...' : 'Save Changes'}
-                </Button>
+              <Box sx={{ position: 'sticky', bottom: 16, zIndex: 10, bgcolor: 'background.paper', p: 2, borderRadius: 2, boxShadow: '0 -4px 20px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button variant="text" color="inherit" onClick={handleCancelClick} disabled={saveLoading} sx={{ px: 3 }}>
+                    Cancel
+                  </Button>
+                  <Button disabled={activeStep === 0} onClick={handleBack} variant="outlined">
+                    Back
+                  </Button>
+                  {activeStep < steps.length - 1 && (
+                    <Button onClick={handleNext} variant="contained" color="primary" sx={{ px: 4 }}>
+                      Next
+                    </Button>
+                  )}
+                </Box>
+                <Box>
+                  <Button type="submit" variant="contained" disabled={saveLoading} className="gradient-primary-btn" sx={{ px: 4 }}>
+                    {saveLoading ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </Box>
               </Box>
             )}
 
