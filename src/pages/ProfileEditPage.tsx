@@ -80,6 +80,7 @@ export function ProfileEditPage() {
   const [toastMessage, setToastMessage] = useState('')
   const [activeStep, setActiveStep] = useState(0)
   const steps = ['Basic Information', 'Profession & Bio', 'Qualifications', 'E-Signature']
+  const stepperRef = useRef<HTMLDivElement>(null)
 
   // Form Fields State
   const [firstName, setFirstName] = useState('')
@@ -251,10 +252,16 @@ export function ProfileEditPage() {
 
     setErrors({})
     setActiveStep((prev) => prev + 1)
+    if (window.innerWidth < 600 && stepperRef.current) {
+      stepperRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
   }
 
   const handleBack = () => {
     setActiveStep((prev) => prev - 1)
+    if (window.innerWidth < 600 && stepperRef.current) {
+      stepperRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
   }
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -531,10 +538,16 @@ export function ProfileEditPage() {
             </Button>
           )}
           {isEdit && (
-            <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-              {steps.map((label) => (
+            <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }} ref={stepperRef}>
+              {steps.map((label, index) => (
                 <Step key={label}>
-                  <StepLabel>{label}</StepLabel>
+                  <StepLabel sx={{ 
+                    '& .MuiStepLabel-label': { 
+                      display: { xs: activeStep === index ? 'block' : 'none', sm: 'block' } 
+                    } 
+                  }}>
+                    {label}
+                  </StepLabel>
                 </Step>
               ))}
             </Stepper>
@@ -874,25 +887,37 @@ export function ProfileEditPage() {
 
             {/* Save Buttons at Bottom */}
             {isEdit && (
-              <Box sx={{ position: 'sticky', bottom: 16, zIndex: 10, bgcolor: 'background.paper', p: 2, borderRadius: 2, boxShadow: '0 -4px 20px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Button variant="text" color="inherit" onClick={handleCancelClick} disabled={saveLoading} sx={{ px: 3 }}>
+              <Box sx={{ 
+                position: 'sticky', 
+                bottom: { xs: 0, sm: 16 }, 
+                zIndex: 10, 
+                bgcolor: 'background.paper', 
+                p: 2, 
+                borderRadius: { xs: 0, sm: 2 }, 
+                boxShadow: '0 -4px 20px rgba(0,0,0,0.05)', 
+                display: 'flex', 
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between', 
+                gap: 2 
+              }}>
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: { xs: 'space-between', sm: 'flex-start' }, width: { xs: '100%', sm: 'auto' } }}>
+                  <Button variant="text" color="inherit" onClick={handleCancelClick} disabled={saveLoading} sx={{ px: { xs: 1, sm: 3 } }}>
                     Cancel
                   </Button>
-                  <Button disabled={activeStep === 0} onClick={handleBack} variant="outlined">
-                    Back
-                  </Button>
-                  {activeStep < steps.length - 1 && (
-                    <Button onClick={handleNext} variant="contained" color="primary" sx={{ px: 4 }}>
-                      Next
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button disabled={activeStep === 0} onClick={handleBack} variant="outlined">
+                      Back
                     </Button>
-                  )}
+                    {activeStep < steps.length - 1 && (
+                      <Button onClick={handleNext} variant="contained" color="primary" sx={{ px: { xs: 2, sm: 4 } }}>
+                        Next
+                      </Button>
+                    )}
+                  </Box>
                 </Box>
-                <Box>
-                  <Button type="submit" variant="contained" disabled={saveLoading} className="gradient-primary-btn" sx={{ px: 4 }}>
-                    {saveLoading ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                </Box>
+                <Button type="submit" variant="contained" disabled={saveLoading} className="gradient-primary-btn" sx={{ width: { xs: '100%', sm: 'auto' }, px: 4 }}>
+                  {saveLoading ? 'Saving...' : 'Save Changes'}
+                </Button>
               </Box>
             )}
 
