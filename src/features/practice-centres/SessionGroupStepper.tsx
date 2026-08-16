@@ -75,7 +75,7 @@ export function SessionGroupStepper({ initialGroup, onSave, onCancel }: Props) {
       {!group.specificDate ? (
         <Grid container spacing={1}>
           {DAYS.map((day) => (
-            <Grid key={day} item xs={4} sm={3}>
+            <Grid key={day} size={{ xs: 4, sm: 3 }}>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -121,7 +121,7 @@ export function SessionGroupStepper({ initialGroup, onSave, onCancel }: Props) {
           }}
         >
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 size="small"
@@ -134,7 +134,7 @@ export function SessionGroupStepper({ initialGroup, onSave, onCancel }: Props) {
                 }}
               />
             </Grid>
-            <Grid item xs={6} sm={3}>
+            <Grid size={{ xs: 6, sm: 3 }}>
               <TextField
                 fullWidth
                 size="small"
@@ -149,7 +149,7 @@ export function SessionGroupStepper({ initialGroup, onSave, onCancel }: Props) {
                 }}
               />
             </Grid>
-            <Grid item xs={6} sm={3}>
+            <Grid size={{ xs: 6, sm: 3 }}>
               <TextField
                 fullWidth
                 size="small"
@@ -164,7 +164,7 @@ export function SessionGroupStepper({ initialGroup, onSave, onCancel }: Props) {
                 }}
               />
             </Grid>
-            <Grid item xs={12} sm={2} display="flex" justifyContent="flex-end">
+            <Grid size={{ xs: 12, sm: 2 }} display="flex" justifyContent="flex-end">
               <IconButton
                 color="error"
                 onClick={() => {
