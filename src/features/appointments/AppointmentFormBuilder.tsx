@@ -386,7 +386,6 @@ export const AppointmentFormBuilder: React.FC<AppointmentFormBuilderProps> = ({
                     setActiveStep(3);
                   }
                 }}
-                registrationReturnUrl=""
                 initialMobile={initialMobile || undefined}
                 createdByDoctorId={doctorId}
               />

@@ -24,7 +24,7 @@ import SensorsIcon from '@mui/icons-material/Sensors';
 import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { httpClient } from '../api/httpClient';
 import {
-  getPatientQueue, addPatientQueueTicket, updatePatientQueueTicketStatus,
+  getPatientQueue, addPatientQueueTicket,
   getPatientByMobile, sendPatientOtp, reorderPatientQueue,
   verifyPatientOtp, resendPatientOtp, type PatientQueueTicket, type Patient
 } from '../features/patient-queue/patientQueueApi';
@@ -494,10 +494,6 @@ export const PatientQueue = () => {
     return dates;
   };
   
-  const handleUpdateStatus = async (ticketId: string, status: number) => {
-    if (!selectedCentre) return;
-    try { await updatePatientQueueTicketStatus(ticketId, status); fetchQueue(selectedCentre.id, selectedCentre.doctorId, formatDateLocal(selectedDate!)); } catch {}
-  };
 
   const handleMoveUp = async (index: number) => {
     if (index <= 0 || !selectedCentre) return;

@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   Stack,
-  Link as MuiLink,
 } from '@mui/material';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -43,12 +42,12 @@ export interface PatientRecord {
 
 interface Props {
   onPatientConfirmed: (patient: PatientRecord) => void;
-  registrationReturnUrl: string;
+
   initialMobile?: string; // pre-filled mobile returned from registration
   createdByDoctorId?: string;
 }
 
-export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, initialMobile, createdByDoctorId }: Props) {
+export function PatientLookupStep({ onPatientConfirmed, initialMobile, createdByDoctorId }: Props) {
   const [mobile, setMobile] = useState(initialMobile ?? '');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -346,14 +345,6 @@ export function PatientLookupStep({ onPatientConfirmed, registrationReturnUrl, i
     );
   }
 
-  const buildRegistrationUrl = () => {
-    let url = `#/register/patient?redirect=${encodeURIComponent(registrationReturnUrl)}`;
-    if (mobile.trim()) url += `&mobile=${encodeURIComponent(mobile.trim())}`;
-    if (firstName.trim()) url += `&firstName=${encodeURIComponent(firstName.trim())}`;
-    if (lastName.trim()) url += `&lastName=${encodeURIComponent(lastName.trim())}`;
-    if (nicNumber.trim()) url += `&nicNumber=${encodeURIComponent(nicNumber.trim())}`;
-    return url;
-  };
 
   // ---------- Search input ----------
   return (
