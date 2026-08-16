@@ -53,57 +53,40 @@ export function SessionGroupStepper({ initialGroup, onSave, onCancel }: Props) {
   const renderStep1 = () => (
     <Box sx={{ mt: 2 }}>
       <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-        Select Operating Days or Specific Date
+        Select Operating Days
       </Typography>
-      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-        <Button
-          variant={!group.specificDate ? 'contained' : 'outlined'}
-          onClick={() => setGroup({ ...group, specificDate: undefined })}
-          sx={{ borderRadius: 2 }}
-        >
-          Recurring Days
-        </Button>
-        <Button
-          variant={group.specificDate ? 'contained' : 'outlined'}
-          onClick={() => setGroup({ ...group, daysOfWeek: [], specificDate: new Date().toISOString().split('T')[0] })}
-          sx={{ borderRadius: 2 }}
-        >
-          Specific Date
-        </Button>
-      </Box>
+      <Grid container spacing={1} sx={{ mb: 3 }}>
+        {DAYS.map((day) => (
+          <Grid key={day} size={{ xs: 4, sm: 3 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={group.daysOfWeek.includes(day)}
+                  onChange={(e) => {
+                    const newDays = e.target.checked
+                      ? [...group.daysOfWeek, day]
+                      : group.daysOfWeek.filter((d) => d !== day)
+                    setGroup({ ...group, daysOfWeek: newDays })
+                  }}
+                />
+              }
+              label={day}
+            />
+          </Grid>
+        ))}
+      </Grid>
 
-      {!group.specificDate ? (
-        <Grid container spacing={1}>
-          {DAYS.map((day) => (
-            <Grid key={day} size={{ xs: 4, sm: 3 }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={group.daysOfWeek.includes(day)}
-                    onChange={(e) => {
-                      const newDays = e.target.checked
-                        ? [...group.daysOfWeek, day]
-                        : group.daysOfWeek.filter((d) => d !== day)
-                      setGroup({ ...group, daysOfWeek: newDays })
-                    }}
-                  />
-                }
-                label={day}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      ) : (
-        <TextField
-          type="date"
-          fullWidth
-          label="Specific Date"
-          InputLabelProps={{ shrink: true }}
-          value={group.specificDate}
-          onChange={(e) => setGroup({ ...group, specificDate: e.target.value })}
-          sx={{ mt: 1 }}
-        />
-      )}
+      <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+        Additional Specific Date (Optional)
+      </Typography>
+      <TextField
+        type="date"
+        fullWidth
+        InputLabelProps={{ shrink: true }}
+        value={group.specificDate || ''}
+        onChange={(e) => setGroup({ ...group, specificDate: e.target.value || undefined })}
+        sx={{ mt: 1 }}
+      />
     </Box>
   )
 
