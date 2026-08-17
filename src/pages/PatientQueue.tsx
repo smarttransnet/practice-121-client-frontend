@@ -442,9 +442,11 @@ export const PatientQueue = () => {
   const handleFinalSubmit = async () => {
     if (!verifiedPatient || !selectedDate || !selectedCentre) return;
     
-    // Prevent duplicate patients in the queue for the same day
-    if (queue.some(t => t.patientId === verifiedPatient.id)) {
-      setError("This patient is already in the queue for today.");
+    const cleanSessionId = targetSessionId && targetSessionId !== 'ALL' ? targetSessionId : undefined;
+
+    // Prevent duplicate patients in the queue for the same session
+    if (queue.some(t => t.patientId === verifiedPatient.id && t.status < 4 && (!cleanSessionId || t.sessionId === cleanSessionId))) {
+      setError("This patient is already in the queue for this session.");
       return;
     }
 
@@ -452,7 +454,6 @@ export const PatientQueue = () => {
     setError(null);
     try {
       const rawMobile = verifiedPatient.mobileNumber || patientMobile;
-      const cleanSessionId = targetSessionId && targetSessionId !== 'ALL' ? targetSessionId : undefined;
       await addPatientQueueTicket({
         patientId: verifiedPatient.id,
         patientMobile: normalizeLkMobile(rawMobile) || rawMobile.trim(),
