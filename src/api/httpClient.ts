@@ -31,6 +31,12 @@ httpClient.interceptors.request.use((config) => {
 httpClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/login?session_expired=true'
+      return Promise.reject(error)
+    }
+
     if (error.code === 'ERR_NETWORK' || !error.response) {
       error.isNetworkError = true
       error.userFriendlyMessage = `Unable to connect to backend server (${baseURL}). Please verify your network connection or ensure the API server is running.`

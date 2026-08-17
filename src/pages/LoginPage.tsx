@@ -43,6 +43,15 @@ export function LoginPage() {
   const [simName, setSimName] = useState('Dr. Sunil Perera')
   const [simEmail, setSimEmail] = useState('sunil.perera@example.com')
 
+  // Check for session expired parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('session_expired') === 'true') {
+      setValidationError('Your session has expired. Please log in again.')
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+  }, [])
+
   // Handle parsing returned Google ID Token from URL hash or sessionStorage
   useEffect(() => {
     let idToken: string | null = null
