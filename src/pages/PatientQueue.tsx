@@ -330,7 +330,7 @@ export const PatientQueue = () => {
 
         setSelectedCentre(initial);
         localStorage.setItem('selectedPracticeCentreId', initial.id);
-        setActiveStep(1); // Auto advance to date if loaded
+        // Do not auto-advance; always show centre selection step first.
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load practice centres');
@@ -521,7 +521,7 @@ export const PatientQueue = () => {
   const handleCancelTicket = async (ticketId: string) => {
     if (!window.confirm('Are you sure you want to cancel this ticket?')) return;
     try {
-      await updatePatientQueueTicketStatus(ticketId, 4); // 4 = Cancelled
+      await updatePatientQueueTicketStatus(ticketId, 5); // 5 = Cancelled
       if (selectedCentre && selectedDate) {
         fetchQueue(selectedCentre.id, selectedCentre.doctorId, formatDateLocal(selectedDate));
       }
@@ -689,7 +689,8 @@ export const PatientQueue = () => {
     return (
       <Box>
         {groupsToRender.map(sessionName => {
-          const tickets = groupedQueue[sessionName] || [];
+          const allTickets = groupedQueue[sessionName] || [];
+          const tickets = allTickets.filter(t => t.status !== 5); // Hide cancelled
           if (tickets.length === 0 && selectedSessionFilter === 'ALL') return null;
 
           return (
@@ -697,6 +698,11 @@ export const PatientQueue = () => {
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'primary.main', textTransform: 'uppercase' }}>
                 {sessionName} ({tickets.length} patients)
               </Typography>
+              {sessionName === 'Unassigned / Other' && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2, fontStyle: 'italic', pl: 1 }}>
+                  Patients in this tab are either missing a specific session assignment or belong to a session not scheduled for today.
+                </Typography>
+              )}
               {tickets.length === 0 ? (
                 <Typography variant="body2" color="text.secondary" fontStyle="italic" pl={1}>No patients in this session yet.</Typography>
               ) : tickets.map((t) => {
@@ -827,9 +833,8 @@ export const PatientQueue = () => {
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                      <Box display="flex" alignItems="center" gap={1.5}>
                        <Typography variant="h6" fontWeight={700}>
-                          {selectedDate ? `Queue for ${formatDisplayDate(selectedDate)}` : 'Queue Overview'}
+                          {selectedDate ? `Queue for ${formatDisplayDate(selectedDate)} - ${selectedCentre?.clinicName}` : 'Queue Overview'}
                        </Typography>
-                       <Chip icon={<SensorsIcon fontSize="small" />} label="Live" size="small" color="success" variant="outlined" sx={{ fontWeight: 700 }} />
                      </Box>
                      <IconButton onClick={() => fetchQueue(selectedCentre!.id, selectedCentre!.doctorId, formatDateLocal(selectedDate!))} disabled={!selectedDate}><RefreshIcon /></IconButton>
                   </Box>
@@ -855,6 +860,13 @@ export const PatientQueue = () => {
                     </Box>
                   )}
                   {sessionFilters.length > 1 ? renderQueueTable() : <Typography color="text.secondary" textAlign="center" py={4}>No patients in queue yet.</Typography>}
+                  
+                  {selectedDate && (
+                    <Box mt={3} pt={2} borderTop="1px solid" borderColor="divider" display="flex" alignItems="center" gap={1} justifyContent="center" color="text.secondary">
+                       <SensorsIcon fontSize="small" color="success" />
+                       <Typography variant="caption" fontWeight={600}>Real-time updating queue</Typography>
+                    </Box>
+                  )}
                </Card>
             </Grid>
           </Grid>
