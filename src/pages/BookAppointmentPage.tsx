@@ -23,6 +23,7 @@ interface CentreInfo {
   sessionGroups: {
     id: string;
     daysOfWeek: string[];
+    specificDates?: string[];
     timeBlocks: { id: string; label: string; startTime: string; endTime: string }[];
   }[];
   maxPatients?: number | null;
@@ -71,9 +72,14 @@ export function BookAppointmentPage() {
     if (!selectedDate || !centre?.sessionGroups) return [];
     const dayAbbr = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][selectedDate.getDay()];
     const sessions: { id: string; name: string; timeRange: string }[] = [];
+    
+    const year = selectedDate.getFullYear();
+    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(selectedDate.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
 
     centre.sessionGroups.forEach((group) => {
-      const isDayActive = group.daysOfWeek?.some(d => d.toUpperCase() === dayAbbr);
+      const isDayActive = group.daysOfWeek?.some(d => d.toUpperCase() === dayAbbr) || group.specificDates?.includes(dateString);
       if (isDayActive) {
         if (group.timeBlocks && group.timeBlocks.length > 0) {
           group.timeBlocks.forEach((tb) => {
